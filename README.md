@@ -2,7 +2,7 @@
 
 [简体中文](README_ZH.md)
 
-`Qmgo` is a `MongoDB` `dirver` for `Go` . It is based on [Mongo official driver](https://github.com/mongodb/mongo-go-driver) with better interface design which mainly refer to [mgo](https://github.com/go-mgo/ mgo) (such as the chain call). 
+`Qmgo` is a `MongoDB` `dirver` for `Go` . It is based on [Mongo official driver](https://github.com/mongodb/mongo-go-driver) with better interface design which mainly refer to [mgo](https://github.com/go-mgo/mgo) (such as the chain call). 
 
 Because the interface design of  [Mongo official driver](https://github.com/mongodb/mongo-go-driver) is not friendly enough，and the well-designed driver `mgo` is no longer maintained.
 
