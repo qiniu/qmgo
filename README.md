@@ -53,8 +53,8 @@ After the initialization is successful, please `defer` to close the connection
 ```go
 defer func() {
 if err = cli.Close(ctx); err != nil {
-panic(err)
-}
+        panic(err)
+    }
 }()
 ```
 
