@@ -1,4 +1,4 @@
-module qmgo
+module github.com/qiniu/qmgo
 
 go 1.14
 
