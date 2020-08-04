@@ -7,3 +7,5 @@ services:
   - mongodb
 before_script:
   - sleep 15 # https://docs.travis-ci.com/user/database-setup/#mongodb-does-not-immediately-accept-connections
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
