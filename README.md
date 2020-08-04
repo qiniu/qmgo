@@ -1,5 +1,7 @@
 # Qmgo 
 
+[![Build Status](https://travis-ci.org/jiangz222/qmgo.png?branch=master)](https://travis-ci.org/jiangz222/qmgo)
+
 [简体中文](README_ZH.md)
 
 `Qmgo` is a `MongoDB` `dirver` for `Go` . It is based on [Mongo official driver](https://github.com/mongodb/mongo-go-driver) with better interface design which mainly refer to [mgo](https://github.com/go-mgo/mgo) (such as the chain call). 
