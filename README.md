@@ -66,15 +66,15 @@ Before doing the operation, we first initialize some data:
 type BsonT map[string]interface{}
 
 type UserInfo struct {
-Name string `bson:"name"`
-Age uint16 `bson:"age"`
-Weight uint32 `bson:"weight"`
+    Name string `bson:"name"`
+    Age uint16 `bson:"age"`
+    Weight uint32 `bson:"weight"`
 }
 
 var oneUserInfo = UserInfo{
-Name: "xm",
-Age: 7,
-Weight: 40,
+    Name: "xm",
+    Age: 7,
+    Weight: 40,
 }
 ```
 
