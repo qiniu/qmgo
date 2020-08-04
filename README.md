@@ -1,6 +1,6 @@
 # Qmgo 
 
-[![Build Status](https://travis-ci.org/jiangz222/qmgo.png?branch=master)](https://travis-ci.org/jiangz222/qmgo)
+[![Build Status](https://travis-ci.org/qiniu/qmgo.png?branch=master)](https://travis-ci.org/qiniu/qmgo)
 
 [简体中文](README_ZH.md)
 
