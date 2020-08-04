@@ -1,10 +1,10 @@
 # Qmgo
 
-`Qmgo` 是一款`Go`语言的`MongoDB` `dirver`，它基于[Mongo官方driver](https://github.com/mongodb/mongo-go-driver)开发实现，同时使用了更好的接口设计，其中接口设计主要参考[mgo](https://github.com/go-mgo/mgo)（比如[mgo](https://github.com/go-mgo/mgo)的链式调用）。
+`Qmgo` 是一款`Go`语言的`MongoDB` `dirver`，它基于[Mongo官方driver](https://github.com/mongodb/mongo-go-driver) 开发实现，同时使用更易用的接口设计，主要参考[mgo](https://github.com/go-mgo/mgo) （比如`mgo`的链式调用）。
 
-因为[Mongo官方driver](https://github.com/mongodb/mongo-go-driver)接口设计不够友好，而设计上出色的`driver`[mgo](https://github.com/go-mgo/mgo)，早已不维护。
+- `Qmgo`能让用户以更优雅的姿势使用`MongoDB`的新特性。
 
-所以我们希望`qmgo`能让用户以更优雅的姿势使用`MongoDB`的新特性。同时，也希望`qmgo`是从`mgo`迁移到新`MongoDB driver`的第一选择。
+- `Qmgo`是从`mgo`迁移到新`MongoDB driver`的第一选择，对代码的改动影响最小。
 
 ## 要求
 
