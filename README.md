@@ -22,12 +22,14 @@ The recommended way is to use `go mod` to automatically install dependencies by 
 
 Of course, the following methods are also feasible:
 
-`go get github.com/qiniu/qmgo`
+```
+go get github.com/qiniu/qmgo
+```
 
 ## Usage
 
 - Start, `import` and create a new connection
-
+```
     import(
         "context"
       
@@ -37,7 +39,7 @@ Of course, the following methods are also feasible:
       client, err := qmgo.NewClient(ctx, &qmgo.Config{Uri: "mongodb://localhost:27017"})
     	db := client.Database("class")
     	coll := db.Collection("user")
-
+```
 If your connection points to a fixed database and collection, we recommend using the following more convenient method to initialize the connection. The subsequent operations are based on `cli` and no longer need to care about the database and collection.
 
 ```go
