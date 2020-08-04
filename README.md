@@ -30,15 +30,15 @@ go get github.com/qiniu/qmgo
 
 - Start, `import` and create a new connection
 ```
-    import(
-        "context"
-      
-        "github.com/qiniu/qmgo"
-    )	
-    	ctx := context.Background()
-      client, err := qmgo.NewClient(ctx, &qmgo.Config{Uri: "mongodb://localhost:27017"})
-    	db := client.Database("class")
-    	coll := db.Collection("user")
+import(
+    "context"
+  
+    "github.com/qiniu/qmgo"
+)	
+    ctx := context.Background()
+    client, err := qmgo.NewClient(ctx, &qmgo.Config{Uri: "mongodb://localhost:27017"})
+    db := client.Database("class")
+    coll := db.Collection("user")
 ```
 If your connection points to a fixed database and collection, we recommend using the following more convenient method to initialize the connection. The subsequent operations are based on `cli` and no longer need to care about the database and collection.
 
@@ -109,12 +109,12 @@ err = cli.Remove(ctx, BsonT{"age": 7})
 
 ```go
 // batch insert
-  var batchUserInfoI = []interface{}{
+var batchUserInfoI = []interface{}{
     UserInfo{Name: "wxy", Age: 6, Weight: 20},
     UserInfo{Name: "jZ", Age: 6, Weight: 25},
     UserInfo{Name: "zp", Age: 6, Weight: 30},
     UserInfo{Name: "yxw", Age: 6, Weight: 35},
-  }
+}
 result, err = cli.Collection.InsertMany(ctx, batchUserInfoI)
 ```
 
@@ -151,7 +151,7 @@ How do we do in`go.mongodb.org/mongo-driver`:
 findOptions := options.Find()
 findOptions.SetLimit(7) // set limit
 var sorts bson.D
-  sorts = append(sorts, bson.E{Key: "weight", Value: 1})
+sorts = append(sorts, bson.E{Key: "weight", Value: 1})
 findOptions.SetSort(sorts) // set sort
 
 batch := []UserInfo{}
