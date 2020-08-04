@@ -17,7 +17,9 @@
 
 当然，通过下面方式同样可行：
 
-`go get github.com/qiniu/qmgo`
+```
+go get github.com/qiniu/qmgo
+```
 
 ## Usage
 
@@ -28,10 +30,10 @@ import(
     
     "github.com/qiniu/qmgo"
 )	
-    ctx := context.Background()
-    client, err := qmgo.NewClient(ctx, &qmgo.Config{Uri: "mongodb://localhost:27017"})
-    db := client.Database("class")
-    coll := db.Collection("user")
+ctx := context.Background()
+client, err := qmgo.NewClient(ctx, &qmgo.Config{Uri: "mongodb://localhost:27017"})
+db := client.Database("class")
+coll := db.Collection("user")
       
 ```
 
@@ -46,11 +48,11 @@ cli, err := qmgo.Open(ctx, &qmgo.Config{Uri: "mongodb://localhost:27017", Databa
 在初始化成功后，请`defer`来关闭连接 
 
 ```go
-	defer func() {
-		if err = cli.Close(ctx); err != nil {
-			panic(err)
-		}
-	}()
+defer func() {
+    if err = cli.Close(ctx); err != nil {
+        panic(err)
+    }
+}()
 ```
 
 - 创建索引
@@ -76,7 +78,7 @@ var oneUserInfo = UserInfo{
 创建索引
 
 ```go
-	cli.EnsureIndexes(ctx, []string{"name"}, []string{"age", "name,weight"})
+cli.EnsureIndexes(ctx, []string{"name"}, []string{"age", "name,weight"})
 ```
 
 - 插入一个文档
@@ -90,35 +92,35 @@ result, err := cli.Insert(ctx, oneUserInfo)
 
 ```go
 	// find one document
-  one := UserInfo{}
-  err = cli.Find(ctx, BsonT{"name": oneUserInfo.Name}).One(&one)
+one := UserInfo{}
+err = cli.Find(ctx, BsonT{"name": oneUserInfo.Name}).One(&one)
 ```
 
 - 删除文档
 
 ```go
-	err = cli.Remove(ctx, BsonT{"age": 7})
+err = cli.Remove(ctx, BsonT{"age": 7})
 ```
 
 - 插入多条数据
 
 ```go
-	// batch insert
-  var batchUserInfoI = []interface{}{
+// batch insert
+var batchUserInfoI = []interface{}{
     UserInfo{Name: "wxy", Age: 6, Weight: 20},
     UserInfo{Name: "jZ", Age: 6, Weight: 25},
     UserInfo{Name: "zp", Age: 6, Weight: 30},
     UserInfo{Name: "yxw", Age: 6, Weight: 35},
-  }
-	result, err = cli.Collection.InsertMany(ctx, batchUserInfoI)
+}
+result, err = cli.Collection.InsertMany(ctx, batchUserInfoI)
 ```
 
 - 批量查找、`Sort`和`Limit`
 
 ```go
-	// find all 、sort and limit
-	batch := []UserInfo{}
-	cli.Find(ctx, BsonT{"age": 6}).Sort("weight").Limit(7).All(&batch)
+// find all 、sort and limit
+batch := []UserInfo{}
+cli.Find(ctx, BsonT{"age": 6}).Sort("weight").Limit(7).All(&batch)
 ```
 
 ## 功能
@@ -141,36 +143,32 @@ result, err := cli.Insert(ctx, oneUserInfo)
 
 ```go
 // go.mongodb.org/mongo-driver
-	// find all 、sort and limit
-	findOptions := options.Find()
-	findOptions.SetLimit(7)  // set limit
-	var sorts bson.D
-  sorts = append(sorts, bson.E{Key: "weight", Value: 1})
-	findOptions.SetSort(sorts) // set sort
+// find all 、sort and limit
+findOptions := options.Find()
+findOptions.SetLimit(7)  // set limit
+var sorts bson.D
+sorts = append(sorts, bson.E{Key: "weight", Value: 1})
+findOptions.SetSort(sorts) // set sort
 
-	batch := []UserInfo{}
-	cur, err := coll.Find(ctx, BsonT{"age": 6}, findOptions)
-	cur.All(ctx, &batch)
+batch := []UserInfo{}
+cur, err := coll.Find(ctx, BsonT{"age": 6}, findOptions)
+cur.All(ctx, &batch)
 ```
-
-
 
 `Qmgo`和`mgo`更简单，而且实现相似：
 
 ```go
 // qmgo
-	// find all 、sort and limit
-	batch := []UserInfo{}
-	cli.Find(ctx, BsonT{"age": 6}).Sort("weight").Limit(7).All(&batch)
+// find all 、sort and limit
+batch := []UserInfo{}
+cli.Find(ctx, BsonT{"age": 6}).Sort("weight").Limit(7).All(&batch)
 
 // mgo
-	// find all 、sort and limit
-	coll.Find(BsonT{"age": 6}).Sort("weight").Limit(7).All(&batch)
+// find all 、sort and limit
+coll.Find(BsonT{"age": 6}).Sort("weight").Limit(7).All(&batch)
 ```
 
 ## contributing
 
 非常欢迎您对`Qmgo`的任何贡献，非常感谢您的帮助！
-
-QQ群：
 
