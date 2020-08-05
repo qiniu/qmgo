@@ -43,7 +43,7 @@ coll := db.Collection("user")
 cli, err := qmgo.Open(ctx, &qmgo.Config{Uri: "mongodb://localhost:27017", Database: "class", Coll: "user"})
 ```
 
-***后面都会基于`cli`来举例，如果你使用第一种传统的方式进行初始化，根据上下文，将`cli`替换成`client`、`db`、`coll`即可***
+***后面都会基于`cli`来举例，如果你使用第一种传统的方式进行初始化，根据上下文，将`cli`替换成`client`、`db` 或 `coll`即可***
 
 在初始化成功后，请`defer`来关闭连接 
 
