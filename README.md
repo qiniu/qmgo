@@ -38,10 +38,10 @@ import(
   
     "github.com/qiniu/qmgo"
 )	
-    ctx := context.Background()
-    client, err := qmgo.NewClient(ctx, &qmgo.Config{Uri: "mongodb://localhost:27017"})
-    db := client.Database("class")
-    coll := db.Collection("user")
+ctx := context.Background()
+client, err := qmgo.NewClient(ctx, &qmgo.Config{Uri: "mongodb://localhost:27017"})
+db := client.Database("class")
+coll := db.Collection("user")
 ```
 If your connection points to a fixed database and collection, we recommend using the following more convenient method to initialize the connection. The subsequent operations are based on `cli` and no longer need to care about the database and collection.
 
@@ -69,9 +69,9 @@ Before doing the operation, we first initialize some data:
 type BsonT map[string]interface{}
 
 type UserInfo struct {
-    Name string `bson:"name"`
-    Age uint16 `bson:"age"`
-    Weight uint32 `bson:"weight"`
+	Name   string `bson:"name"`
+	Age    uint16 `bson:"age"`
+	Weight uint32 `bson:"weight"`
 }
 
 var oneUserInfo = UserInfo{
