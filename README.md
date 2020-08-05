@@ -32,7 +32,7 @@ go get github.com/qiniu/qmgo
 ## Usage
 
 - Start, `import` and create a new connection
-```
+```go
 import(
     "context"
   
