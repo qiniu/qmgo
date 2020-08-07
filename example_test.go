@@ -1,11 +1,10 @@
-package example
+package qmgo
 
 import (
 	"context"
 	"errors"
 	"testing"
 
-	"github.com/qiniu/qmgo"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -54,7 +53,7 @@ func TestQmgo(t *testing.T) {
 	ctx := context.Background()
 
 	// create connect
-	cli, err := qmgo.Open(ctx, &qmgo.Config{Uri: URI, Database: DATABASE, Coll: COLL})
+	cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL})
 
 	ast.Nil(err)
 	defer func() {
@@ -92,7 +91,7 @@ func TestQmgo(t *testing.T) {
 	matchStage := bson.D{{"$match", []bson.E{{"weight", bson.D{{"$gt", 30}}}}}}
 	groupStage := bson.D{{"$group", bson.D{{"_id", "$name"}, {"total", bson.D{{"$sum", "$age"}}}}}}
 	var showsWithInfo []bson.M
-	err = cli.Aggregate(context.Background(), qmgo.Pipeline{matchStage, groupStage}).All(&showsWithInfo)
+	err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(&showsWithInfo)
 	ast.Equal(3, len(showsWithInfo))
 	for _, v := range showsWithInfo {
 		if "a1" == v["_id"] {
