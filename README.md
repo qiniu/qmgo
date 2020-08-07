@@ -86,7 +86,7 @@ var oneUserInfo = UserInfo{
 Create index
 
 ```go
-cli.EnsureIndexes(ctx, []string{"_id"}, []string{"age", "name,weight"})
+cli.EnsureIndexes(ctx, []string{}, []string{"age", "name,weight"})
 ```
 
 - Insert a document

@@ -78,7 +78,7 @@ var oneUserInfo = UserInfo{
 创建索引
 
 ```go
-cli.EnsureIndexes(ctx, []string{"_id"}, []string{"age", "name,weight"})
+cli.EnsureIndexes(ctx, []string{}, []string{"age", "name,weight"})
 ```
 
 - 插入一个文档
