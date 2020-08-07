@@ -68,8 +68,6 @@ if err = cli.Close(ctx); err != nil {
 Before doing the operation, we first initialize some data:
 
 ```go
-type bson.M map[string]interface{}
-
 type UserInfo struct {
 	Name   string `bson:"name"`
 	Age    uint16 `bson:"age"`

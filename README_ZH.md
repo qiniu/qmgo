@@ -60,7 +60,6 @@ defer func() {
 做操作前，我们先初始化一些数据：
 
 ```go
-type bson.M map[string]interface{}
 
 type UserInfo struct {
 	Name   string `bson:"name"`
