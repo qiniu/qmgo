@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -22,20 +23,20 @@ func TestCursor(t *testing.T) {
 	id3 := primitive.NewObjectID()
 	id4 := primitive.NewObjectID()
 	docs := []interface{}{
-		M{"_id": id1, "name": "Alice", "age": 18},
-		M{"_id": id2, "name": "Alice", "age": 19},
-		M{"_id": id3, "name": "Lucas", "age": 20},
-		M{"_id": id4, "name": "Lucas", "age": 21},
+		bson.M{"_id": id1, "name": "Alice", "age": 18},
+		bson.M{"_id": id2, "name": "Alice", "age": 19},
+		bson.M{"_id": id3, "name": "Lucas", "age": 20},
+		bson.M{"_id": id4, "name": "Lucas", "age": 21},
 	}
 	cli.InsertMany(context.Background(), docs)
 
 	var res QueryTestItem
 
 	// if query has 1 record，cursor can run Next one time， Next time return false
-	filter1 := M{
+	filter1 := bson.M{
 		"name": "Alice",
 	}
-	projection1 := M{
+	projection1 := bson.M{
 		"name": 0,
 	}
 
@@ -59,7 +60,7 @@ func TestCursor(t *testing.T) {
 	cursor.All(&results)
 	ast.Equal(2, len(results))
 	// can't match record, cursor run Next and return false
-	filter2 := M{
+	filter2 := bson.M{
 		"name": "Lily",
 	}
 

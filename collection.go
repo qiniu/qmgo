@@ -87,7 +87,7 @@ func (c *Collection) UpdateAll(ctx context.Context, filter interface{}, update i
 }
 
 // Remove executes a delete command to delete at most one document from the collection.
-// if filter is M{}，DeleteOne will delete one document in collection
+// if filter is bson.M{}，DeleteOne will delete one document in collection
 // Reference: https://docs.mongodb.com/manual/reference/command/delete/
 func (c *Collection) Remove(ctx context.Context, filter interface{}) (err error) {
 
@@ -103,7 +103,7 @@ func (c *Collection) Remove(ctx context.Context, filter interface{}) (err error)
 }
 
 // DeleteAll executes a delete command to delete documents from the collection.
-// If filter is M{}，all ducuments in Collection will be deleted
+// If filter is bson.M{}，all ducuments in Collection will be deleted
 // Reference: https://docs.mongodb.com/manual/reference/command/delete/
 func (c *Collection) DeleteAll(ctx context.Context, filter interface{}) (result *DeleteResult, err error) {
 

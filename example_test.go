@@ -7,6 +7,7 @@ import (
 
 	"github.com/qiniu/qmgo"
 	"github.com/stretchr/testify/require"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -88,9 +89,9 @@ func TestQmgo(t *testing.T) {
 	ast.Equal(int64(4), count)
 
 	// aggregate
-	matchStage := qmgo.D{{"$match", []qmgo.E{{"weight", qmgo.D{{"$gt", 30}}}}}}
-	groupStage := qmgo.D{{"$group", qmgo.D{{"_id", "$name"}, {"total", qmgo.D{{"$sum", "$age"}}}}}}
-	var showsWithInfo []qmgo.M
+	matchStage := bson.D{{"$match", []bson.E{{"weight", bson.D{{"$gt", 30}}}}}}
+	groupStage := bson.D{{"$group", bson.D{{"_id", "$name"}, {"total", bson.D{{"$sum", "$age"}}}}}}
+	var showsWithInfo []bson.M
 	err = cli.Aggregate(context.Background(), qmgo.Pipeline{matchStage, groupStage}).All(&showsWithInfo)
 	ast.Equal(3, len(showsWithInfo))
 	for _, v := range showsWithInfo {
@@ -139,8 +140,8 @@ func TestOfficialMongoDriver(t *testing.T) {
 	// find all 、sort and limit
 	findOptions := options.Find()
 	findOptions.SetLimit(7)
-	var sorts qmgo.D
-	sorts = append(sorts, qmgo.E{Key: "weight", Value: 1})
+	var sorts bson.D
+	sorts = append(sorts, bson.E{Key: "weight", Value: 1})
 
 	findOptions.SetSort(sorts)
 

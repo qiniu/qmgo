@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -31,9 +32,9 @@ func TestAggregate(t *testing.T) {
 		QueryTestItem{Id: id5, Name: "Lucas", Age: 44},
 	}
 	cli.InsertMany(context.Background(), docs)
-	matchStage := D{{"$match", []E{{"age", D{{"$gt", 11}}}}}}
-	groupStage := D{{"$group", D{{"_id", "$name"}, {"total", D{{"$sum", "$age"}}}}}}
-	var showsWithInfo []M
+	matchStage := bson.D{{"$match", []bson.E{{"age", bson.D{{"$gt", 11}}}}}}
+	groupStage := bson.D{{"$group", bson.D{{"_id", "$name"}, {"total", bson.D{{"$sum", "$age"}}}}}}
+	var showsWithInfo []bson.M
 	// aggregate ALL()
 	err := cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(&showsWithInfo)
 	ast.NoError(err)
@@ -66,7 +67,7 @@ func TestAggregate(t *testing.T) {
 		ast.Error(errors.New("error"), "impossible")
 	}
 	// One()
-	var oneInfo M
+	var oneInfo bson.M
 
 	iter = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage})
 	ast.NotNil(iter)
@@ -94,8 +95,8 @@ func TestAggregate(t *testing.T) {
 	ast.Error(cli.Aggregate(context.Background(), 1).All(&showsWithInfo))
 	ast.Error(cli.Aggregate(context.Background(), 1).One(&showsWithInfo))
 	ast.Error(cli.Aggregate(context.Background(), 1).Iter().Err())
-	matchStage = D{{"$match", []E{{"age", D{{"$gt", 100}}}}}}
-	groupStage = D{{"$group", D{{"_id", "$name"}, {"total", D{{"$sum", "$age"}}}}}}
+	matchStage = bson.D{{"$match", []bson.E{{"age", bson.D{{"$gt", 100}}}}}}
+	groupStage = bson.D{{"$group", bson.D{{"_id", "$name"}, {"total", bson.D{{"$sum", "$age"}}}}}}
 	ast.Error(cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).One(&showsWithInfo))
 
 }

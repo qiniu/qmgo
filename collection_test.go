@@ -2,9 +2,11 @@ package qmgo
 
 import (
 	"context"
-	"github.com/stretchr/testify/require"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func TestCollection_EnsureIndex(t *testing.T) {
@@ -23,7 +25,7 @@ func TestCollection_EnsureIndex(t *testing.T) {
 
 	// check if unique indexs is working
 	var err error
-	doc := M{
+	doc := bson.M{
 		"id1": 1,
 	}
 	_, err = cli.InsertOne(context.Background(), doc)
@@ -50,7 +52,7 @@ func TestCollection_EnsureIndexes(t *testing.T) {
 
 	// check if unique indexs is working
 	var err error
-	doc := M{
+	doc := bson.M{
 		"id1": 1,
 	}
 
@@ -70,7 +72,7 @@ func TestCollection_Insert(t *testing.T) {
 	cli.EnsureIndexes(context.Background(), []string{"name"}, nil)
 
 	var err error
-	doc := M{"_id": primitive.NewObjectID(), "name": "Alice"}
+	doc := bson.M{"_id": primitive.NewObjectID(), "name": "Alice"}
 
 	res, err := cli.InsertOne(context.Background(), doc)
 	ast.NoError(err)
@@ -94,8 +96,8 @@ func TestCollection_InsertMany(t *testing.T) {
 	var err error
 
 	docs := []interface{}{
-		D{{Key: "_id", Value: primitive.NewObjectID()}, {Key: "name", Value: "Alice"}},
-		D{{Key: "_id", Value: primitive.NewObjectID()}, {Key: "name", Value: "Lucas"}},
+		bson.D{{Key: "_id", Value: primitive.NewObjectID()}, {Key: "name", Value: "Alice"}},
+		bson.D{{Key: "_id", Value: primitive.NewObjectID()}, {Key: "name", Value: "Lucas"}},
 	}
 	res, err := cli.InsertMany(context.Background(), docs)
 	ast.NoError(err)
@@ -103,14 +105,14 @@ func TestCollection_InsertMany(t *testing.T) {
 	ast.Equal(2, len(res.InsertedIDs))
 
 	docs2 := []interface{}{
-		D{{Key: "_id", Value: primitive.NewObjectID()}, {Key: "name", Value: "Alice"}},
-		D{{Key: "_id", Value: primitive.NewObjectID()}, {Key: "name", Value: "Lucas"}},
+		bson.D{{Key: "_id", Value: primitive.NewObjectID()}, {Key: "name", Value: "Alice"}},
+		bson.D{{Key: "_id", Value: primitive.NewObjectID()}, {Key: "name", Value: "Lucas"}},
 	}
 	res, err = cli.InsertMany(context.Background(), docs2)
 	ast.Equal(true, IsDup(err))
 	ast.Equal(0, len(res.InsertedIDs))
 
-	docs4 := []M{}
+	docs4 := []bson.M{}
 	res, err = cli.InsertMany(context.Background(), []interface{}{docs4})
 	ast.Error(err)
 	ast.Empty(res)
@@ -128,18 +130,18 @@ func TestCollection_Upsert(t *testing.T) {
 	id1 := primitive.NewObjectID()
 	id2 := primitive.NewObjectID()
 	docs := []interface{}{
-		D{{Key: "_id", Value: id1}, {Key: "name", Value: "Alice"}},
-		D{{Key: "_id", Value: id2}, {Key: "name", Value: "Lucas"}},
+		bson.D{{Key: "_id", Value: id1}, {Key: "name", Value: "Alice"}},
+		bson.D{{Key: "_id", Value: id2}, {Key: "name", Value: "Lucas"}},
 	}
 	_, _ = cli.InsertMany(context.Background(), docs)
 
 	var err error
 
 	// replace already exist
-	filter1 := M{
+	filter1 := bson.M{
 		"name": "Alice",
 	}
-	replacement1 := M{
+	replacement1 := bson.M{
 		"name": "Alice1",
 		"age":  18,
 	}
@@ -152,10 +154,10 @@ func TestCollection_Upsert(t *testing.T) {
 	ast.Equal(nil, res.UpsertedID)
 
 	// not exist
-	filter2 := M{
+	filter2 := bson.M{
 		"name": "Lily",
 	}
-	replacement2 := M{
+	replacement2 := bson.M{
 		"name": "Lily",
 		"age":  20,
 	}
@@ -168,7 +170,7 @@ func TestCollection_Upsert(t *testing.T) {
 	ast.NotNil(res.UpsertedID)
 
 	// filter is nil or wrong BSON Document format
-	replacement3 := M{
+	replacement3 := bson.M{
 		"name": "Geek",
 		"age":  21,
 	}
@@ -181,7 +183,7 @@ func TestCollection_Upsert(t *testing.T) {
 	ast.Empty(res)
 
 	// replacement is nil or wrong BSON Document format
-	filter4 := M{
+	filter4 := bson.M{
 		"name": "Geek",
 	}
 	res, err = cli.Upsert(context.Background(), filter4, nil)
@@ -205,18 +207,18 @@ func TestCollection_Update(t *testing.T) {
 	id1 := primitive.NewObjectID()
 	id2 := primitive.NewObjectID()
 	docs := []interface{}{
-		D{{Key: "_id", Value: id1}, {Key: "name", Value: "Alice"}},
-		D{{Key: "_id", Value: id2}, {Key: "name", Value: "Lucas"}},
+		bson.D{{Key: "_id", Value: id1}, {Key: "name", Value: "Alice"}},
+		bson.D{{Key: "_id", Value: id2}, {Key: "name", Value: "Lucas"}},
 	}
 	_, _ = cli.InsertMany(context.Background(), docs)
 
 	var err error
 	// update already exist record
-	filter1 := M{
+	filter1 := bson.M{
 		"name": "Alice",
 	}
-	update1 := M{
-		"$set": M{
+	update1 := bson.M{
+		"$set": bson.M{
 			"name": "Alice1",
 			"age":  18,
 		},
@@ -225,11 +227,11 @@ func TestCollection_Update(t *testing.T) {
 	ast.NoError(err)
 
 	// error when not exist
-	filter2 := M{
+	filter2 := bson.M{
 		"name": "Lily",
 	}
-	update2 := M{
-		"$set": M{
+	update2 := bson.M{
+		"$set": bson.M{
 			"name": "Lily",
 			"age":  20,
 		},
@@ -238,7 +240,7 @@ func TestCollection_Update(t *testing.T) {
 	ast.Equal(err, ERR_NO_SUCH_RECORD)
 
 	// filter is nil or wrong BSON Document format
-	update3 := M{
+	update3 := bson.M{
 		"name": "Geek",
 		"age":  21,
 	}
@@ -249,7 +251,7 @@ func TestCollection_Update(t *testing.T) {
 	ast.Error(err)
 
 	// update is nil or wrong BSON Document format
-	filter4 := M{
+	filter4 := bson.M{
 		"name": "Geek",
 	}
 	err = cli.Update(context.Background(), filter4, nil)
@@ -272,19 +274,19 @@ func TestCollection_UpdateAll(t *testing.T) {
 	id2 := primitive.NewObjectID()
 	id3 := primitive.NewObjectID()
 	docs := []interface{}{
-		D{{Key: "_id", Value: id1}, {Key: "name", Value: "Alice"}, {Key: "age", Value: 18}},
-		D{{Key: "_id", Value: id2}, {Key: "name", Value: "Alice"}, {Key: "age", Value: 19}},
-		D{{Key: "_id", Value: id3}, {Key: "name", Value: "Lucas"}, {Key: "age", Value: 20}},
+		bson.D{{Key: "_id", Value: id1}, {Key: "name", Value: "Alice"}, {Key: "age", Value: 18}},
+		bson.D{{Key: "_id", Value: id2}, {Key: "name", Value: "Alice"}, {Key: "age", Value: 19}},
+		bson.D{{Key: "_id", Value: id3}, {Key: "name", Value: "Lucas"}, {Key: "age", Value: 20}},
 	}
 	_, _ = cli.InsertMany(context.Background(), docs)
 
 	var err error
 	// update already exist record
-	filter1 := M{
+	filter1 := bson.M{
 		"name": "Alice",
 	}
-	update1 := M{
-		"$set": M{
+	update1 := bson.M{
+		"$set": bson.M{
 			"age": 33,
 		},
 	}
@@ -297,11 +299,11 @@ func TestCollection_UpdateAll(t *testing.T) {
 	ast.Equal(nil, res.UpsertedID)
 
 	// if record is not exist，err is nil， MatchedCount in res is 0
-	filter2 := M{
+	filter2 := bson.M{
 		"name": "Lily",
 	}
-	update2 := M{
-		"$set": M{
+	update2 := bson.M{
+		"$set": bson.M{
 			"age": 22,
 		},
 	}
@@ -311,7 +313,7 @@ func TestCollection_UpdateAll(t *testing.T) {
 	ast.Equal(int64(0), res.MatchedCount)
 
 	// filter is nil or wrong BSON Document format
-	update3 := M{
+	update3 := bson.M{
 		"name": "Geek",
 		"age":  21,
 	}
@@ -324,7 +326,7 @@ func TestCollection_UpdateAll(t *testing.T) {
 	ast.Nil(res)
 
 	// update is nil or wrong BSON Document format
-	filter4 := M{
+	filter4 := bson.M{
 		"name": "Geek",
 	}
 	res, err = cli.UpdateAll(context.Background(), filter4, nil)
@@ -349,15 +351,15 @@ func TestCollection_Remove(t *testing.T) {
 	id2 := primitive.NewObjectID()
 	id3 := primitive.NewObjectID()
 	docs := []interface{}{
-		D{{Key: "_id", Value: id1}, {Key: "name", Value: "Alice"}, {Key: "age", Value: 18}},
-		D{{Key: "_id", Value: id2}, {Key: "name", Value: "Alice"}, {Key: "age", Value: 19}},
-		D{{Key: "_id", Value: id3}, {Key: "name", Value: "Lucas"}, {Key: "age", Value: 20}},
+		bson.D{{Key: "_id", Value: id1}, {Key: "name", Value: "Alice"}, {Key: "age", Value: 18}},
+		bson.D{{Key: "_id", Value: id2}, {Key: "name", Value: "Alice"}, {Key: "age", Value: 19}},
+		bson.D{{Key: "_id", Value: id3}, {Key: "name", Value: "Lucas"}, {Key: "age", Value: 20}},
 	}
 	_, _ = cli.InsertMany(context.Background(), docs)
 
 	var err error
 	// delete record: name = "Alice" , after that, expect one name = "Alice" record
-	filter1 := M{
+	filter1 := bson.M{
 		"name": "Alice",
 	}
 	err = cli.Remove(context.Background(), filter1)
@@ -368,14 +370,14 @@ func TestCollection_Remove(t *testing.T) {
 	ast.Equal(int64(1), cnt)
 
 	// delete not match  record , report err
-	filter2 := M{
+	filter2 := bson.M{
 		"name": "Lily",
 	}
 	err = cli.Remove(context.Background(), filter2)
 	ast.Equal(err, ERR_NO_SUCH_RECORD)
 
-	// filter is M{}，delete one document
-	filter3 := M{}
+	// filter is bson.M{}，delete one document
+	filter3 := bson.M{}
 	preCnt, err := cli.Find(context.Background(), filter3).Count()
 	ast.Equal(int64(2), preCnt)
 
@@ -407,16 +409,16 @@ func TestCollection_DeleteAll(t *testing.T) {
 	id3 := primitive.NewObjectID()
 	id4 := primitive.NewObjectID()
 	docs := []interface{}{
-		D{{Key: "_id", Value: id1}, {Key: "name", Value: "Alice"}, {Key: "age", Value: 18}},
-		D{{Key: "_id", Value: id2}, {Key: "name", Value: "Alice"}, {Key: "age", Value: 19}},
-		D{{Key: "_id", Value: id3}, {Key: "name", Value: "Lucas"}, {Key: "age", Value: 20}},
-		D{{Key: "_id", Value: id4}, {Key: "name", Value: "Rocket"}, {Key: "age", Value: 23}},
+		bson.D{{Key: "_id", Value: id1}, {Key: "name", Value: "Alice"}, {Key: "age", Value: 18}},
+		bson.D{{Key: "_id", Value: id2}, {Key: "name", Value: "Alice"}, {Key: "age", Value: 19}},
+		bson.D{{Key: "_id", Value: id3}, {Key: "name", Value: "Lucas"}, {Key: "age", Value: 20}},
+		bson.D{{Key: "_id", Value: id4}, {Key: "name", Value: "Rocket"}, {Key: "age", Value: 23}},
 	}
 	_, _ = cli.InsertMany(context.Background(), docs)
 
 	var err error
 	// delete record: name = "Alice" ,after that, expect - record : name = "Alice"
-	filter1 := M{
+	filter1 := bson.M{
 		"name": "Alice",
 	}
 	res, err := cli.DeleteAll(context.Background(), filter1)
@@ -429,7 +431,7 @@ func TestCollection_DeleteAll(t *testing.T) {
 	ast.Equal(int64(0), cnt)
 
 	// delete with not match filter， DeletedCount in res is 0
-	filter2 := M{
+	filter2 := bson.M{
 		"name": "Lily",
 	}
 	res, err = cli.DeleteAll(context.Background(), filter2)
@@ -437,8 +439,8 @@ func TestCollection_DeleteAll(t *testing.T) {
 	ast.NotNil(res)
 	ast.Equal(int64(0), res.DeletedCount)
 
-	// filter is M{}，delete all docs
-	filter3 := M{}
+	// filter is bson.M{}，delete all docs
+	filter3 := bson.M{}
 	preCnt, err := cli.Find(context.Background(), filter3).Count()
 	ast.NoError(err)
 	ast.Equal(int64(2), preCnt)
@@ -479,7 +481,7 @@ func TestCollection_DeleteAll(t *testing.T) {
 //			defer wg.Done()
 //			var err error
 //			var res *mongo.InsertResult
-//			doc := M{"_id": primitive.NewObjectID(), "name": "Alice_" + strconv.Itoa(i)}
+//			doc := bson.M{"_id": primitive.NewObjectID(), "name": "Alice_" + strconv.Itoa(i)}
 //
 //			res, err = cli.Insert(context.Background(), doc)
 //			ast.NoError(err)
@@ -489,7 +491,7 @@ func TestCollection_DeleteAll(t *testing.T) {
 //		}(i)
 //	}
 //	wg.Wait()
-//	count, err := cli.Find(context.Background(), M{}).Count()
+//	count, err := cli.Find(context.Background(), bson.M{}).Count()
 //	ast.Equal(nil, err)
 //	ast.Equal(dataNum, int(count))
 //}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -25,13 +26,13 @@ type Query struct {
 // When multiple sort fields are passed in at the same time, they are arranged in the order in which the fields are passed in.
 // For example, {"age", "-name"}, first sort by age in ascending order, then sort by name in descending order
 func (q *Query) Sort(fields ...string) QueryI {
-	var sorts D
+	var sorts bson.D
 	for _, field := range fields {
 		key, n := SplitSortField(field)
 		if key == "" {
 			panic("Sort: empty field name")
 		}
-		sorts = append(sorts, E{Key: key, Value: n})
+		sorts = append(sorts, bson.E{Key: key, Value: n})
 	}
 
 	return &Query{
@@ -46,8 +47,8 @@ func (q *Query) Sort(fields ...string) QueryI {
 }
 
 // Select is used to determine which fields are displayed or not displayed in the returned results
-// Format: M{"age": 1} means that only the age field is displayed
-// M{"age": 0} means to display other fields except age
+// Format: bson.M{"age": 1} means that only the age field is displayed
+// bson.M{"age": 0} means to display other fields except age
 // When _id is not displayed and is set to 0, it will be returned to display
 func (q *Query) Select(projection interface{}) QueryI {
 	return &Query{

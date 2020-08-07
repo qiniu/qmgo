@@ -2,10 +2,12 @@ package qmgo
 
 import (
 	"context"
+
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type Pipeline []D
+type Pipeline []bson.D
 
 type Aggregate struct {
 	ctx        context.Context
@@ -13,6 +15,7 @@ type Aggregate struct {
 	collection *mongo.Collection
 }
 
+// All iterates the cursor from aggregate and decodes each document into results.
 func (a *Aggregate) All(results interface{}) error {
 	c, err := a.collection.Aggregate(a.ctx, a.pipeline)
 	if err != nil {
@@ -21,6 +24,7 @@ func (a *Aggregate) All(results interface{}) error {
 	return c.All(a.ctx, results)
 }
 
+// One iterates the cursor from aggregate and decodes current document into result.
 func (a *Aggregate) One(result interface{}) error {
 	c, err := a.collection.Aggregate(a.ctx, a.pipeline)
 	if err != nil {
@@ -38,6 +42,7 @@ func (a *Aggregate) One(result interface{}) error {
 	return err
 }
 
+// Iter return the cursor after aggregate
 func (a *Aggregate) Iter() CursorI {
 	c, err := a.collection.Aggregate(a.ctx, a.pipeline)
 	return &Cursor{
