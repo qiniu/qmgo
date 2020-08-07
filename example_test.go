@@ -63,7 +63,7 @@ func TestQmgo(t *testing.T) {
 	}()
 	defer cli.DropDatabase(ctx)
 
-	cli.EnsureIndexes(ctx, []string{"_id"}, []string{"age", "name,weight"})
+	cli.EnsureIndexes(ctx, []string{}, []string{"age", "name,weight"})
 	// insert one document
 	_, err = cli.InsertOne(ctx, oneUserInfo)
 	ast.Nil(err)
