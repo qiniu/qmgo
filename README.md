@@ -68,7 +68,7 @@ if err = cli.Close(ctx); err != nil {
 Before doing the operation, we first initialize some data:
 
 ```go
-type BsonT map[string]interface{}
+type bson.M map[string]interface{}
 
 type UserInfo struct {
 	Name   string `bson:"name"`
@@ -101,13 +101,13 @@ result, err := cli.Insert(ctx, oneUserInfo)
 ```go
 // find one document
   one := UserInfo{}
-  err = cli.Find(ctx, BsonT{"name": oneUserInfo.Name}).One(&one)
+  err = cli.Find(ctx, bson.M{"name": oneUserInfo.Name}).One(&one)
 ```
 
 - Delete documents
 
 ```go
-err = cli.Remove(ctx, BsonT{"age": 7})
+err = cli.Remove(ctx, bson.M{"age": 7})
 ```
 
 - Insert multiple data
@@ -129,18 +129,18 @@ result, err = cli.Collection.InsertMany(ctx, batchUserInfoI)
 ```go
 // find all, sort and limit
 batch := []UserInfo{}
-cli.Find(ctx, BsonT{"age": 6}).Sort("weight").Limit(7).All(&batch)
+cli.Find(ctx, bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 ```
 - Count
 ````go
-count, err := cli.Find(ctx, BsonT{"age": 6}).Count()
+count, err := cli.Find(ctx, bson.M{"age": 6}).Count()
 ````
 - Aggregate
 ```go
-matchStage := qmgo.D{{"$match", []qmgo.E{{"weight", qmgo.D{{"$gt", 30}}}}}}
-groupStage := qmgo.D{{"$group", qmgo.D{{"_id", "$name"}, {"total", qmgo.D{{"$sum", "$age"}}}}}}
-var showsWithInfo []qmgo.M
-err = cli.Aggregate(context.Background(), qmgo.Pipeline{matchStage, groupStage}).All(&showsWithInfo)
+matchStage := bson.D{{"$match", []bson.E{{"weight", bson.D{{"$gt", 30}}}}}}
+groupStage := bson.D{{"$group", bson.D{{"_id", "$name"}, {"total", bson.D{{"$sum", "$age"}}}}}}
+var showsWithInfo []bson.M
+err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(&showsWithInfo)
 ```
 ## Feature
 - CRUD to documents
@@ -165,7 +165,7 @@ sorts = append(sorts, E{Key: "weight", Value: 1})
 findOptions.SetSort(sorts) // set sort
 
 batch := []UserInfo{}
-cur, err := coll.Find(ctx, BsonT{"age": 6}, findOptions)
+cur, err := coll.Find(ctx, bson.M{"age": 6}, findOptions)
 cur.All(ctx, &batch)
 ```
 
@@ -175,11 +175,11 @@ How do we do in `Qmgo` and `mgo`:
 // qmgo
 // find all, sort and limit
 batch := []UserInfo{}
-cli.Find(ctx, BsonT{"age": 6}).Sort("weight").Limit(7).All(&batch)
+cli.Find(ctx, bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 
 // mgo
 // find all, sort and limit
-coll.Find(BsonT{"age": 6}).Sort("weight").Limit(7).All(&batch)
+coll.Find(bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 ```
 
 
