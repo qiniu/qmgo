@@ -2,17 +2,12 @@ package qmgo
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"
-)
-
-var (
-	NoSuchRecordErr = errors.New("no such record")
 )
 
 // Collection
@@ -73,7 +68,7 @@ func (c *Collection) Update(ctx context.Context, filter interface{}, update inte
 	}
 
 	if res.MatchedCount == 0 {
-		err = NoSuchRecordErr
+		err = ERR_NO_SUCH_RECORD
 	}
 
 	return err
@@ -101,7 +96,7 @@ func (c *Collection) Remove(ctx context.Context, filter interface{}) (err error)
 		return err
 	}
 	if res.DeletedCount == 0 {
-		err = NoSuchRecordErr
+		err = ERR_NO_SUCH_RECORD
 	}
 
 	return err
@@ -117,6 +112,15 @@ func (c *Collection) DeleteAll(ctx context.Context, filter interface{}) (result 
 		result = &DeleteResult{DeletedCount: res.DeletedCount}
 	}
 	return
+}
+
+// Aggregate executes an aggregate command against the collection and returns a AggregateI to get resulting documents.
+func (c *Collection) Aggregate(ctx context.Context, pipeline interface{}) AggregateI {
+	return &Aggregate{
+		ctx:        ctx,
+		collection: c.collection,
+		pipeline:   pipeline,
+	}
 }
 
 // ensureIndex create multiple indexes on the collection and returns the names of

@@ -86,7 +86,7 @@ var oneUserInfo = UserInfo{
 Create index
 
 ```go
-cli.EnsureIndexes(ctx, []string{"name"}, []string{"age", "name,weight"})
+cli.EnsureIndexes(ctx, []string{}, []string{"age", "name,weight"})
 ```
 
 - Insert a document
@@ -113,36 +113,41 @@ err = cli.Remove(ctx, BsonT{"age": 7})
 - Insert multiple data
 
 ```go
-// batch insert
+// multiple insert
 var batchUserInfoI = []interface{}{
-    UserInfo{Name: "wxy", Age: 6, Weight: 20},
-    UserInfo{Name: "jZ", Age: 6, Weight: 25},
-    UserInfo{Name: "zp", Age: 6, Weight: 30},
-    UserInfo{Name: "yxw", Age: 6, Weight: 35},
+	UserInfo{Name: "a1", Age: 6, Weight: 20},
+	UserInfo{Name: "b2", Age: 6, Weight: 25},
+	UserInfo{Name: "c3", Age: 6, Weight: 30},
+	UserInfo{Name: "d4", Age: 6, Weight: 35},
+	UserInfo{Name: "a1", Age: 7, Weight: 40},
+	UserInfo{Name: "a1", Age: 8, Weight: 45},
 }
 result, err = cli.Collection.InsertMany(ctx, batchUserInfoI)
 ```
 
 - Search all, sort and limit
-
 ```go
 // find all, sort and limit
 batch := []UserInfo{}
 cli.Find(ctx, BsonT{"age": 6}).Sort("weight").Limit(7).All(&batch)
 ```
-
+- Count
+````go
+count, err := cli.Find(ctx, BsonT{"age": 6}).Count()
+````
+- Aggregate
+```go
+matchStage := qmgo.D{{"$match", []qmgo.E{{"weight", qmgo.D{{"$gt", 30}}}}}}
+groupStage := qmgo.D{{"$group", qmgo.D{{"_id", "$name"}, {"total", qmgo.D{{"$sum", "$age"}}}}}}
+var showsWithInfo []qmgo.M
+err = cli.Aggregate(context.Background(), qmgo.Pipeline{matchStage, groupStage}).All(&showsWithInfo)
+```
 ## Feature
-
-- Supported
-  - CRUD to documents
-  - Create indexes
-  - Sort、limit、count
-- TODO
-  - Transaction
-  - Aggregate
-  - Options for every operation
-
-
+- CRUD to documents
+- Create indexes
+- Sort、limit、count、select
+- Cursor
+- Aggregate
 
 ## `qmgo` vs `mgo` vs `go.mongodb.org/mongo-driver`
 
@@ -155,8 +160,8 @@ How do we do in`go.mongodb.org/mongo-driver`:
 // find all, sort and limit
 findOptions := options.Find()
 findOptions.SetLimit(7) // set limit
-var sorts bson.D
-sorts = append(sorts, bson.E{Key: "weight", Value: 1})
+var sorts D
+sorts = append(sorts, E{Key: "weight", Value: 1})
 findOptions.SetSort(sorts) // set sort
 
 batch := []UserInfo{}
