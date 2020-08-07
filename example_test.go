@@ -17,8 +17,6 @@ const (
 	COLL     = "user"
 )
 
-type BsonT map[string]interface{}
-
 type UserInfo struct {
 	Name   string `bson:"name"`
 	Age    uint16 `bson:"age"`
@@ -70,7 +68,7 @@ func TestQmgo(t *testing.T) {
 
 	// find one document
 	one := UserInfo{}
-	err = cli.Find(ctx, BsonT{"name": oneUserInfo.Name}).One(&one)
+	err = cli.Find(ctx, bson.M{"name": oneUserInfo.Name}).One(&one)
 	ast.Nil(err)
 	ast.Equal(oneUserInfo, one)
 
@@ -80,10 +78,10 @@ func TestQmgo(t *testing.T) {
 
 	// find all 、sort and limit
 	batch := []UserInfo{}
-	cli.Find(ctx, BsonT{"age": 6}).Sort("weight").Limit(7).All(&batch)
+	cli.Find(ctx, bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 	ast.Equal(4, len(batch))
 
-	count, err := cli.Find(ctx, BsonT{"age": 6}).Count()
+	count, err := cli.Find(ctx, bson.M{"age": 6}).Count()
 	ast.NoError(err)
 	ast.Equal(int64(4), count)
 
@@ -105,7 +103,7 @@ func TestQmgo(t *testing.T) {
 		ast.Error(errors.New("error"), "impossible")
 	}
 	//remove
-	err = cli.Remove(ctx, BsonT{"age": 7})
+	err = cli.Remove(ctx, bson.M{"age": 7})
 	ast.Nil(err)
 }
 
@@ -129,7 +127,7 @@ func TestOfficialMongoDriver(t *testing.T) {
 
 	// find one document
 	one := UserInfo{}
-	err = coll.FindOne(ctx, BsonT{"name": oneUserInfo.Name}).Decode(&one)
+	err = coll.FindOne(ctx, bson.M{"name": oneUserInfo.Name}).Decode(&one)
 	ast.Nil(err)
 
 	// batch insert
@@ -144,6 +142,6 @@ func TestOfficialMongoDriver(t *testing.T) {
 
 	findOptions.SetSort(sorts)
 
-	_, err = coll.Find(ctx, BsonT{"age": 6}, findOptions)
+	_, err = coll.Find(ctx, bson.M{"age": 6}, findOptions)
 	ast.Nil(err)
 }
