@@ -20,6 +20,8 @@ type CursorI interface {
 	Next(result interface{}) bool
 	Close() error
 	Err() error
+	All(reuslts interface{}) error
+	//ID() int64
 }
 
 // QueryI Query interface
@@ -32,5 +34,11 @@ type QueryI interface {
 	All(result interface{}) error
 	Count() (n int64, err error)
 	Distinct(key string, result interface{}) error
-	Cursor() (CursorI, error)
+	Cursor() CursorI
+}
+
+type AggregateI interface {
+	All(results interface{}) error
+	One(result interface{}) error
+	Iter() CursorI
 }

@@ -2,20 +2,11 @@ package qmgo
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"reflect"
 
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-)
-
-var (
-	ERR_QUERY_NOT_SLICE_POINTER         = errors.New("result argument must be a pointer to a slice")
-	ERR_QUERY_NOT_SLICE_TYPE            = errors.New("result argument must be a slice address")
-	ERR_QUERY_RESULT_TYPE_INCONSISTEN   = errors.New("result type is not equal mongodb value type")
-	ERR_QUERY_RESULT_VAL_CAN_NOT_CHANGE = errors.New("the value of result can not be changed")
 )
 
 // Query
@@ -34,13 +25,13 @@ type Query struct {
 // When multiple sort fields are passed in at the same time, they are arranged in the order in which the fields are passed in.
 // For example, {"age", "-name"}, first sort by age in ascending order, then sort by name in descending order
 func (q *Query) Sort(fields ...string) QueryI {
-	var sorts bson.D
+	var sorts D
 	for _, field := range fields {
 		key, n := SplitSortField(field)
 		if key == "" {
 			panic("Sort: empty field name")
 		}
-		sorts = append(sorts, bson.E{Key: key, Value: n})
+		sorts = append(sorts, E{Key: key, Value: n})
 	}
 
 	return &Query{
@@ -55,8 +46,8 @@ func (q *Query) Sort(fields ...string) QueryI {
 }
 
 // Select is used to determine which fields are displayed or not displayed in the returned results
-// Format: bson.M{"age": 1} means that only the age field is displayed
-// bson.M{"age": 0} means to display other fields except age
+// Format: M{"age": 1} means that only the age field is displayed
+// M{"age": 0} means to display other fields except age
 // When _id is not displayed and is set to 0, it will be returned to display
 func (q *Query) Select(projection interface{}) QueryI {
 	return &Query{
@@ -145,15 +136,12 @@ func (q *Query) All(result interface{}) error {
 
 	cursor, err = q.collection.Find(q.ctx, q.filter, opt)
 
-	if err != nil {
-		return err
+	c := Cursor{
+		ctx:    q.ctx,
+		cursor: cursor,
+		err:    err,
 	}
-	if err_ := cursor.Err(); err_ != nil {
-		return err_
-	}
-
-	err = cursor.All(q.ctx, result)
-	return err
+	return c.All(result)
 }
 
 // Count count the number of eligible entries
@@ -219,7 +207,7 @@ func (q *Query) Distinct(key string, result interface{}) error {
 
 // Cursor gets a Cursor object, which can be used to traverse the query result set
 // After obtaining the CursorI object, you should actively call the Close interface to close the cursor
-func (q *Query) Cursor() (CursorI, error) {
+func (q *Query) Cursor() CursorI {
 	opt := options.Find()
 
 	if q.sort != nil {
@@ -238,12 +226,9 @@ func (q *Query) Cursor() (CursorI, error) {
 	var err error
 	var cur *mongo.Cursor
 	cur, err = q.collection.Find(q.ctx, q.filter, opt)
-	if err != nil {
-		return nil, err
-	}
-
 	return &Cursor{
 		ctx:    q.ctx,
 		cursor: cur,
-	}, nil
+		err:    err,
+	}
 }

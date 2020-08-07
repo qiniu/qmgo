@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -32,19 +31,19 @@ func TestQuery_One(t *testing.T) {
 	id2 := primitive.NewObjectID()
 	id3 := primitive.NewObjectID()
 	docs := []interface{}{
-		bson.D{{Key: "_id", Value: id1}, {Key: "name", Value: "Alice"}, {Key: "age", Value: 18}},
-		bson.D{{Key: "_id", Value: id2}, {Key: "name", Value: "Alice"}, {Key: "age", Value: 19}},
-		bson.D{{Key: "_id", Value: id3}, {Key: "name", Value: "Lucas"}, {Key: "age", Value: 20}},
+		D{{Key: "_id", Value: id1}, {Key: "name", Value: "Alice"}, {Key: "age", Value: 18}},
+		D{{Key: "_id", Value: id2}, {Key: "name", Value: "Alice"}, {Key: "age", Value: 19}},
+		D{{Key: "_id", Value: id3}, {Key: "name", Value: "Lucas"}, {Key: "age", Value: 20}},
 	}
 	_, _ = cli.InsertMany(context.Background(), docs)
 
 	var err error
 	var res QueryTestItem
 
-	filter1 := bson.M{
+	filter1 := M{
 		"name": "Alice",
 	}
-	projection1 := bson.M{
+	projection1 := M{
 		"age": 0,
 	}
 
@@ -54,7 +53,7 @@ func TestQuery_One(t *testing.T) {
 	ast.Equal("Alice", res.Name)
 
 	res = QueryTestItem{}
-	filter2 := bson.M{
+	filter2 := M{
 		"name": "Lily",
 	}
 
@@ -62,9 +61,9 @@ func TestQuery_One(t *testing.T) {
 	ast.Error(err)
 	ast.Empty(res)
 
-	// filter is bson.M{}，match all and return one
+	// filter is M{}，match all and return one
 	res = QueryTestItem{}
-	filter3 := bson.M{}
+	filter3 := M{}
 
 	err = cli.Find(context.Background(), filter3).One(&res)
 	ast.NoError(err)
@@ -104,20 +103,20 @@ func TestQuery_All(t *testing.T) {
 	id3 := primitive.NewObjectID()
 	id4 := primitive.NewObjectID()
 	docs := []interface{}{
-		bson.M{"_id": id1, "name": "Alice", "age": 18},
-		bson.M{"_id": id2, "name": "Alice", "age": 19},
-		bson.M{"_id": id3, "name": "Lucas", "age": 20},
-		bson.M{"_id": id4, "name": "Lucas", "age": 21},
+		M{"_id": id1, "name": "Alice", "age": 18},
+		M{"_id": id2, "name": "Alice", "age": 19},
+		M{"_id": id3, "name": "Lucas", "age": 20},
+		M{"_id": id4, "name": "Lucas", "age": 21},
 	}
 	_, _ = cli.InsertMany(context.Background(), docs)
 
 	var err error
 	var res []QueryTestItem
 
-	filter1 := bson.M{
+	filter1 := M{
 		"name": "Alice",
 	}
-	projection1 := bson.M{
+	projection1 := M{
 		"name": 0,
 	}
 
@@ -126,7 +125,7 @@ func TestQuery_All(t *testing.T) {
 	ast.Equal(1, len(res))
 
 	res = make([]QueryTestItem, 0)
-	filter2 := bson.M{
+	filter2 := M{
 		"name": "Lily",
 	}
 
@@ -134,9 +133,9 @@ func TestQuery_All(t *testing.T) {
 	ast.NoError(err)
 	ast.Empty(res)
 
-	// filter is bson.M{}, which means to match all, will return all records in the collection
+	// filter is M{}, which means to match all, will return all records in the collection
 	res = make([]QueryTestItem, 0)
-	filter3 := bson.M{}
+	filter3 := M{}
 
 	err = cli.Find(context.Background(), filter3).All(&res)
 	ast.NoError(err)
@@ -178,17 +177,17 @@ func TestQuery_Count(t *testing.T) {
 	id3 := primitive.NewObjectID()
 	id4 := primitive.NewObjectID()
 	docs := []interface{}{
-		bson.M{"_id": id1, "name": "Alice", "age": 18},
-		bson.M{"_id": id2, "name": "Alice", "age": 19},
-		bson.M{"_id": id3, "name": "Lucas", "age": 20},
-		bson.M{"_id": id4, "name": "Lucas", "age": 21},
+		M{"_id": id1, "name": "Alice", "age": 18},
+		M{"_id": id2, "name": "Alice", "age": 19},
+		M{"_id": id3, "name": "Lucas", "age": 20},
+		M{"_id": id4, "name": "Lucas", "age": 21},
 	}
 	_, _ = cli.InsertMany(context.Background(), docs)
 
 	var err error
 	var cnt int64
 
-	filter1 := bson.M{
+	filter1 := M{
 		"name": "Alice",
 	}
 
@@ -196,7 +195,7 @@ func TestQuery_Count(t *testing.T) {
 	ast.NoError(err)
 	ast.Equal(int64(1), cnt)
 
-	filter2 := bson.M{
+	filter2 := M{
 		"name": "Lily",
 	}
 
@@ -204,7 +203,7 @@ func TestQuery_Count(t *testing.T) {
 	ast.NoError(err)
 	ast.Zero(cnt)
 
-	filter3 := bson.M{}
+	filter3 := M{}
 
 	cnt, err = cli.Find(context.Background(), filter3).Count()
 	ast.NoError(err)
@@ -230,10 +229,10 @@ func TestQuery_Skip(t *testing.T) {
 	id3 := primitive.NewObjectID()
 	id4 := primitive.NewObjectID()
 	docs := []interface{}{
-		bson.M{"_id": id1, "name": "Alice", "age": 18},
-		bson.M{"_id": id2, "name": "Alice", "age": 19},
-		bson.M{"_id": id3, "name": "Lucas", "age": 20},
-		bson.M{"_id": id4, "name": "Lucas", "age": 21},
+		M{"_id": id1, "name": "Alice", "age": 18},
+		M{"_id": id2, "name": "Alice", "age": 19},
+		M{"_id": id3, "name": "Lucas", "age": 20},
+		M{"_id": id4, "name": "Lucas", "age": 21},
 	}
 	_, _ = cli.InsertMany(context.Background(), docs)
 
@@ -241,7 +240,7 @@ func TestQuery_Skip(t *testing.T) {
 	var res []QueryTestItem
 
 	// filter can match records, skip 1 record, and return the remaining records
-	filter1 := bson.M{
+	filter1 := M{
 		"name": "Alice",
 	}
 
@@ -278,17 +277,17 @@ func TestQuery_Limit(t *testing.T) {
 	id3 := primitive.NewObjectID()
 	id4 := primitive.NewObjectID()
 	docs := []interface{}{
-		bson.M{"_id": id1, "name": "Alice", "age": 18},
-		bson.M{"_id": id2, "name": "Alice", "age": 19},
-		bson.M{"_id": id3, "name": "Lucas", "age": 20},
-		bson.M{"_id": id4, "name": "Lucas", "age": 21},
+		M{"_id": id1, "name": "Alice", "age": 18},
+		M{"_id": id2, "name": "Alice", "age": 19},
+		M{"_id": id3, "name": "Lucas", "age": 20},
+		M{"_id": id4, "name": "Lucas", "age": 21},
 	}
 	_, _ = cli.InsertMany(context.Background(), docs)
 
 	var err error
 	var res []QueryTestItem
 
-	filter1 := bson.M{
+	filter1 := M{
 		"name": "Alice",
 	}
 
@@ -305,8 +304,8 @@ func TestQuery_Limit(t *testing.T) {
 	res = make([]QueryTestItem, 0)
 	var cursor CursorI
 
-	cursor, err = cli.Find(context.Background(), filter1).Limit(-2).Cursor()
-	ast.NoError(err)
+	cursor = cli.Find(context.Background(), filter1).Limit(-2).Cursor()
+	ast.NoError(cursor.Err())
 	ast.NotNil(cursor)
 }
 
@@ -325,10 +324,10 @@ func TestQuery_Sort(t *testing.T) {
 	id3 := primitive.NewObjectID()
 	id4 := primitive.NewObjectID()
 	docs := []interface{}{
-		bson.M{"_id": id1, "name": "Alice", "age": 18},
-		bson.M{"_id": id2, "name": "Alice", "age": 19},
-		bson.M{"_id": id3, "name": "Lucas", "age": 18},
-		bson.M{"_id": id4, "name": "Lucas", "age": 19},
+		M{"_id": id1, "name": "Alice", "age": 18},
+		M{"_id": id2, "name": "Alice", "age": 19},
+		M{"_id": id3, "name": "Lucas", "age": 18},
+		M{"_id": id4, "name": "Lucas", "age": 19},
 	}
 	_, _ = cli.InsertMany(context.Background(), docs)
 
@@ -336,7 +335,7 @@ func TestQuery_Sort(t *testing.T) {
 	var res []QueryTestItem
 
 	// Sort a single field in ascending order
-	filter1 := bson.M{
+	filter1 := M{
 		"name": "Alice",
 	}
 
@@ -354,7 +353,7 @@ func TestQuery_Sort(t *testing.T) {
 	ast.Equal(id1, res[1].Id)
 
 	// Sort a single field in descending order, and sort the other field in ascending order
-	err = cli.Find(context.Background(), bson.M{}).Sort("-age", "+name").All(&res)
+	err = cli.Find(context.Background(), M{}).Sort("-age", "+name").All(&res)
 	ast.NoError(err)
 	ast.Equal(4, len(res))
 	ast.Equal(id2, res[0].Id)
@@ -384,16 +383,16 @@ func TestQuery_Distinct(t *testing.T) {
 	id3 := primitive.NewObjectID()
 	id4 := primitive.NewObjectID()
 	docs := []interface{}{
-		bson.M{"_id": id1, "name": "Alice", "age": 18},
-		bson.M{"_id": id2, "name": "Alice", "age": 19},
-		bson.M{"_id": id3, "name": "Lucas", "age": 20},
-		bson.M{"_id": id4, "name": "Lucas", "age": 21},
+		M{"_id": id1, "name": "Alice", "age": 18},
+		M{"_id": id2, "name": "Alice", "age": 19},
+		M{"_id": id3, "name": "Lucas", "age": 20},
+		M{"_id": id4, "name": "Lucas", "age": 21},
 	}
 	_, _ = cli.InsertMany(context.Background(), docs)
 
 	var err error
 
-	filter1 := bson.M{
+	filter1 := M{
 		"name": "Lily",
 	}
 	var res1 []int32
@@ -402,7 +401,7 @@ func TestQuery_Distinct(t *testing.T) {
 	ast.NoError(err)
 	ast.Equal(0, len(res1))
 
-	filter2 := bson.M{
+	filter2 := M{
 		"name": "Alice",
 	}
 	var res2 []int32
@@ -466,20 +465,20 @@ func TestQuery_Select(t *testing.T) {
 	id3 := primitive.NewObjectID()
 	id4 := primitive.NewObjectID()
 	docs := []interface{}{
-		bson.M{"_id": id1, "name": "Alice", "age": 18},
-		bson.M{"_id": id2, "name": "Alice", "age": 19},
-		bson.M{"_id": id3, "name": "Lucas", "age": 20},
-		bson.M{"_id": id4, "name": "Lucas", "age": 21},
+		M{"_id": id1, "name": "Alice", "age": 18},
+		M{"_id": id2, "name": "Alice", "age": 19},
+		M{"_id": id3, "name": "Lucas", "age": 20},
+		M{"_id": id4, "name": "Lucas", "age": 21},
 	}
 	_, _ = cli.InsertMany(context.Background(), docs)
 
 	var err error
 	var res QueryTestItem
 
-	filter1 := bson.M{
+	filter1 := M{
 		"_id": id1,
 	}
-	projection1 := bson.M{
+	projection1 := M{
 		"age": 1,
 	}
 
@@ -491,7 +490,7 @@ func TestQuery_Select(t *testing.T) {
 	ast.Equal(id1, res.Id)
 
 	res = QueryTestItem{}
-	projection2 := bson.M{
+	projection2 := M{
 		"age": 0,
 	}
 
@@ -503,7 +502,7 @@ func TestQuery_Select(t *testing.T) {
 	ast.Equal(id1, res.Id)
 
 	res = QueryTestItem{}
-	projection3 := bson.M{
+	projection3 := M{
 		"_id": 0,
 	}
 
@@ -530,25 +529,24 @@ func TestQuery_Cursor(t *testing.T) {
 	id3 := primitive.NewObjectID()
 	id4 := primitive.NewObjectID()
 	docs := []interface{}{
-		bson.D{{"_id", id1}, {"name", "Alice"}, {"age", 18}},
-		bson.D{{"_id", id2}, {"name", "Alice"}, {"age", 19}},
-		bson.D{{"_id", id3}, {"name", "Lucas"}, {"age", 20}},
-		bson.D{{"_id", id4}, {"name", "Lucas"}, {"age", 21}},
+		D{{"_id", id1}, {"name", "Alice"}, {"age", 18}},
+		D{{"_id", id2}, {"name", "Alice"}, {"age", 19}},
+		D{{"_id", id3}, {"name", "Lucas"}, {"age", 20}},
+		D{{"_id", id4}, {"name", "Lucas"}, {"age", 21}},
 	}
 	_, _ = cli.InsertMany(context.Background(), docs)
 
-	var err error
 	var res QueryTestItem
 
-	filter1 := bson.M{
+	filter1 := M{
 		"name": "Alice",
 	}
-	projection1 := bson.M{
+	projection1 := M{
 		"name": 0,
 	}
 
-	cursor, err := cli.Find(context.Background(), filter1).Select(projection1).Sort("age").Limit(2).Skip(1).Cursor()
-	ast.NoError(err)
+	cursor := cli.Find(context.Background(), filter1).Select(projection1).Sort("age").Limit(2).Skip(1).Cursor()
+	ast.NoError(cursor.Err())
 	ast.NotNil(cursor)
 
 	val := cursor.Next(&res)
@@ -558,12 +556,12 @@ func TestQuery_Cursor(t *testing.T) {
 	val = cursor.Next(&res)
 	ast.Equal(false, val)
 
-	filter2 := bson.M{
+	filter2 := M{
 		"name": "Lily",
 	}
 
-	cursor, err = cli.Find(context.Background(), filter2).Cursor()
-	ast.NoError(err)
+	cursor = cli.Find(context.Background(), filter2).Cursor()
+	ast.NoError(cursor.Err())
 	ast.NotNil(cursor)
 
 	res = QueryTestItem{}
@@ -573,7 +571,6 @@ func TestQuery_Cursor(t *testing.T) {
 
 	filter3 := 1
 
-	cursor, err = cli.Find(context.Background(), filter3).Cursor()
-	ast.Error(err)
-	ast.Nil(cursor)
+	cursor = cli.Find(context.Background(), filter3).Cursor()
+	ast.Error(cursor.Err())
 }

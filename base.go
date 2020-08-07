@@ -2,8 +2,34 @@ package qmgo
 
 import (
 	"strings"
-	"time"
 )
+
+// D is an ordered representation of a BSON document. This type should be used when the order of the elements matters,
+// such as MongoDB command documents. If the order of the elements does not matter, an M should be used instead.
+//
+// Example usage:
+// D{{"foo", "bar"}, {"hello", "world"}, {"pi", 3.14159}}
+type D []E
+
+// E represents a BSON element for a D. It is usually used inside a D.
+type E struct {
+	Key   string
+	Value interface{}
+}
+
+// M is an unordered representation of a BSON document. This type should be used when the order of the elements does not
+// matter. This type is handled as a regular map[string]interface{} when encoding and decoding. Elements will be
+// serialized in an undefined, random order. If the order of the elements matters, a D should be used instead.
+//
+// Example usage:
+//
+// M{"foo": "bar", "hello": "world", "pi": 3.14159}.
+type M map[string]interface{}
+
+// An A is an ordered representation of a BSON array.
+// Example usage:
+// A{"bar", "world", 3.14159, D{{"qux", 12345}}}
+type A []interface{}
 
 // QmgoConfig for initial mongodb instance
 type Config struct {
@@ -31,10 +57,10 @@ func IsDup(err error) bool {
 	return strings.Contains(err.Error(), "E11000")
 }
 
-// Now return Millisecond current time
-func Now() time.Time {
-	return time.Unix(0, time.Now().UnixNano()/1e6*1e6)
-}
+//// Now return Millisecond current time
+//func Now() time.Time {
+//	return time.Unix(0, time.Now().UnixNano()/1e6*1e6)
+//}
 
 // SplitSortField handle sort symbol: "+"/"-" in front of field
 // if "+"， return sort as 1

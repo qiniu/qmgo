@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 func initClient(col string) *QmgoClient {
@@ -64,7 +63,7 @@ func TestQmgoClient(t *testing.T) {
 	err = cli.Ping(5)
 	ast.NoError(err)
 
-	res, err := cli.InsertOne(context.Background(), bson.D{{Key: "x", Value: 1}})
+	res, err := cli.InsertOne(context.Background(), D{{Key: "x", Value: 1}})
 	ast.NoError(err)
 	ast.NotNil(res)
 
@@ -72,7 +71,7 @@ func TestQmgoClient(t *testing.T) {
 
 	// close Client
 	cli.Close(context.TODO())
-	_, err = cli.InsertOne(context.Background(), bson.D{{Key: "x", Value: 1}})
+	_, err = cli.InsertOne(context.Background(), D{{Key: "x", Value: 1}})
 	ast.EqualError(err, "client is disconnected")
 
 	err = cli.Ping(5)
@@ -102,7 +101,7 @@ func TestClient(t *testing.T) {
 	ast.Equal(nil, err)
 	coll := c.Database("mongoxtest").Collection("testopen")
 
-	res, err := coll.InsertOne(context.Background(), bson.D{{Key: "x", Value: 1}})
+	res, err := coll.InsertOne(context.Background(), D{{Key: "x", Value: 1}})
 	ast.NoError(err)
 	ast.NotNil(res)
 	coll.DropCollection(context.Background())

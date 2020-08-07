@@ -27,11 +27,6 @@ func Open(ctx context.Context, conf *Config) (cli *QmgoClient, err error) {
 	}
 
 	db := client.Database(conf.Database)
-	if err != nil {
-		fmt.Println("new database fail", err)
-		return
-	}
-
 	coll := db.Collection(conf.Coll)
 
 	cli = &QmgoClient{
