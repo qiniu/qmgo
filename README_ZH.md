@@ -23,7 +23,9 @@ go get github.com/qiniu/qmgo
 
 ## Usage
 
-- 开始，`import`并新建连接
+- 开始
+
+`import`并新建连接
 ```go  
 import(
     "context"
