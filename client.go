@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-// Client specifies the instance to operate mongoDB
+// QmgoClient specifies the instance to operate mongoDB
 type QmgoClient struct {
 	*Collection
 	*Database

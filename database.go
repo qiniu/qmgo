@@ -2,28 +2,12 @@ package qmgo
 
 import (
 	"context"
-	"fmt"
-
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+// Database is a handle to a MongoDB database
 type Database struct {
 	database *mongo.Database
-}
-
-// NewDatabase creates new database connection
-func NewDatabase(ctx context.Context, conf *Config) (cli *Database, err error) {
-	client, err := client(ctx, conf)
-	if err != nil {
-		fmt.Println("new client fail", err)
-		return
-	}
-	db := client.Database(conf.Database)
-
-	cli = &Database{
-		database: db,
-	}
-	return
 }
 
 // Collection gets collection from database

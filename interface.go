@@ -37,6 +37,7 @@ type QueryI interface {
 	Cursor() CursorI
 }
 
+// AggregateI define the interface of aggregate
 type AggregateI interface {
 	All(results interface{}) error
 	One(result interface{}) error

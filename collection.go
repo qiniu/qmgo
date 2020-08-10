@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/x/bsonx"
 )
 
-// Collection
+// Collection is a handle to a MongoDB collection
 type Collection struct {
 	collection *mongo.Collection
 }
@@ -24,7 +24,7 @@ func (c *Collection) Find(ctx context.Context, filter interface{}) QueryI {
 	}
 }
 
-// Insert insert one document into the collection
+// InsertOne insert one document into the collection
 // Reference: https://docs.mongodb.com/manual/reference/command/insert/
 func (c *Collection) InsertOne(ctx context.Context, doc interface{}) (result *InsertOneResult, err error) {
 	res, err := c.collection.InsertOne(ctx, doc)
@@ -68,7 +68,7 @@ func (c *Collection) Update(ctx context.Context, filter interface{}, update inte
 	}
 
 	if res.MatchedCount == 0 {
-		err = ERR_NO_SUCH_RECORD
+		err = ErrNoSuchDocuments
 	}
 
 	return err
@@ -96,7 +96,7 @@ func (c *Collection) Remove(ctx context.Context, filter interface{}) (err error)
 		return err
 	}
 	if res.DeletedCount == 0 {
-		err = ERR_NO_SUCH_RECORD
+		err = ErrNoSuchDocuments
 	}
 
 	return err

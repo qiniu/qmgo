@@ -7,8 +7,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+// Pipeline define the pipeline for aggregate
 type Pipeline []bson.D
 
+// Aggregate is a handle to a aggregate
 type Aggregate struct {
 	ctx        context.Context
 	pipeline   interface{}
@@ -37,7 +39,7 @@ func (a *Aggregate) One(result interface{}) error {
 	}
 	defer cr.Close()
 	if !cr.Next(result) {
-		return ERR_NO_SUCH_RECORD
+		return ErrNoSuchDocuments
 	}
 	return err
 }

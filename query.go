@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// Query
+// Query struct definition
 type Query struct {
 	ctx        context.Context
 	collection *mongo.Collection
@@ -167,7 +167,7 @@ func (q *Query) Distinct(key string, result interface{}) error {
 	resultVal := reflect.ValueOf(result)
 
 	if resultVal.Kind() != reflect.Ptr {
-		return ERR_QUERY_NOT_SLICE_POINTER
+		return ErrQueryNotSlicePointer
 	}
 
 	sliceVal := resultVal.Elem()
@@ -175,11 +175,11 @@ func (q *Query) Distinct(key string, result interface{}) error {
 		sliceVal = sliceVal.Elem()
 	}
 	if sliceVal.Kind() != reflect.Slice {
-		return ERR_QUERY_NOT_SLICE_TYPE
+		return ErrQueryNotSliceType
 	}
 
 	if !resultVal.Elem().CanSet() {
-		return ERR_QUERY_RESULT_VAL_CAN_NOT_CHANGE
+		return ErrQueryResultValCanNotChange
 	}
 
 	sliceVal = sliceVal.Slice(0, 0)
@@ -197,7 +197,7 @@ func (q *Query) Distinct(key string, result interface{}) error {
 
 		if vType != elementType {
 			fmt.Printf("mongo type: %s, result type: %s\n", vType.Name(), elementType.Name())
-			return ERR_QUERY_RESULT_TYPE_INCONSISTEN
+			return ErrQueryResultTypeInconsistent
 		}
 		sliceVal = reflect.Append(sliceVal, vValue)
 	}

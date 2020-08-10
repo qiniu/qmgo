@@ -2,9 +2,10 @@ package qmgo
 
 import (
 	"strings"
+	"time"
 )
 
-// QmgoConfig for initial mongodb instance
+// Config for initial mongodb instance
 type Config struct {
 	// URI example: [mongodb://][user:pass@]host1[:port1][,host2[:port2],...][/database][?options]
 	// URI Reference: https://docs.mongodb.com/manual/reference/connection-string/
@@ -30,10 +31,10 @@ func IsDup(err error) bool {
 	return strings.Contains(err.Error(), "E11000")
 }
 
-//// Now return Millisecond current time
-//func Now() time.Time {
-//	return time.Unix(0, time.Now().UnixNano()/1e6*1e6)
-//}
+// Now return Millisecond current time
+func Now() time.Time {
+	return time.Unix(0, time.Now().UnixNano()/1e6*1e6)
+}
 
 // SplitSortField handle sort symbol: "+"/"-" in front of field
 // if "+"， return sort as 1
