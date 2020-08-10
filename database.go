@@ -5,6 +5,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+// Database is a handle to a MongoDB database
 type Database struct {
 	database *mongo.Database
 }

@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// Query
+// Query struct definition
 type Query struct {
 	ctx        context.Context
 	collection *mongo.Collection

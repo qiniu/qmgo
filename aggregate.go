@@ -7,8 +7,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+// Pipeline define the pipeline for aggregate
 type Pipeline []bson.D
 
+// Aggregate is a handle to a aggregate
 type Aggregate struct {
 	ctx        context.Context
 	pipeline   interface{}
