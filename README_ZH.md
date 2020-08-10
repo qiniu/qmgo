@@ -1,6 +1,6 @@
 # Qmgo
 
-`Qmgo` 是一款`Go`语言的`MongoDB` `dirver`，它基于[Mongo官方driver](https://github.com/mongodb/mongo-go-driver) 开发实现，同时使用更易用的接口设计，主要参考[mgo](https://github.com/go-mgo/mgo) （比如`mgo`的链式调用）。
+`Qmgo` 是一款`Go`语言的`MongoDB` `dirver`，它基于[MongoDB 官方driver](https://github.com/mongodb/mongo-go-driver) 开发实现，同时使用更易用的接口设计，主要参考[mgo](https://github.com/go-mgo/mgo) （比如`mgo`的链式调用）。
 
 - `Qmgo`能让用户以更优雅的姿势使用`MongoDB`的新特性。
 
@@ -23,13 +23,16 @@ go get github.com/qiniu/qmgo
 
 ## Usage
 
-- 开始，`import`并新建连接
+- 开始
+
+`import`并新建连接
 ```go  
 import(
     "context"
     
     "github.com/qiniu/qmgo"
-)	
+)
+
 ctx := context.Background()
 client, err := qmgo.NewClient(ctx, &qmgo.Config{Uri: "mongodb://localhost:27017"})
 db := client.Database("class")
@@ -60,7 +63,6 @@ defer func() {
 做操作前，我们先初始化一些数据：
 
 ```go
-type BsonT map[string]interface{}
 
 type UserInfo struct {
 	Name   string `bson:"name"`
@@ -78,7 +80,7 @@ var oneUserInfo = UserInfo{
 创建索引
 
 ```go
-cli.EnsureIndexes(ctx, []string{"name"}, []string{"age", "name,weight"})
+cli.EnsureIndexes(ctx, []string{}, []string{"age", "name,weight"})
 ```
 
 - 插入一个文档
@@ -93,24 +95,26 @@ result, err := cli.Insert(ctx, oneUserInfo)
 ```go
 	// find one document
 one := UserInfo{}
-err = cli.Find(ctx, BsonT{"name": oneUserInfo.Name}).One(&one)
+err = cli.Find(ctx, bson.M{"name": oneUserInfo.Name}).One(&one)
 ```
 
 - 删除文档
 
 ```go
-err = cli.Remove(ctx, BsonT{"age": 7})
+err = cli.Remove(ctx, bson.M{"age": 7})
 ```
 
 - 插入多条数据
 
 ```go
-// batch insert
+// multiple insert
 var batchUserInfoI = []interface{}{
-    UserInfo{Name: "wxy", Age: 6, Weight: 20},
-    UserInfo{Name: "jZ", Age: 6, Weight: 25},
-    UserInfo{Name: "zp", Age: 6, Weight: 30},
-    UserInfo{Name: "yxw", Age: 6, Weight: 35},
+	UserInfo{Name: "a1", Age: 6, Weight: 20},
+	UserInfo{Name: "b2", Age: 6, Weight: 25},
+	UserInfo{Name: "c3", Age: 6, Weight: 30},
+	UserInfo{Name: "d4", Age: 6, Weight: 35},
+	UserInfo{Name: "a1", Age: 7, Weight: 40},
+	UserInfo{Name: "a1", Age: 8, Weight: 45},
 }
 result, err = cli.Collection.InsertMany(ctx, batchUserInfoI)
 ```
@@ -120,20 +124,29 @@ result, err = cli.Collection.InsertMany(ctx, batchUserInfoI)
 ```go
 // find all 、sort and limit
 batch := []UserInfo{}
-cli.Find(ctx, BsonT{"age": 6}).Sort("weight").Limit(7).All(&batch)
+cli.Find(ctx, bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
+```
+
+- Count
+````go
+count, err := cli.Find(ctx, bson.M{"age": 6}).Count()
+````
+
+- Aggregate
+```go
+matchStage := bson.D{{"$match", []bson.E{{"weight", bson.D{{"$gt", 30}}}}}}
+groupStage := bson.D{{"$group", bson.D{{"_id", "$name"}, {"total", bson.D{{"$sum", "$age"}}}}}}
+var showsWithInfo []bson.M
+err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(&showsWithInfo)
 ```
 
 ## 功能
+- 文档的增删改查
+- 索引配置
+- `Sort`、`Limit`、`Count`、`Select`
+- `Cursor`
+- 聚合`Aggregate`
 
-- 已经支持
-  - 文档的增删改查
-  - 索引配置
-  - 查询`Sort`、`Limit`、`Count`
-
-- TODO:
-  - 事务
-  - 聚合`Aggregate`
-  - 操作支持`Options` 
 
 ## `qmgo` vs `mgo` vs `go.mongodb.org/mongo-driver`
 
@@ -146,12 +159,12 @@ cli.Find(ctx, BsonT{"age": 6}).Sort("weight").Limit(7).All(&batch)
 // find all 、sort and limit
 findOptions := options.Find()
 findOptions.SetLimit(7)  // set limit
-var sorts bson.D
-sorts = append(sorts, bson.E{Key: "weight", Value: 1})
+var sorts D
+sorts = append(sorts, E{Key: "weight", Value: 1})
 findOptions.SetSort(sorts) // set sort
 
 batch := []UserInfo{}
-cur, err := coll.Find(ctx, BsonT{"age": 6}, findOptions)
+cur, err := coll.Find(ctx, bson.M{"age": 6}, findOptions)
 cur.All(ctx, &batch)
 ```
 
@@ -161,11 +174,11 @@ cur.All(ctx, &batch)
 // qmgo
 // find all 、sort and limit
 batch := []UserInfo{}
-cli.Find(ctx, BsonT{"age": 6}).Sort("weight").Limit(7).All(&batch)
+cli.Find(ctx, bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 
 // mgo
 // find all 、sort and limit
-coll.Find(BsonT{"age": 6}).Sort("weight").Limit(7).All(&batch)
+coll.Find(bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 ```
 
 ## contributing

@@ -151,10 +151,8 @@ func TestQuery_All(t *testing.T) {
 	ast.Error(err)
 
 	var tv int
-	ast.Panics(func() {
-		cli.Find(context.Background(), filter1).All(&tv)
-	})
-
+	err = cli.Find(context.Background(), filter1).All(&tv)
+	ast.Error(err)
 	// res is a parseable object, but the bson tag is inconsistent with the mongodb record, and no error is reported
 	// The corresponding value will be mapped according to the bson tag of the res data structure, and the tag without the value will be the default value of the corresponding type
 	// The length of res is the number of records filtered by the filter condition
@@ -305,8 +303,8 @@ func TestQuery_Limit(t *testing.T) {
 	res = make([]QueryTestItem, 0)
 	var cursor CursorI
 
-	cursor, err = cli.Find(context.Background(), filter1).Limit(-2).Cursor()
-	ast.NoError(err)
+	cursor = cli.Find(context.Background(), filter1).Limit(-2).Cursor()
+	ast.NoError(cursor.Err())
 	ast.NotNil(cursor)
 }
 
@@ -537,7 +535,6 @@ func TestQuery_Cursor(t *testing.T) {
 	}
 	_, _ = cli.InsertMany(context.Background(), docs)
 
-	var err error
 	var res QueryTestItem
 
 	filter1 := bson.M{
@@ -547,8 +544,8 @@ func TestQuery_Cursor(t *testing.T) {
 		"name": 0,
 	}
 
-	cursor, err := cli.Find(context.Background(), filter1).Select(projection1).Sort("age").Limit(2).Skip(1).Cursor()
-	ast.NoError(err)
+	cursor := cli.Find(context.Background(), filter1).Select(projection1).Sort("age").Limit(2).Skip(1).Cursor()
+	ast.NoError(cursor.Err())
 	ast.NotNil(cursor)
 
 	val := cursor.Next(&res)
@@ -562,8 +559,8 @@ func TestQuery_Cursor(t *testing.T) {
 		"name": "Lily",
 	}
 
-	cursor, err = cli.Find(context.Background(), filter2).Cursor()
-	ast.NoError(err)
+	cursor = cli.Find(context.Background(), filter2).Cursor()
+	ast.NoError(cursor.Err())
 	ast.NotNil(cursor)
 
 	res = QueryTestItem{}
@@ -573,7 +570,6 @@ func TestQuery_Cursor(t *testing.T) {
 
 	filter3 := 1
 
-	cursor, err = cli.Find(context.Background(), filter3).Cursor()
-	ast.Error(err)
-	ast.Nil(cursor)
+	cursor = cli.Find(context.Background(), filter3).Cursor()
+	ast.Error(cursor.Err())
 }
