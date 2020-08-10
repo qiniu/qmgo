@@ -379,12 +379,14 @@ func TestCollection_Remove(t *testing.T) {
 	// filter is bson.M{}，delete one document
 	filter3 := bson.M{}
 	preCnt, err := cli.Find(context.Background(), filter3).Count()
+	ast.NoError(err)
 	ast.Equal(int64(2), preCnt)
 
 	err = cli.Remove(context.Background(), filter3)
 	ast.NoError(err)
 
 	afterCnt, err := cli.Find(context.Background(), filter3).Count()
+	ast.NoError(err)
 	ast.Equal(preCnt-1, afterCnt)
 
 	// filter is nil or wrong BSON Document format

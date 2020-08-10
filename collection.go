@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/x/bsonx"
 )
 
-// Collection
+// Collection is a handle to a MongoDB collection
 type Collection struct {
 	collection *mongo.Collection
 }
