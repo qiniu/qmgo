@@ -2,10 +2,11 @@ package qmgo
 
 import (
 	"context"
+	"testing"
+
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"testing"
 )
 
 func TestCollection_EnsureIndex(t *testing.T) {
@@ -27,10 +28,12 @@ func TestCollection_EnsureIndex(t *testing.T) {
 	doc := bson.M{
 		"id1": 1,
 	}
-
 	_, err = cli.InsertOne(context.Background(), doc)
 	ast.NoError(err)
-	_, err = cli.InsertOne(context.Background(), doc)
+
+	coll, err := cli.CloneCollection()
+	ast.NoError(err)
+	_, err = coll.InsertOne(context.Background(), doc)
 	ast.Equal(true, IsDup(err))
 }
 
@@ -234,7 +237,7 @@ func TestCollection_Update(t *testing.T) {
 		},
 	}
 	err = cli.Update(context.Background(), filter2, update2)
-	ast.Equal(err, NoSuchRecordErr)
+	ast.Equal(err, ErrNoSuchDocuments)
 
 	// filter is nil or wrong BSON Document format
 	update3 := bson.M{
@@ -371,7 +374,7 @@ func TestCollection_Remove(t *testing.T) {
 		"name": "Lily",
 	}
 	err = cli.Remove(context.Background(), filter2)
-	ast.Equal(err, NoSuchRecordErr)
+	ast.Equal(err, ErrNoSuchDocuments)
 
 	// filter is bson.M{}，delete one document
 	filter3 := bson.M{}

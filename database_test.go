@@ -15,19 +15,8 @@ func TestDatabase(t *testing.T) {
 	var maxPoolSize uint64 = 3000
 	collName := "testopen"
 	dbName := "mongoxtest"
+
 	cfg := Config{
-		Uri:              "://localhost:27017",
-		Database:         dbName,
-		Coll:             collName,
-		ConnectTimeoutMS: &cTimeout,
-		SocketTimeoutMS:  &sTimeout,
-		MaxPoolSize:      &maxPoolSize,
-	}
-
-	cli, err := NewDatabase(context.Background(), &cfg)
-	ast.NotNil(err)
-
-	cfg = Config{
 		Uri:              "mongodb://localhost:27017",
 		Database:         dbName,
 		Coll:             collName,
@@ -36,7 +25,9 @@ func TestDatabase(t *testing.T) {
 		MaxPoolSize:      &maxPoolSize,
 	}
 
-	cli, err = NewDatabase(context.Background(), &cfg)
+	c, err := NewClient(context.Background(), &cfg)
+	ast.NoError(err)
+	cli := c.Database(cfg.Database)
 	ast.Nil(err)
 	ast.Equal(dbName, cli.GetDatabaseName())
 	coll := cli.Collection(collName)

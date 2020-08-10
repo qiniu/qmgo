@@ -2,20 +2,12 @@ package qmgo
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"reflect"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-)
-
-var (
-	ERR_QUERY_NOT_SLICE_POINTER         = errors.New("result argument must be a pointer to a slice")
-	ERR_QUERY_NOT_SLICE_TYPE            = errors.New("result argument must be a slice address")
-	ERR_QUERY_RESULT_TYPE_INCONSISTEN   = errors.New("result type is not equal mongodb value type")
-	ERR_QUERY_RESULT_VAL_CAN_NOT_CHANGE = errors.New("the value of result can not be changed")
 )
 
 // Query
@@ -145,15 +137,12 @@ func (q *Query) All(result interface{}) error {
 
 	cursor, err = q.collection.Find(q.ctx, q.filter, opt)
 
-	if err != nil {
-		return err
+	c := Cursor{
+		ctx:    q.ctx,
+		cursor: cursor,
+		err:    err,
 	}
-	if err_ := cursor.Err(); err_ != nil {
-		return err_
-	}
-
-	err = cursor.All(q.ctx, result)
-	return err
+	return c.All(result)
 }
 
 // Count count the number of eligible entries
@@ -178,7 +167,7 @@ func (q *Query) Distinct(key string, result interface{}) error {
 	resultVal := reflect.ValueOf(result)
 
 	if resultVal.Kind() != reflect.Ptr {
-		return ERR_QUERY_NOT_SLICE_POINTER
+		return ErrQueryNotSlicePointer
 	}
 
 	sliceVal := resultVal.Elem()
@@ -186,11 +175,11 @@ func (q *Query) Distinct(key string, result interface{}) error {
 		sliceVal = sliceVal.Elem()
 	}
 	if sliceVal.Kind() != reflect.Slice {
-		return ERR_QUERY_NOT_SLICE_TYPE
+		return ErrQueryNotSliceType
 	}
 
 	if !resultVal.Elem().CanSet() {
-		return ERR_QUERY_RESULT_VAL_CAN_NOT_CHANGE
+		return ErrQueryResultValCanNotChange
 	}
 
 	sliceVal = sliceVal.Slice(0, 0)
@@ -208,7 +197,7 @@ func (q *Query) Distinct(key string, result interface{}) error {
 
 		if vType != elementType {
 			fmt.Printf("mongo type: %s, result type: %s\n", vType.Name(), elementType.Name())
-			return ERR_QUERY_RESULT_TYPE_INCONSISTEN
+			return ErrQueryResultTypeInconsistent
 		}
 		sliceVal = reflect.Append(sliceVal, vValue)
 	}
@@ -219,7 +208,7 @@ func (q *Query) Distinct(key string, result interface{}) error {
 
 // Cursor gets a Cursor object, which can be used to traverse the query result set
 // After obtaining the CursorI object, you should actively call the Close interface to close the cursor
-func (q *Query) Cursor() (CursorI, error) {
+func (q *Query) Cursor() CursorI {
 	opt := options.Find()
 
 	if q.sort != nil {
@@ -238,12 +227,9 @@ func (q *Query) Cursor() (CursorI, error) {
 	var err error
 	var cur *mongo.Cursor
 	cur, err = q.collection.Find(q.ctx, q.filter, opt)
-	if err != nil {
-		return nil, err
-	}
-
 	return &Cursor{
 		ctx:    q.ctx,
 		cursor: cur,
-	}, nil
+		err:    err,
+	}
 }

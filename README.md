@@ -8,7 +8,7 @@
 
 [简体中文](README_ZH.md)
 
-`Qmgo` is a `MongoDB` `dirver` for `Go` . It is based on [Mongo official driver](https://github.com/mongodb/mongo-go-driver), but easier to use like [mgo](https://github.com/go-mgo/mgo) (such as the chain call). 
+`Qmgo` is a `MongoDB` `dirver` for `Go` . It is based on [MongoDB official driver](https://github.com/mongodb/mongo-go-driver), but easier to use like [mgo](https://github.com/go-mgo/mgo) (such as the chain call). 
 
 - `Qmgo` can allow user to use the new features of `MongoDB` in a more elegant way.
 
@@ -32,13 +32,16 @@ go get github.com/qiniu/qmgo
 
 ## Usage
 
-- Start, `import` and create a new connection
+- Start
+
+`import` and create a new connection
 ```go
 import (
     "context"
   
     "github.com/qiniu/qmgo"
-)	
+)
+
 ctx := context.Background()
 client, err := qmgo.NewClient(ctx, &qmgo.Config{Uri: "mongodb://localhost:27017"})
 db := client.Database("class")
@@ -68,8 +71,6 @@ if err = cli.Close(ctx); err != nil {
 Before doing the operation, we first initialize some data:
 
 ```go
-type BsonT map[string]interface{}
-
 type UserInfo struct {
 	Name   string `bson:"name"`
 	Age    uint16 `bson:"age"`
@@ -86,7 +87,7 @@ var oneUserInfo = UserInfo{
 Create index
 
 ```go
-cli.EnsureIndexes(ctx, []string{"name"}, []string{"age", "name,weight"})
+cli.EnsureIndexes(ctx, []string{}, []string{"age", "name,weight"})
 ```
 
 - Insert a document
@@ -101,48 +102,53 @@ result, err := cli.Insert(ctx, oneUserInfo)
 ```go
 // find one document
   one := UserInfo{}
-  err = cli.Find(ctx, BsonT{"name": oneUserInfo.Name}).One(&one)
+  err = cli.Find(ctx, bson.M{"name": oneUserInfo.Name}).One(&one)
 ```
 
 - Delete documents
 
 ```go
-err = cli.Remove(ctx, BsonT{"age": 7})
+err = cli.Remove(ctx, bson.M{"age": 7})
 ```
 
 - Insert multiple data
 
 ```go
-// batch insert
+// multiple insert
 var batchUserInfoI = []interface{}{
-    UserInfo{Name: "wxy", Age: 6, Weight: 20},
-    UserInfo{Name: "jZ", Age: 6, Weight: 25},
-    UserInfo{Name: "zp", Age: 6, Weight: 30},
-    UserInfo{Name: "yxw", Age: 6, Weight: 35},
+	UserInfo{Name: "a1", Age: 6, Weight: 20},
+	UserInfo{Name: "b2", Age: 6, Weight: 25},
+	UserInfo{Name: "c3", Age: 6, Weight: 30},
+	UserInfo{Name: "d4", Age: 6, Weight: 35},
+	UserInfo{Name: "a1", Age: 7, Weight: 40},
+	UserInfo{Name: "a1", Age: 8, Weight: 45},
 }
 result, err = cli.Collection.InsertMany(ctx, batchUserInfoI)
 ```
 
 - Search all, sort and limit
-
 ```go
 // find all, sort and limit
 batch := []UserInfo{}
-cli.Find(ctx, BsonT{"age": 6}).Sort("weight").Limit(7).All(&batch)
+cli.Find(ctx, bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 ```
-
+- Count
+````go
+count, err := cli.Find(ctx, bson.M{"age": 6}).Count()
+````
+- Aggregate
+```go
+matchStage := bson.D{{"$match", []bson.E{{"weight", bson.D{{"$gt", 30}}}}}}
+groupStage := bson.D{{"$group", bson.D{{"_id", "$name"}, {"total", bson.D{{"$sum", "$age"}}}}}}
+var showsWithInfo []bson.M
+err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(&showsWithInfo)
+```
 ## Feature
-
-- Supported
-  - CRUD to documents
-  - Create indexes
-  - Sort、limit、count
-- TODO
-  - Transaction
-  - Aggregate
-  - Options for every operation
-
-
+- CRUD to documents
+- Create indexes
+- Sort、limit、count、select
+- Cursor
+- Aggregate
 
 ## `qmgo` vs `mgo` vs `go.mongodb.org/mongo-driver`
 
@@ -155,12 +161,12 @@ How do we do in`go.mongodb.org/mongo-driver`:
 // find all, sort and limit
 findOptions := options.Find()
 findOptions.SetLimit(7) // set limit
-var sorts bson.D
-sorts = append(sorts, bson.E{Key: "weight", Value: 1})
+var sorts D
+sorts = append(sorts, E{Key: "weight", Value: 1})
 findOptions.SetSort(sorts) // set sort
 
 batch := []UserInfo{}
-cur, err := coll.Find(ctx, BsonT{"age": 6}, findOptions)
+cur, err := coll.Find(ctx, bson.M{"age": 6}, findOptions)
 cur.All(ctx, &batch)
 ```
 
@@ -170,11 +176,11 @@ How do we do in `Qmgo` and `mgo`:
 // qmgo
 // find all, sort and limit
 batch := []UserInfo{}
-cli.Find(ctx, BsonT{"age": 6}).Sort("weight").Limit(7).All(&batch)
+cli.Find(ctx, bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 
 // mgo
 // find all, sort and limit
-coll.Find(BsonT{"age": 6}).Sort("weight").Limit(7).All(&batch)
+coll.Find(bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 ```
 
 
