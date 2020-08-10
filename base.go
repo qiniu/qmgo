@@ -2,6 +2,7 @@ package qmgo
 
 import (
 	"strings"
+	"time"
 )
 
 // QmgoConfig for initial mongodb instance
@@ -30,10 +31,10 @@ func IsDup(err error) bool {
 	return strings.Contains(err.Error(), "E11000")
 }
 
-//// Now return Millisecond current time
-//func Now() time.Time {
-//	return time.Unix(0, time.Now().UnixNano()/1e6*1e6)
-//}
+// Now return Millisecond current time
+func Now() time.Time {
+	return time.Unix(0, time.Now().UnixNano()/1e6*1e6)
+}
 
 // SplitSortField handle sort symbol: "+"/"-" in front of field
 // if "+"， return sort as 1

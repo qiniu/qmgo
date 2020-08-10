@@ -68,7 +68,7 @@ func (c *Collection) Update(ctx context.Context, filter interface{}, update inte
 	}
 
 	if res.MatchedCount == 0 {
-		err = ERR_NO_SUCH_RECORD
+		err = ErrNoSuchDocuments
 	}
 
 	return err
@@ -96,7 +96,7 @@ func (c *Collection) Remove(ctx context.Context, filter interface{}) (err error)
 		return err
 	}
 	if res.DeletedCount == 0 {
-		err = ERR_NO_SUCH_RECORD
+		err = ErrNoSuchDocuments
 	}
 
 	return err

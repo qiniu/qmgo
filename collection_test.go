@@ -237,7 +237,7 @@ func TestCollection_Update(t *testing.T) {
 		},
 	}
 	err = cli.Update(context.Background(), filter2, update2)
-	ast.Equal(err, ERR_NO_SUCH_RECORD)
+	ast.Equal(err, ErrNoSuchDocuments)
 
 	// filter is nil or wrong BSON Document format
 	update3 := bson.M{
@@ -374,7 +374,7 @@ func TestCollection_Remove(t *testing.T) {
 		"name": "Lily",
 	}
 	err = cli.Remove(context.Background(), filter2)
-	ast.Equal(err, ERR_NO_SUCH_RECORD)
+	ast.Equal(err, ErrNoSuchDocuments)
 
 	// filter is bson.M{}，delete one document
 	filter3 := bson.M{}

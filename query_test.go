@@ -412,17 +412,17 @@ func TestQuery_Distinct(t *testing.T) {
 	var res3 []int32
 
 	err = cli.Find(context.Background(), filter2).Distinct("age", res3)
-	ast.EqualError(err, ERR_QUERY_NOT_SLICE_POINTER.Error())
+	ast.EqualError(err, ErrQueryNotSlicePointer.Error())
 
 	var res4 int
 
 	err = cli.Find(context.Background(), filter2).Distinct("age", &res4)
-	ast.EqualError(err, ERR_QUERY_NOT_SLICE_TYPE.Error())
+	ast.EqualError(err, ErrQueryNotSliceType.Error())
 
 	var res5 []string
 
 	err = cli.Find(context.Background(), filter2).Distinct("age", &res5)
-	ast.EqualError(err, ERR_QUERY_RESULT_TYPE_INCONSISTEN.Error())
+	ast.EqualError(err, ErrQueryResultTypeInconsistent.Error())
 
 	var res6 []int32
 
