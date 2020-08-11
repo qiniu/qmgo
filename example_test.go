@@ -113,8 +113,8 @@ func TestQmgo(t *testing.T) {
 	count, err = cli.Find(ctx, bson.M{"age": 10}).Count()
 	ast.NoError(err)
 	ast.Equal(result.ModifiedCount, count)
-	one = UserInfo{}
 	// select
+	one = UserInfo{}
 	err = cli.Find(ctx, bson.M{"age": 10}).Select(bson.M{"age": 1}).One(&one)
 	ast.NoError(err)
 	ast.Equal(10, int(one.Age))
