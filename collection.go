@@ -57,9 +57,9 @@ func (c *Collection) Upsert(ctx context.Context, filter interface{}, replacement
 	return
 }
 
-// Update executes an update command to update at most one document in the collection.
+// UpdateOne executes an update command to update at most one document in the collection.
 // Reference: https://docs.mongodb.com/manual/reference/operator/update/
-func (c *Collection) Update(ctx context.Context, filter interface{}, update interface{}) error {
+func (c *Collection) UpdateOne(ctx context.Context, filter interface{}, update interface{}) error {
 	var err error
 	var res *mongo.UpdateResult
 
