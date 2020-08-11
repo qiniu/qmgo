@@ -24,7 +24,7 @@ func (c *Collection) Find(ctx context.Context, filter interface{}) QueryI {
 	}
 }
 
-// Insert insert one document into the collection
+// InsertOne insert one document into the collection
 // Reference: https://docs.mongodb.com/manual/reference/command/insert/
 func (c *Collection) InsertOne(ctx context.Context, doc interface{}) (result *InsertOneResult, err error) {
 	res, err := c.collection.InsertOne(ctx, doc)
