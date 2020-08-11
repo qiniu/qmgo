@@ -136,6 +136,21 @@ cli.Find(ctx, bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 ````go
 count, err := cli.Find(ctx, bson.M{"age": 6}).Count()
 ````
+
+- Update
+````go
+// UpdateOne one
+err := cli.UpdateOne(ctx, bson.M{"name": "d4"}, bson.M{"$set": bson.M{"age": 7}})
+
+// UpdateAll
+result, err := cli.UpdateAll(ctx, bson.M{"age": 6}, bson.M{"$set": bson.M{"age": 10}})
+````
+
+- Select
+````go
+err := cli.Find(ctx, bson.M{"age": 10}).Select(bson.M{"age": 1}).One(&one)
+````
+
 - Aggregate
 ```go
 matchStage := bson.D{{"$match", []bson.E{{"weight", bson.D{{"$gt", 30}}}}}}

@@ -223,7 +223,7 @@ func TestCollection_Update(t *testing.T) {
 			"age":  18,
 		},
 	}
-	err = cli.Update(context.Background(), filter1, update1)
+	err = cli.UpdateOne(context.Background(), filter1, update1)
 	ast.NoError(err)
 
 	// error when not exist
@@ -236,7 +236,7 @@ func TestCollection_Update(t *testing.T) {
 			"age":  20,
 		},
 	}
-	err = cli.Update(context.Background(), filter2, update2)
+	err = cli.UpdateOne(context.Background(), filter2, update2)
 	ast.Equal(err, ErrNoSuchDocuments)
 
 	// filter is nil or wrong BSON Document format
@@ -244,20 +244,20 @@ func TestCollection_Update(t *testing.T) {
 		"name": "Geek",
 		"age":  21,
 	}
-	err = cli.Update(context.Background(), nil, update3)
+	err = cli.UpdateOne(context.Background(), nil, update3)
 	ast.Error(err)
 
-	err = cli.Update(context.Background(), 1, update3)
+	err = cli.UpdateOne(context.Background(), 1, update3)
 	ast.Error(err)
 
 	// update is nil or wrong BSON Document format
 	filter4 := bson.M{
 		"name": "Geek",
 	}
-	err = cli.Update(context.Background(), filter4, nil)
+	err = cli.UpdateOne(context.Background(), filter4, nil)
 	ast.Error(err)
 
-	err = cli.Update(context.Background(), filter4, 1)
+	err = cli.UpdateOne(context.Background(), filter4, 1)
 	ast.Error(err)
 }
 

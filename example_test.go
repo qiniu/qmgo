@@ -102,6 +102,22 @@ func TestQmgo(t *testing.T) {
 		}
 		ast.Error(errors.New("error"), "impossible")
 	}
+	// Update one
+	err = cli.UpdateOne(ctx, bson.M{"name": "d4"}, bson.M{"$set": bson.M{"age": 17}})
+	ast.NoError(err)
+	cli.Find(ctx, bson.M{"age": 17}).One(&one)
+	ast.Equal("d4", one.Name)
+	// UpdateAll
+	result, err := cli.UpdateAll(ctx, bson.M{"age": 6}, bson.M{"$set": bson.M{"age": 10}})
+	ast.NoError(err)
+	count, err = cli.Find(ctx, bson.M{"age": 10}).Count()
+	ast.NoError(err)
+	ast.Equal(result.ModifiedCount, count)
+	one = UserInfo{}
+	err = cli.Find(ctx, bson.M{"age": 10}).Select(bson.M{"age": 1}).One(&one)
+	ast.NoError(err)
+	ast.Equal(10, int(one.Age))
+	ast.Equal("", one.Name)
 	//remove
 	err = cli.Remove(ctx, bson.M{"age": 7})
 	ast.Nil(err)
