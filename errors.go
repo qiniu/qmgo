@@ -2,6 +2,7 @@ package qmgo
 
 import (
 	"errors"
+	"strings"
 
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -18,3 +19,16 @@ var (
 	// ErrNoSuchDocuments return if no document found
 	ErrNoSuchDocuments = errors.New(mongo.ErrNoDocuments.Error())
 )
+
+// IsErrNoDocuments check if err is no documents, both mongo-go-driver error and qmgo custom error
+func IsErrNoDocuments(err error) bool {
+	if err == mongo.ErrNoDocuments || err == ErrNoSuchDocuments {
+		return true
+	}
+	return false
+}
+
+// IsDup check if err is mongo E11000 (duplicate err)。
+func IsDup(err error) bool {
+	return strings.Contains(err.Error(), "E11000")
+}

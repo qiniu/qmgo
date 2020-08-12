@@ -347,17 +347,26 @@ func TestCollection_Remove(t *testing.T) {
 	cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
-	id1 := primitive.NewObjectID()
-	id2 := primitive.NewObjectID()
-	id3 := primitive.NewObjectID()
+	id1 := primitive.NewObjectID().Hex()
+	id2 := primitive.NewObjectID().Hex()
+	id3 := primitive.NewObjectID().Hex()
+	id4 := primitive.NewObjectID().Hex()
 	docs := []interface{}{
 		bson.D{{Key: "_id", Value: id1}, {Key: "name", Value: "Alice"}, {Key: "age", Value: 18}},
 		bson.D{{Key: "_id", Value: id2}, {Key: "name", Value: "Alice"}, {Key: "age", Value: 19}},
 		bson.D{{Key: "_id", Value: id3}, {Key: "name", Value: "Lucas"}, {Key: "age", Value: 20}},
+		bson.D{{Key: "_id", Value: id4}, {Key: "name", Value: "Joe"}, {Key: "age", Value: 20}},
 	}
 	_, _ = cli.InsertMany(context.Background(), docs)
 
 	var err error
+	// remove id
+	err = cli.RemoveId(context.Background(), "")
+	ast.Error(err)
+	err = cli.RemoveId(context.Background(), "not-exists-id")
+	ast.True(IsErrNoDocuments(err))
+	ast.NoError(cli.RemoveId(context.Background(), id4))
+
 	// delete record: name = "Alice" , after that, expect one name = "Alice" record
 	filter1 := bson.M{
 		"name": "Alice",
