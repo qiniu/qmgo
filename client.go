@@ -10,6 +10,27 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
+// Config for initial mongodb instance
+type Config struct {
+	// URI example: [mongodb://][user:pass@]host1[:port1][,host2[:port2],...][/database][?options]
+	// URI Reference: https://docs.mongodb.com/manual/reference/connection-string/
+	Uri      string `json:"uri"`
+	Database string `json:"database"`
+	Coll     string `json:"coll"`
+	// ConnectTimeoutMS specifies a timeout that is used for creating connections to the server.
+	//	If set to 0, no timeout will be used.
+	//	The default is 30 seconds.
+	ConnectTimeoutMS *int64 `json:"connectTimeoutMS"`
+	// MaxPoolSize specifies that maximum number of connections allowed in the driver's connection pool to each server.
+	// If this is 0, it will be set to math.MaxInt64,
+	// The default is 100.
+	MaxPoolSize *uint64 `json:"maxPoolSize"`
+	// SocketTimeoutMS specifies how long the driver will wait for a socket read or write to return before returning a
+	// network error. If this is 0 meaning no timeout is used and socket operations can block indefinitely.
+	// The default is 300,000 ms.
+	SocketTimeoutMS *int64 `json:"socketTimeoutMS"`
+}
+
 // QmgoClient specifies the instance to operate mongoDB
 type QmgoClient struct {
 	*Collection
@@ -104,7 +125,6 @@ func (c *Client) Ping(timeout int64) error {
 	defer cancel()
 
 	if err = c.client.Ping(ctx, readpref.Primary()); err != nil {
-		fmt.Println(err)
 		return err
 	}
 	return nil

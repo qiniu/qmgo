@@ -11,3 +11,8 @@ func TestNow(t *testing.T) {
 	t2 := Now()
 	fmt.Println(t1, t2)
 }
+
+func TestNewObjectID(t *testing.T) {
+	objId := NewObjectID()
+	objId.Hex()
+}

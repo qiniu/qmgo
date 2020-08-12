@@ -3,6 +3,7 @@ package qmgo
 import (
 	"context"
 	"fmt"
+	"go.mongodb.org/mongo-driver/bson"
 	"strings"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -92,6 +93,19 @@ func (c *Collection) UpdateAll(ctx context.Context, filter interface{}, update i
 func (c *Collection) Remove(ctx context.Context, filter interface{}) (err error) {
 
 	res, err := c.collection.DeleteOne(ctx, filter)
+	if err != nil {
+		return err
+	}
+	if res.DeletedCount == 0 {
+		err = ErrNoSuchDocuments
+	}
+
+	return err
+}
+
+// RemoveId executes a delete command to delete at most one document from the collection.
+func (c *Collection) RemoveId(ctx context.Context, id string) (err error) {
+	res, err := c.collection.DeleteOne(ctx, bson.M{"_id": id})
 	if err != nil {
 		return err
 	}
