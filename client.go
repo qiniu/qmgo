@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"go.mongodb.org/mongo-driver/event"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -29,6 +30,8 @@ type Config struct {
 	// network error. If this is 0 meaning no timeout is used and socket operations can block indefinitely.
 	// The default is 300,000 ms.
 	SocketTimeoutMS *int64 `json:"socketTimeoutMS"`
+	// PoolMonitor to receive connection pool events
+	PoolMonitor *event.PoolMonitor
 }
 
 // QmgoClient specifies the instance to operate mongoDB
@@ -95,6 +98,9 @@ func client(ctx context.Context, conf *Config) (client *mongo.Client, err error)
 	}
 	if conf.MaxPoolSize != nil {
 		opts.SetMaxPoolSize(*conf.MaxPoolSize)
+	}
+	if conf.PoolMonitor != nil {
+		opts.SetPoolMonitor(conf.PoolMonitor)
 	}
 	opts.ApplyURI(conf.Uri)
 
