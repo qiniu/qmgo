@@ -3,7 +3,6 @@ package qmgo
 import (
 	"context"
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -51,11 +50,7 @@ var poolMonitor = &event.PoolMonitor{
 	Event: func(evt *event.PoolEvent) {
 		switch evt.Type {
 		case event.GetSucceeded:
-			fmt.Println("GetSucceeded")
 		case event.ConnectionReturned:
-			fmt.Println("ConnectionReturned")
-			//default:
-			//	fmt.Printf("recv: %+v\n", evt)
 		}
 	},
 }

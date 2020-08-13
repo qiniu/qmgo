@@ -179,7 +179,7 @@ cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL, PoolMoni
 - Pool Monitor
 
 
-## `qmgo` vs `mgo` vs `go.mongodb.org/mongo-driver`
+## `qmgo` & `mgo` vs `go.mongodb.org/mongo-driver`
 
 下面我们举一个多文件查找、`sort`和`limit`的例子, 说明`qmgo`和`mgo`的相似，以及对`go.mongodb.org/mongo-driver`的改进
 
@@ -212,6 +212,10 @@ cli.Find(ctx, bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 coll.Find(bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 ```
 
+## `Qmgo` vs `mgo`
+[Qmgo 和 Mgo 的差异](https://github.com/qiniu/qmgo/wiki/Known-differences-between-Qmgo-and-Mgo)
+ 
+ 
 ## contributing
 
 非常欢迎您对`Qmgo`的任何贡献，非常感谢您的帮助！
