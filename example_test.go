@@ -3,10 +3,12 @@ package qmgo
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/event"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -45,13 +47,25 @@ var batchUserInfoI = []interface{}{
 	UserInfo{Name: "a1", Age: 7, Weight: 40},
 	UserInfo{Name: "a1", Age: 8, Weight: 45},
 }
+var poolMonitor = &event.PoolMonitor{
+	Event: func(evt *event.PoolEvent) {
+		switch evt.Type {
+		case event.GetSucceeded:
+			fmt.Println("GetSucceeded")
+		case event.ConnectionReturned:
+			fmt.Println("ConnectionReturned")
+			//default:
+			//	fmt.Printf("recv: %+v\n", evt)
+		}
+	},
+}
 
 func TestQmgo(t *testing.T) {
 	ast := require.New(t)
 	ctx := context.Background()
 
 	// create connect
-	cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL})
+	cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL, PoolMonitor: poolMonitor})
 
 	ast.Nil(err)
 	defer func() {

@@ -158,12 +158,29 @@ groupStage := bson.D{{"$group", bson.D{{"_id", "$name"}, {"total", bson.D{{"$sum
 var showsWithInfo []bson.M
 err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(&showsWithInfo)
 ```
+
+- Pool Monitor
+````go
+poolMonitor := &event.PoolMonitor{
+	Event: func(evt *event.PoolEvent) {
+		switch evt.Type {
+		case event.GetSucceeded:
+			fmt.Println("GetSucceeded")
+		case event.ConnectionReturned:
+			fmt.Println("ConnectionReturned")
+		}
+	},
+}
+cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL, PoolMonitor: poolMonitor})
+
+````
 ## Feature
 - CRUD to documents
 - Create indexes
 - Sort、limit、count、select
 - Cursor
 - Aggregate
+- Pool Monitor
 
 ## `qmgo` vs `mgo` vs `go.mongodb.org/mongo-driver`
 
