@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 func initClient(col string) *QmgoClient {
@@ -22,6 +23,7 @@ func initClient(col string) *QmgoClient {
 	cfg.ConnectTimeoutMS = &cTimeout
 	cfg.SocketTimeoutMS = &sTimeout
 	cfg.MaxPoolSize = &maxPoolSize
+	cfg.ReadPreference = &ReadPref{Mode: readpref.PrimaryMode}
 	cli, err := Open(context.Background(), &cfg)
 	if err != nil {
 		fmt.Println(err)
@@ -54,6 +56,7 @@ func TestQmgoClient(t *testing.T) {
 		Coll:             "testopen",
 		ConnectTimeoutMS: &timeout,
 		MaxPoolSize:      &maxPoolSize,
+		ReadPreference:   &ReadPref{Mode: readpref.SecondaryMode, MaxStalenessMS: 500},
 	}
 
 	cli, err := Open(context.Background(), &cfg)
@@ -76,6 +79,19 @@ func TestQmgoClient(t *testing.T) {
 	ast.EqualError(err, "client is disconnected")
 
 	err = cli.Ping(5)
+	ast.Error(err)
+
+	// primary mode with max stalenessMS, error
+	cfg = Config{
+		Uri:              "mongodb://localhost:27017",
+		Database:         "mongoxtest",
+		Coll:             "testopen",
+		ConnectTimeoutMS: &timeout,
+		MaxPoolSize:      &maxPoolSize,
+		ReadPreference:   &ReadPref{Mode: readpref.PrimaryMode, MaxStalenessMS: 500},
+	}
+
+	cli, err = Open(context.Background(), &cfg)
 	ast.Error(err)
 }
 

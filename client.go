@@ -30,8 +30,21 @@ type Config struct {
 	// network error. If this is 0 meaning no timeout is used and socket operations can block indefinitely.
 	// The default is 300,000 ms.
 	SocketTimeoutMS *int64 `json:"socketTimeoutMS"`
+	// ReadPreference determines which servers are considered suitable for read operations.
+	// default is PrimaryMode
+	ReadPreference *ReadPref `json:"readPreference"`
 	// PoolMonitor to receive connection pool events
 	PoolMonitor *event.PoolMonitor
+}
+
+// ReadPref determines which servers are considered suitable for read operations.
+type ReadPref struct {
+	// MaxStaleness is the maximum amount of time to allow a server to be considered eligible for selection.
+	// Supported from version 3.4.
+	MaxStalenessMS int64 `json:"maxStalenessMS"`
+	// indicates the user's preference on reads.
+	// PrimaryMode as default
+	Mode readpref.Mode `json:"mode"`
 }
 
 // QmgoClient specifies the instance to operate mongoDB
@@ -102,6 +115,13 @@ func client(ctx context.Context, conf *Config) (client *mongo.Client, err error)
 	if conf.PoolMonitor != nil {
 		opts.SetPoolMonitor(conf.PoolMonitor)
 	}
+	if conf.ReadPreference != nil {
+		readPreference, err := newReadPref(*conf.ReadPreference)
+		if err != nil {
+			return nil, err
+		}
+		opts.SetReadPreference(readPreference)
+	}
 	opts.ApplyURI(conf.Uri)
 
 	client, err = mongo.Connect(ctx, opts)
@@ -116,6 +136,20 @@ func client(ctx context.Context, conf *Config) (client *mongo.Client, err error)
 		return
 	}
 	return
+}
+
+// newReadPref create readpref.ReadPref from config
+func newReadPref(pref ReadPref) (*readpref.ReadPref, error) {
+	readPrefOpts := make([]readpref.Option, 0, 1)
+	if pref.MaxStalenessMS != 0 {
+		readPrefOpts = append(readPrefOpts, readpref.WithMaxStaleness(time.Duration(pref.MaxStalenessMS)*time.Millisecond))
+	}
+	mode := readpref.PrimaryMode
+	if pref.Mode != 0 {
+		mode = pref.Mode
+	}
+	readPreference, err := readpref.New(mode, readPrefOpts...)
+	return readPreference, err
 }
 
 // Close closes sockets to the topology referenced by this Client.
