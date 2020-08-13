@@ -31,6 +31,7 @@ type Config struct {
 	// The default is 300,000 ms.
 	SocketTimeoutMS *int64 `json:"socketTimeoutMS"`
 	// ReadPreference determines which servers are considered suitable for read operations.
+	// default is PrimaryMode
 	ReadPreference *ReadPref `json:"readPreference"`
 	// PoolMonitor to receive connection pool events
 	PoolMonitor *event.PoolMonitor
