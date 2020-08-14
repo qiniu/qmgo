@@ -174,7 +174,7 @@ poolMonitor := &event.PoolMonitor{
 cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL, PoolMonitor: poolMonitor})
 
 ````
-## Feature
+## Features
 - CRUD to documents
 - Create indexes
 - Sort、limit、count、select
@@ -217,7 +217,7 @@ coll.Find(bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 ## `Qmgo` vs `mgo`
 [Differences between qmgo and mgo](https://github.com/qiniu/qmgo/wiki/Known-differences-between-Qmgo-and-Mgo)
  
-## contributing
+## Contributing
 
 The Qmgo project welcomes all contributors. We appreciate your help! 
 
