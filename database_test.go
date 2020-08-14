@@ -13,6 +13,7 @@ func TestDatabase(t *testing.T) {
 	var sTimeout int64 = 500000
 	var cTimeout int64 = 3000
 	var maxPoolSize uint64 = 3000
+	var minPoolSize uint64 = 10
 	collName := "testopen"
 	dbName := "mongoxtest"
 
@@ -23,6 +24,7 @@ func TestDatabase(t *testing.T) {
 		ConnectTimeoutMS: &cTimeout,
 		SocketTimeoutMS:  &sTimeout,
 		MaxPoolSize:      &maxPoolSize,
+		MinPoolSize:      &minPoolSize,
 	}
 
 	c, err := NewClient(context.Background(), &cfg)

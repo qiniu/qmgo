@@ -20,9 +20,11 @@ func initClient(col string) *QmgoClient {
 	var cTimeout int64 = 0
 	var sTimeout int64 = 500000
 	var maxPoolSize uint64 = 3000
+	var minPoolSize uint64 = 10
 	cfg.ConnectTimeoutMS = &cTimeout
 	cfg.SocketTimeoutMS = &sTimeout
 	cfg.MaxPoolSize = &maxPoolSize
+	cfg.MinPoolSize = &minPoolSize
 	cfg.ReadPreference = &ReadPref{Mode: readpref.PrimaryMode}
 	cli, err := Open(context.Background(), &cfg)
 	if err != nil {
@@ -49,6 +51,7 @@ func TestQmgoClient(t *testing.T) {
 
 	// Open 成功
 	var maxPoolSize uint64 = 100
+	var minPoolSize uint64 = 10
 
 	cfg = Config{
 		Uri:              "mongodb://localhost:27017",
@@ -56,6 +59,7 @@ func TestQmgoClient(t *testing.T) {
 		Coll:             "testopen",
 		ConnectTimeoutMS: &timeout,
 		MaxPoolSize:      &maxPoolSize,
+		MinPoolSize:      &minPoolSize,
 		ReadPreference:   &ReadPref{Mode: readpref.SecondaryMode, MaxStalenessMS: 500},
 	}
 
@@ -106,12 +110,14 @@ func TestClient(t *testing.T) {
 	ast := require.New(t)
 
 	var maxPoolSize uint64 = 100
+	var minPoolSize uint64 = 10
 	var timeout int64 = 50
 
 	cfg := &Config{
 		Uri:              "mongodb://localhost:27017",
 		ConnectTimeoutMS: &timeout,
 		MaxPoolSize:      &maxPoolSize,
+		MinPoolSize:      &minPoolSize,
 	}
 
 	c, err := NewClient(context.Background(), cfg)
