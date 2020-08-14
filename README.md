@@ -221,7 +221,7 @@ coll.Find(bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 
 The Qmgo project welcomes all contributors. We appreciate your help! 
 
-Join wechat group:
+## Join qmgo wechat group:
 
 ![avatar](http://pgo8q04yu.bkt.clouddn.com/qmgoG)
 
