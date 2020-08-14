@@ -26,6 +26,10 @@ type Config struct {
 	// If this is 0, it will be set to math.MaxInt64,
 	// The default is 100.
 	MaxPoolSize *uint64 `json:"maxPoolSize"`
+	// MinPoolSize specifies the minimum number of connections allowed in the driver's connection pool to each server. If
+	// this is non-zero, each server's pool will be maintained in the background to ensure that the size does not fall below
+	// the minimum. This can also be set through the "minPoolSize" URI option (e.g. "minPoolSize=100"). The default is 0.
+	MinPoolSize *uint64 `json:"minPoolSize"`
 	// SocketTimeoutMS specifies how long the driver will wait for a socket read or write to return before returning a
 	// network error. If this is 0 meaning no timeout is used and socket operations can block indefinitely.
 	// The default is 300,000 ms.
@@ -111,6 +115,9 @@ func client(ctx context.Context, conf *Config) (client *mongo.Client, err error)
 	}
 	if conf.MaxPoolSize != nil {
 		opts.SetMaxPoolSize(*conf.MaxPoolSize)
+	}
+	if conf.MinPoolSize != nil {
+		opts.SetMinPoolSize(*conf.MinPoolSize)
 	}
 	if conf.PoolMonitor != nil {
 		opts.SetPoolMonitor(conf.PoolMonitor)
