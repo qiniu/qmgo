@@ -177,7 +177,7 @@ cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL, PoolMoni
 
 - Transaction
 
-The simplest and powerful transaction ever, build-in feature like `timeout`、`retry`:
+The super simple and powerful transaction, build-in feature like `timeout`、`retry`:
 ````go
 callback := func(sessCtx context.Context) (interface{}, error) {
     // Important: make sure the sessCtx used in every operation in the whole transaction
