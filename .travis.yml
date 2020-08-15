@@ -16,6 +16,7 @@ before_script:
   - sudo cp ${PWD}/mongodb-linux-x86_64-v4.0-latest/bin/mongod  /usr/bin/mongod
   - sudo service mongod start
 script:
+  - mongod --version
   - go test -race -coverprofile=coverage.txt -covermode=atomic ./...
 after_success:
   - bash <(curl -s https://codecov.io/bash)
