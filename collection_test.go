@@ -60,6 +60,35 @@ func TestCollection_EnsureIndexes(t *testing.T) {
 	ast.Equal(true, IsDup(err))
 }
 
+func TestCollection_DropIndex(t *testing.T) {
+	ast := require.New(t)
+	defer cli.DropCollection(context.Background())
+
+	cli.ensureIndex(context.Background(), []string{"index1"}, true)
+
+	// same index，panic
+	ast.Panics(func() { cli.ensureIndex(context.Background(), []string{"index1"}, false) })
+
+	err := cli.DropIndex(context.Background(), []string{"index1"})
+	ast.NoError(err)
+	ast.NotPanics(func() { cli.ensureIndex(context.Background(), []string{"index1"}, false) })
+
+	cli.ensureIndex(context.Background(), []string{"-index1"}, true)
+
+	// same index，panic
+	ast.Panics(func() { cli.ensureIndex(context.Background(), []string{"-index1"}, false) })
+
+	err = cli.DropIndex(context.Background(), []string{"-index1"})
+	ast.NoError(err)
+	ast.NotPanics(func() { cli.ensureIndex(context.Background(), []string{"-index1"}, false) })
+
+	err = cli.DropIndex(context.Background(), []string{""})
+	ast.Error(err)
+
+	err = cli.DropIndex(context.Background(), []string{"index2"})
+	ast.Error(err)
+}
+
 func TestCollection_Insert(t *testing.T) {
 	ast := require.New(t)
 

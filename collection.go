@@ -194,6 +194,31 @@ func (c *Collection) EnsureIndexes(ctx context.Context, uniques []string, indexe
 	return
 }
 
+// DropIndex drop index in collection
+func (c *Collection) DropIndex(ctx context.Context, indexes []string) error {
+
+	var err error
+	for _, index := range indexes {
+		var key = index
+		var sort = "1"
+		if len(index) != 0 {
+			switch index[0] {
+			case '-':
+				key = strings.TrimPrefix(index, "-")
+				sort = "-1"
+			}
+		} else {
+			_, err = c.collection.Indexes().DropOne(ctx, index)
+			return err
+		}
+		_, err = c.collection.Indexes().DropOne(ctx, key+"_"+sort)
+		if err != nil {
+			return err
+		}
+	}
+	return err
+}
+
 // DropCollection drops collection
 // it's safe even collection is not exists
 func (c *Collection) DropCollection(ctx context.Context) error {
