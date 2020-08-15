@@ -3,6 +3,8 @@ package qmgo
 import (
 	"context"
 	"errors"
+	"fmt"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"testing"
 	"time"
 
@@ -11,10 +13,34 @@ import (
 	"go.mongodb.org/mongo-driver/x/mongo/driver/description"
 )
 
+func initTransactionClient(coll string) *QmgoClient {
+	cfg := Config{
+		Uri:      "mongodb://localhost:27017",
+		Database: "transaction",
+		Coll:     coll,
+	}
+	var cTimeout int64 = 0
+	var sTimeout int64 = 500000
+	var maxPoolSize uint64 = 30000
+	var minPoolSize uint64 = 0
+	cfg.ConnectTimeoutMS = &cTimeout
+	cfg.SocketTimeoutMS = &sTimeout
+	cfg.MaxPoolSize = &maxPoolSize
+	cfg.MinPoolSize = &minPoolSize
+	cfg.ReadPreference = &ReadPref{Mode: readpref.PrimaryMode}
+	qClient, err := Open(context.Background(), &cfg)
+	if err != nil {
+		fmt.Println(err)
+		panic(err)
+	}
+
+	return qClient
+
+}
 func TestClient_DoTransaction(t *testing.T) {
 	ast := require.New(t)
 	ctx := context.Background()
-
+	cli := initTransactionClient("test")
 	defer cli.DropDatabase(ctx)
 
 	if !okRunTransaction() {
@@ -41,6 +67,8 @@ func TestClient_DoTransaction(t *testing.T) {
 }
 func TestSession_AbortTransaction(t *testing.T) {
 	ast := require.New(t)
+	cli := initTransactionClient("test")
+
 	defer cli.DropCollection(context.Background())
 	s, err := cli.Session()
 	ast.NoError(err)
@@ -82,6 +110,8 @@ func TestSession_AbortTransaction(t *testing.T) {
 
 func TestSession_Cancel(t *testing.T) {
 	ast := require.New(t)
+	cli := initTransactionClient("test")
+
 	defer cli.DropCollection(context.Background())
 	s, err := cli.Session()
 	ast.NoError(err)
@@ -110,7 +140,8 @@ func TestSession_Cancel(t *testing.T) {
 
 func TestSession_RetryTransAction(t *testing.T) {
 	ast := require.New(t)
-	//defer cli.DropCollection(context.Background())
+	cli := initTransactionClient("test")
+	defer cli.DropCollection(context.Background())
 	s, err := cli.Session()
 	ast.NoError(err)
 	ctx := context.Background()
