@@ -10,11 +10,9 @@ before_script:
   - wget http://downloads.mongodb.org/linux/mongodb-linux-x86_64-v4.0-latest.tgz -O /tmp/mongodb.tgz
   - tar -xvf /tmp/mongodb.tgz
   - mkdir /tmp/data
-  - ${PWD}/mongodb-linux-x86_64-v4.0-latest/bin/mongod --dbpath /tmp/data --bind_ip 127.0.0.1 --auth &> /dev/null &
-  - until nc -z localhost 27017; do echo Waiting for MongoDB; sleep 1; done
   - sudo service mongod stop
-  - sudo cp ${PWD}/mongodb-linux-x86_64-v4.0-latest/bin/mongod  /usr/bin/mongod
-  - sudo service mongod start
+  - /tmp/mongodb-linux-x86_64-v4.0-latest/bin/mongod --dbpath /tmp/data --bind_ip 127.0.0.1 --auth &> /dev/null &
+  - until nc -z localhost 27017; do echo Waiting for MongoDB; sleep 1; done
 script:
   - mongod --version
   - go test -race -coverprofile=coverage.txt -covermode=atomic ./...
