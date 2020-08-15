@@ -170,6 +170,23 @@ cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL, PoolMoni
 
 ````
 
+- 事务
+
+有史以来最简单和强大的事务, 同时内置了超时和重试的功能:
+````go
+callback := func(sessCtx context.Context) (interface{}, error) {
+    // 重要：确保事务中的每一个操作，都使用传入的sessCtx参数
+    if _, err := cli.InsertOne(sessCtx, bson.D{{"abc", int32(1)}}); err != nil {
+        return nil, err
+    }
+    if _, err := cli.InsertOne(sessCtx, bson.D{{"xyz", int32(999)}}); err != nil {
+        return nil, err
+    }
+    return nil, nil
+}
+result, err = cli.DoTransaction(ctx, callback)
+````
+[必读：关于事务的更多内容]()
 ## 功能
 - 文档的增删改查
 - 索引配置

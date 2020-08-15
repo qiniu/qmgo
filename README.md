@@ -174,6 +174,25 @@ poolMonitor := &event.PoolMonitor{
 cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL, PoolMonitor: poolMonitor})
 
 ````
+
+- Transaction
+
+The simplest and powerful transaction ever, build-in feature like `timeout`、`retry`:
+````go
+callback := func(sessCtx context.Context) (interface{}, error) {
+    // Important: make sure the sessCtx used in every operation in the whole transaction
+    if _, err := cli.InsertOne(sessCtx, bson.D{{"abc", int32(1)}}); err != nil {
+        return nil, err
+    }
+    if _, err := cli.InsertOne(sessCtx, bson.D{{"xyz", int32(999)}}); err != nil {
+        return nil, err
+    }
+    return nil, nil
+}
+result, err = cli.DoTransaction(ctx, callback)
+````
+[Must Read: More about transaction]()
+
 ## Features
 - CRUD to documents
 - Create indexes

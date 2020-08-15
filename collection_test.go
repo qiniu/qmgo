@@ -12,8 +12,7 @@ import (
 func TestCollection_EnsureIndex(t *testing.T) {
 	ast := require.New(t)
 
-	cli := initClient("test")
-	cli.DropCollection(context.Background())
+	defer cli.DropCollection(context.Background())
 
 	cli.ensureIndex(context.Background(), nil, false)
 	cli.ensureIndex(context.Background(), []string{"id1"}, true)
@@ -40,8 +39,7 @@ func TestCollection_EnsureIndex(t *testing.T) {
 func TestCollection_EnsureIndexes(t *testing.T) {
 	ast := require.New(t)
 
-	cli := initClient("test")
-	cli.DropCollection(context.Background())
+	defer cli.DropCollection(context.Background())
 
 	unique := []string{"id1"}
 	common := []string{"id2,id3", "id4,-id5"}
@@ -65,10 +63,7 @@ func TestCollection_EnsureIndexes(t *testing.T) {
 func TestCollection_Insert(t *testing.T) {
 	ast := require.New(t)
 
-	var cli *QmgoClient
-
-	cli = initClient("test")
-	cli.DropCollection(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), []string{"name"}, nil)
 
 	var err error
@@ -87,10 +82,7 @@ func TestCollection_Insert(t *testing.T) {
 func TestCollection_InsertMany(t *testing.T) {
 	ast := require.New(t)
 
-	var cli *QmgoClient
-
-	cli = initClient("test")
-	cli.DropCollection(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), []string{"name"}, nil)
 
 	var err error
@@ -121,10 +113,7 @@ func TestCollection_InsertMany(t *testing.T) {
 func TestCollection_Upsert(t *testing.T) {
 	ast := require.New(t)
 
-	var cli *QmgoClient
-
-	cli = initClient("test")
-	cli.DropCollection(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), []string{"name"}, nil)
 
 	id1 := primitive.NewObjectID()
@@ -198,10 +187,7 @@ func TestCollection_Upsert(t *testing.T) {
 func TestCollection_Update(t *testing.T) {
 	ast := require.New(t)
 
-	var cli *QmgoClient
-
-	cli = initClient("test")
-	cli.DropCollection(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), []string{"name"}, nil)
 
 	id1 := primitive.NewObjectID()
@@ -264,10 +250,7 @@ func TestCollection_Update(t *testing.T) {
 func TestCollection_UpdateAll(t *testing.T) {
 	ast := require.New(t)
 
-	var cli *QmgoClient
-
-	cli = initClient("test")
-	cli.DropCollection(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
 	id1 := primitive.NewObjectID()
@@ -341,10 +324,7 @@ func TestCollection_UpdateAll(t *testing.T) {
 func TestCollection_Remove(t *testing.T) {
 	ast := require.New(t)
 
-	var cli *QmgoClient
-
-	cli = initClient("test")
-	cli.DropCollection(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
 	id1 := primitive.NewObjectID().Hex()
@@ -409,10 +389,7 @@ func TestCollection_Remove(t *testing.T) {
 func TestCollection_DeleteAll(t *testing.T) {
 	ast := require.New(t)
 
-	var cli *QmgoClient
-
-	cli = initClient("test")
-	cli.DropCollection(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
 	id1 := primitive.NewObjectID()
