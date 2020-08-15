@@ -7,6 +7,12 @@ services:
   - mongodb
 before_script:
   - sleep 15 # https://docs.travis-ci.com/user/database-setup/#mongodb-does-not-immediately-accept-connections
+  - echo "replSet = rs0" | sudo tee -a /etc/mongodb.conf
+  - sudo service mongodb restart
+  - sleep 20
+  - mongo --eval 'rs.initiate()'
+  - sleep 15
+
 script:
   - mongod --version
   - go test -race -coverprofile=coverage.txt -covermode=atomic ./...
