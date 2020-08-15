@@ -11,8 +11,10 @@ before_script:
   - tar -xvf /tmp/mongodb.tgz
   - mkdir /tmp/data
   - sudo service mongod stop
-  - /tmp/mongodb-linux-x86_64-v4.0-latest/bin/mongod --dbpath /tmp/data --bind_ip 127.0.0.1 --auth &> /dev/null &
-  - until nc -z localhost 27017; do echo Waiting for MongoDB; sleep 1; done
+  - sudo cp /tmp/mongodb-linux-x86_64-3.6.2/bin/mongod  /usr/bin/mongod
+  - sudo service mongod start
+  - sleep 30
+
 script:
   - mongod --version
   - go test -race -coverprofile=coverage.txt -covermode=atomic ./...
