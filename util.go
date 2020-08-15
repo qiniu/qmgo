@@ -1,11 +1,12 @@
 package qmgo
 
 import (
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"math"
 	"strconv"
 	"strings"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // Now return Millisecond current time

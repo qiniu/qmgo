@@ -3,6 +3,13 @@ go:
   - "1.14"
 env:
   - GO111MODULE=on
+addons:
+  apt:
+    sources:
+      - mongodb-4.0-precise
+    packages:
+      - mongodb-org-server
+      - mongodb-org-shell
 services:
   - mongodb
 before_script:
