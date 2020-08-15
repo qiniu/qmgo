@@ -11,7 +11,7 @@ before_script:
   - tar -xvf /tmp/mongodb.tgz
   - mkdir /tmp/data
   - sudo service mongod stop
-  - sudo cp /tmp/mongodb-linux-x86_64-v4.0-latest/bin/mongod  /usr/bin/mongod
+  - sudo cp /tmp/mongodb/bin/mongod  /usr/bin/mongod
   - sudo service mongod start
   - sleep 30
 
