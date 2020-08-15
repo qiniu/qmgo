@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"testing"
+
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
-	"testing"
 )
 
 var cli = initClient("test")

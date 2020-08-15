@@ -186,7 +186,7 @@ callback := func(sessCtx context.Context) (interface{}, error) {
 }
 result, err = cli.DoTransaction(ctx, callback)
 ````
-[必读：关于事务的更多内容]()
+[必读：关于事务的更多内容](https://github.com/qiniu/qmgo/wiki/Transaction)
 ## 功能
 - 文档的增删改查
 - 索引配置

@@ -191,7 +191,7 @@ callback := func(sessCtx context.Context) (interface{}, error) {
 }
 result, err = cli.DoTransaction(ctx, callback)
 ````
-[Must Read: More about transaction]()
+[Must Read: More about transaction](https://github.com/qiniu/qmgo/wiki/Transaction)
 
 ## Features
 - CRUD to documents

@@ -25,7 +25,7 @@ type Session struct {
 //- if operations in callback return qmgo.ErrTransactionNotSupported,
 //- If the ctx parameter already has a Session attached to it, it will be replaced by this session.
 func (s *Session) StartTransaction(ctx context.Context, cb func(sessCtx context.Context) (interface{}, error)) (interface{}, error) {
-	result, err := s.session.WithTransaction(ctx, wrapperCustomF(cb))
+	result, err := s.session.WithTransaction(ctx, wrapperCustomCb(cb))
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func (s *Session) AbortTransaction(ctx context.Context) error {
 }
 
 // wrapperCustomF wrapper caller's callback function to mongo dirver's
-func wrapperCustomF(cb func(ctx context.Context) (interface{}, error)) func(sessCtx mongo.SessionContext) (interface{}, error) {
+func wrapperCustomCb(cb func(ctx context.Context) (interface{}, error)) func(sessCtx mongo.SessionContext) (interface{}, error) {
 	return func(sessCtx mongo.SessionContext) (interface{}, error) {
 		result, err := cb(sessCtx)
 		if err == ErrTransactionRetry {
