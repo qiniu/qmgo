@@ -33,7 +33,7 @@ func initTransactionClient(coll string) *QmgoClient {
 		fmt.Println(err)
 		panic(err)
 	}
-
+	qClient.InsertOne(context.Background(), bson.M{"name": "before_transaction"})
 	return qClient
 
 }
