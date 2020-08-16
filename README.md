@@ -20,6 +20,15 @@
 
 -`MongoDB 2.6` and above.
 
+## Features
+- CRUD to documents
+- Create indexes
+- Sort、limit、count、select
+- Cursor
+- Aggregate
+- Pool Monitor
+- Transaction
+
 ## Installation
 
 The recommended way is to use `go mod` to automatically install dependencies by `import github.com/qiniu/qmgo` and `build` .
@@ -29,15 +38,6 @@ Of course, the following methods are also feasible:
 ```
 go get github.com/qiniu/qmgo
 ```
-
-## Features
-- CRUD to documents
-- Create indexes
-- Sort、limit、count、select
-- Cursor
-- Aggregate
-- Pool Monitor
-- Transaction
 
 ## Usage
 
