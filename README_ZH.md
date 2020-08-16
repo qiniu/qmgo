@@ -172,7 +172,7 @@ cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL, PoolMoni
 
 - 事务
 
-有史以来最简单和强大的事务, 同时内置了超时和重试的功能:
+有史以来最简单和强大的事务, 同时还有超时和重试等功能:
 ````go
 callback := func(sessCtx context.Context) (interface{}, error) {
     // 重要：确保事务中的每一个操作，都使用传入的sessCtx参数
@@ -234,7 +234,7 @@ coll.Find(bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 [Qmgo 和 Mgo 的差异](https://github.com/qiniu/qmgo/wiki/Known-differences-between-Qmgo-and-Mgo)
  
  
-## 谁在使用Qmgo
+## 谁在使用Qmgo(AKA 广告位)
 - 七牛QCDN管理系统(私有repo)
 
  

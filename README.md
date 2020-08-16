@@ -177,7 +177,7 @@ cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL, PoolMoni
 
 - Transaction
 
-The super simple and powerful transaction, build-in feature like `timeout`、`retry`:
+The super simple and powerful transaction, with features like `timeout`、`retry`:
 ````go
 callback := func(sessCtx context.Context) (interface{}, error) {
     // Important: make sure the sessCtx used in every operation in the whole transaction
@@ -236,7 +236,7 @@ coll.Find(bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 ## `Qmgo` vs `mgo`
 [Differences between qmgo and mgo](https://github.com/qiniu/qmgo/wiki/Known-differences-between-Qmgo-and-Mgo)
  
-## Who is using
+## Who is using (AKA 广告位)
 - Qiniu QCDN management system (private repo)
 
 
