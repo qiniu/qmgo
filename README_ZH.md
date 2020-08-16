@@ -245,4 +245,4 @@ coll.Find(bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 
 ## 加入 qmgo 微信群:
 
-![avatar](http://pgo8q04yu.bkt.clouddn.com/qmgoG)
+![avatar](http://pgo8q04yu.bkt.clouddn.com/qmgoG-1)
