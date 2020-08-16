@@ -235,7 +235,7 @@ coll.Find(bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 [Qmgo 和 Mgo 的差异](https://github.com/qiniu/qmgo/wiki/Known-differences-between-Qmgo-and-Mgo)
  
  
-## 谁在使用Qmgo(AKA 广告位)
+## 谁在使用Qmgo
 - 七牛QCDN管理系统(私有repo)
 
  
