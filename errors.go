@@ -18,6 +18,10 @@ var (
 	ErrQueryResultValCanNotChange = errors.New("the value of result can not be changed")
 	// ErrNoSuchDocuments return if no document found
 	ErrNoSuchDocuments = errors.New(mongo.ErrNoDocuments.Error())
+	// ErrTransactionRetry return if transaction need to retry
+	ErrTransactionRetry = errors.New("retry transaction")
+	// ErrTransactionRetry return if transaction not supported
+	ErrTransactionNotSupported = errors.New("transaction not supported")
 )
 
 // IsErrNoDocuments check if err is no documents, both mongo-go-driver error and qmgo custom error

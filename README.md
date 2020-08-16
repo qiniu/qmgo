@@ -174,6 +174,25 @@ poolMonitor := &event.PoolMonitor{
 cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL, PoolMonitor: poolMonitor})
 
 ````
+
+- Transaction
+
+The super simple and powerful transaction, build-in feature like `timeout`、`retry`:
+````go
+callback := func(sessCtx context.Context) (interface{}, error) {
+    // Important: make sure the sessCtx used in every operation in the whole transaction
+    if _, err := cli.InsertOne(sessCtx, bson.D{{"abc", int32(1)}}); err != nil {
+        return nil, err
+    }
+    if _, err := cli.InsertOne(sessCtx, bson.D{{"xyz", int32(999)}}); err != nil {
+        return nil, err
+    }
+    return nil, nil
+}
+result, err = cli.DoTransaction(ctx, callback)
+````
+[Must Read: More about transaction](https://github.com/qiniu/qmgo/wiki/Transaction)
+
 ## Features
 - CRUD to documents
 - Create indexes
@@ -182,7 +201,7 @@ cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL, PoolMoni
 - Aggregate
 - Pool Monitor
 
-## `Qmgo` & `mgo` vs `go.mongodb.org/mongo-driver`
+## `Qmgo` vs `go.mongodb.org/mongo-driver`
 
 Below we give an example of multi-file search、sort and limit to illustrate the similarities between `qmgo` and `mgo` and the improvement compare to `go.mongodb.org/mongo-driver`.
 How do we do in`go.mongodb.org/mongo-driver`:
@@ -217,6 +236,10 @@ coll.Find(bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 ## `Qmgo` vs `mgo`
 [Differences between qmgo and mgo](https://github.com/qiniu/qmgo/wiki/Known-differences-between-Qmgo-and-Mgo)
  
+## Who is using
+- Qiniu QCDN management system (private repo)
+
+
 ## Contributing
 
 The Qmgo project welcomes all contributors. We appreciate your help! 

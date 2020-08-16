@@ -5,10 +5,14 @@ import (
 	"fmt"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/event"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"go.mongodb.org/mongo-driver/x/mongo/driver/connstring"
+	"go.mongodb.org/mongo-driver/x/mongo/driver/description"
+	"go.mongodb.org/mongo-driver/x/mongo/driver/topology"
 )
 
 // Config for initial mongodb instance
@@ -59,7 +63,7 @@ type QmgoClient struct {
 }
 
 // Open creates client instance according to config
-// QmgoClient can operates all mongo.client 、mongo.database and mongo.collection
+// QmgoClient can operates all qmgo.client 、qmgo.database and qmgo.collection
 func Open(ctx context.Context, conf *Config) (cli *QmgoClient, err error) {
 	client, err := NewClient(ctx, conf)
 	if err != nil {
@@ -82,6 +86,7 @@ func Open(ctx context.Context, conf *Config) (cli *QmgoClient, err error) {
 // Client creates client to mongo
 type Client struct {
 	client *mongo.Client
+	conf   Config
 }
 
 // NewClient creates mongo.client
@@ -93,6 +98,7 @@ func NewClient(ctx context.Context, conf *Config) (cli *Client, err error) {
 	}
 	cli = &Client{
 		client: client,
+		conf:   *conf,
 	}
 	return
 }
@@ -180,4 +186,100 @@ func (c *Client) Ping(timeout int64) error {
 // Database create connection to database
 func (c *Client) Database(name string) *Database {
 	return &Database{database: c.client.Database(name)}
+}
+
+// Session create one session on client
+// Watch out, close session after operation done
+func (c *Client) Session() (*Session, error) {
+	s, err := c.client.StartSession()
+	return &Session{session: s}, err
+}
+
+// DoTransaction do whole transaction in one function
+// precondition：
+// - version of mongoDB server >= v4.0
+// - Topology of mongoDB server is not Single
+// At the same time, please pay attention to the following
+// - make sure all operations in callback use the sessCtx as context parameter
+// - if operations in callback takes more than(include equal) 120s, the operations will not take effect,
+// - if operation in callback return qmgo.ErrTransactionRetry,
+//   the whole transaction will retry, so this transaction must be idempotent
+// - if operations in callback return qmgo.ErrTransactionNotSupported,
+// - If the ctx parameter already has a Session attached to it, it will be replaced by this session.
+func (c *Client) DoTransaction(ctx context.Context, callback func(sessCtx context.Context) (interface{}, error)) (interface{}, error) {
+	if !c.transactionAllowed() {
+		return nil, ErrTransactionNotSupported
+	}
+	s, err := c.Session()
+	if err != nil {
+		return nil, err
+	}
+	defer s.EndSession(ctx)
+	return s.StartTransaction(ctx, callback)
+}
+
+// ServerVersion get the version of mongoDB server, like 4.4.0
+func (c *Client) ServerVersion() string {
+	var serverStatus bson.Raw
+	err := c.client.Database("admin").RunCommand(
+		context.Background(),
+		bson.D{{"serverStatus", 1}},
+	).Decode(&serverStatus)
+	if err != nil {
+		fmt.Println("run command err", err)
+		return ""
+	}
+	v, err := serverStatus.LookupErr("version")
+	if err != nil {
+		fmt.Println("look up err", err)
+		return ""
+	}
+	return v.StringValue()
+}
+
+// topology get topology from mongoDB server, like single、ReplicaSet
+// TODO dont know why need to do `cli, err := Open(ctx, &c.conf)` to get topo,
+// Before figure it out, we only use this function in UT
+func (c *Client) topology() (description.TopologyKind, error) {
+	ConnString, err := connstring.ParseAndValidate(c.conf.Uri)
+	if err != nil {
+		return 0, err
+	}
+	topo, err := topology.New(
+		topology.WithConnString(func(connstring.ConnString) connstring.ConnString {
+			return ConnString
+		}))
+	err = topo.Connect()
+
+	ctx := context.Background()
+	conf := c.conf
+	var maxPoolSize uint64 = 2
+	var minPoolSize uint64 = 0
+	conf.MaxPoolSize = &maxPoolSize
+	conf.MinPoolSize = &minPoolSize
+	// I dont get why need on more connect to make topo valid....
+	cli, err := Open(ctx, &c.conf)
+	defer cli.Close(ctx)
+	cli.ServerVersion()
+	return topo.Kind(), nil
+}
+
+// transactionAllowed check if transaction is allowed
+func (c *Client) transactionAllowed() bool {
+	vr, err := CompareVersions("4.0", c.ServerVersion())
+	if err != nil {
+		return false
+	}
+	if vr > 0 {
+		fmt.Println("transaction is not supported because mongo server version is below 4.0")
+		return false
+	}
+	// TODO dont know why need to do `cli, err := Open(ctx, &c.conf)` in topology() to get topo,
+	// Before figure it out, we only use this function in UT
+	//topo, err := c.topology()
+	//if topo == description.Single {
+	//	fmt.Println("transaction is not supported because mongo server topology is single")
+	//	return false
+	//}
+	return true
 }

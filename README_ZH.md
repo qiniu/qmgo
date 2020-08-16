@@ -170,6 +170,24 @@ cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL, PoolMoni
 
 ````
 
+- 事务
+
+有史以来最简单和强大的事务, 同时内置了超时和重试的功能:
+````go
+callback := func(sessCtx context.Context) (interface{}, error) {
+    // 重要：确保事务中的每一个操作，都使用传入的sessCtx参数
+    if _, err := cli.InsertOne(sessCtx, bson.D{{"abc", int32(1)}}); err != nil {
+        return nil, err
+    }
+    if _, err := cli.InsertOne(sessCtx, bson.D{{"xyz", int32(999)}}); err != nil {
+        return nil, err
+    }
+    return nil, nil
+}
+result, err = cli.DoTransaction(ctx, callback)
+````
+[必读：关于事务的更多内容](https://github.com/qiniu/qmgo/wiki/Transaction)
+
 ## 功能
 - 文档的增删改查
 - 索引配置
@@ -179,7 +197,7 @@ cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL, PoolMoni
 - Pool Monitor
 
 
-## `qmgo` & `mgo` vs `go.mongodb.org/mongo-driver`
+## `qmgo` vs `go.mongodb.org/mongo-driver`
 
 下面我们举一个多文件查找、`sort`和`limit`的例子, 说明`qmgo`和`mgo`的相似，以及对`go.mongodb.org/mongo-driver`的改进
 
@@ -215,6 +233,10 @@ coll.Find(bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 ## `Qmgo` vs `mgo`
 [Qmgo 和 Mgo 的差异](https://github.com/qiniu/qmgo/wiki/Known-differences-between-Qmgo-and-Mgo)
  
+ 
+## 谁在使用Qmgo
+- 七牛QCDN管理系统(私有repo)
+
  
 ## Contributing
 

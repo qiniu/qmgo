@@ -13,7 +13,7 @@ func TestDatabase(t *testing.T) {
 	var sTimeout int64 = 500000
 	var cTimeout int64 = 3000
 	var maxPoolSize uint64 = 3000
-	var minPoolSize uint64 = 10
+	var minPoolSize uint64 = 0
 	collName := "testopen"
 	dbName := "mongoxtest"
 

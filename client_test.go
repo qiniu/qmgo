@@ -11,6 +11,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
+var cli = initClient("test")
+
 func initClient(col string) *QmgoClient {
 	cfg := Config{
 		Uri:      "mongodb://localhost:27017",
@@ -19,20 +21,20 @@ func initClient(col string) *QmgoClient {
 	}
 	var cTimeout int64 = 0
 	var sTimeout int64 = 500000
-	var maxPoolSize uint64 = 3000
-	var minPoolSize uint64 = 10
+	var maxPoolSize uint64 = 30000
+	var minPoolSize uint64 = 0
 	cfg.ConnectTimeoutMS = &cTimeout
 	cfg.SocketTimeoutMS = &sTimeout
 	cfg.MaxPoolSize = &maxPoolSize
 	cfg.MinPoolSize = &minPoolSize
 	cfg.ReadPreference = &ReadPref{Mode: readpref.PrimaryMode}
-	cli, err := Open(context.Background(), &cfg)
+	qClient, err := Open(context.Background(), &cfg)
 	if err != nil {
 		fmt.Println(err)
 		panic(err)
 	}
 
-	return cli
+	return qClient
 }
 
 func TestQmgoClient(t *testing.T) {
@@ -51,7 +53,7 @@ func TestQmgoClient(t *testing.T) {
 
 	// Open 成功
 	var maxPoolSize uint64 = 100
-	var minPoolSize uint64 = 10
+	var minPoolSize uint64 = 0
 
 	cfg = Config{
 		Uri:              "mongodb://localhost:27017",
@@ -110,7 +112,7 @@ func TestClient(t *testing.T) {
 	ast := require.New(t)
 
 	var maxPoolSize uint64 = 100
-	var minPoolSize uint64 = 10
+	var minPoolSize uint64 = 0
 	var timeout int64 = 50
 
 	cfg := &Config{
@@ -128,4 +130,22 @@ func TestClient(t *testing.T) {
 	ast.NoError(err)
 	ast.NotNil(res)
 	coll.DropCollection(context.Background())
+}
+
+func TestClient_ServerVersion(t *testing.T) {
+	ast := require.New(t)
+
+	cfg := &Config{
+		Uri:      "mongodb://localhost:27017",
+		Database: "mongoxtest",
+		Coll:     "transaction",
+	}
+
+	ctx := context.Background()
+	cli, err := Open(ctx, cfg)
+	ast.NoError(err)
+
+	version := cli.ServerVersion()
+	ast.NotEmpty(version)
+	fmt.Println(version)
 }

@@ -8,8 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/event"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const (
@@ -130,44 +128,5 @@ func TestQmgo(t *testing.T) {
 	ast.Equal("", one.Name)
 	// remove
 	err = cli.Remove(ctx, bson.M{"age": 7})
-	ast.Nil(err)
-}
-
-func TestOfficialMongoDriver(t *testing.T) {
-	ast := require.New(t)
-	ctx := context.Background()
-
-	// create connect
-	var opts *options.ClientOptions
-	opts = new(options.ClientOptions)
-	opts.ApplyURI(URI)
-	c, err := mongo.Connect(ctx, opts)
-	ast.Nil(err)
-	db := c.Database(DATABASE)
-	coll := db.Collection(COLL)
-	defer db.Drop(ctx)
-
-	// insert one document
-	_, err = coll.InsertOne(ctx, oneUserInfo)
-	ast.Nil(err)
-
-	// find one document
-	one := UserInfo{}
-	err = coll.FindOne(ctx, bson.M{"name": oneUserInfo.Name}).Decode(&one)
-	ast.Nil(err)
-
-	// batch insert
-	_, err = coll.InsertMany(ctx, batchUserInfoI)
-	ast.Nil(err)
-
-	// find all 、sort and limit
-	findOptions := options.Find()
-	findOptions.SetLimit(7)
-	var sorts bson.D
-	sorts = append(sorts, bson.E{Key: "weight", Value: 1})
-
-	findOptions.SetSort(sorts)
-
-	_, err = coll.Find(ctx, bson.M{"age": 6}, findOptions)
 	ast.Nil(err)
 }
