@@ -85,7 +85,7 @@ func TestSession_AbortTransaction(t *testing.T) {
 		if _, err := cli.InsertOne(sCtx, bson.D{{"xyz", int32(999)}}); err != nil {
 			return nil, err
 		}
-		err = s.AbortTransaction(ctx)
+		err = s.AbortTransaction(sCtx)
 
 		return nil, nil
 	}
