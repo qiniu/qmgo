@@ -27,7 +27,7 @@
 - Cursor
 - Aggregate
 - Pool Monitor
-- Transaction
+- Transactions
 
 ## Installation
 
@@ -184,7 +184,7 @@ cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL, PoolMoni
 
 ````
 
-- Transaction
+- Transactions
 
 The super simple and powerful transaction, with features like `timeout`、`retry`:
 ````go
