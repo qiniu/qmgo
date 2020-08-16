@@ -236,7 +236,7 @@ coll.Find(bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 ## `Qmgo` vs `mgo`
 [Differences between qmgo and mgo](https://github.com/qiniu/qmgo/wiki/Known-differences-between-Qmgo-and-Mgo)
  
-## Who is using (AKA 广告位)
+## Who is using
 - Qiniu QCDN management system (private repo)
 
 
