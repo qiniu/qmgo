@@ -200,7 +200,7 @@ callback := func(sessCtx context.Context) (interface{}, error) {
 }
 result, err = cli.DoTransaction(ctx, callback)
 ````
-[Must Read: More about transaction](https://github.com/qiniu/qmgo/wiki/Transaction)
+[More about transaction](https://github.com/qiniu/qmgo/wiki/Transactions)
 
 ## `Qmgo` vs `go.mongodb.org/mongo-driver`
 
