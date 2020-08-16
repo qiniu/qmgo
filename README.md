@@ -30,6 +30,15 @@ Of course, the following methods are also feasible:
 go get github.com/qiniu/qmgo
 ```
 
+## Features
+- CRUD to documents
+- Create indexes
+- Sort、limit、count、select
+- Cursor
+- Aggregate
+- Pool Monitor
+- Transaction
+
 ## Usage
 
 - Start
@@ -192,14 +201,6 @@ callback := func(sessCtx context.Context) (interface{}, error) {
 result, err = cli.DoTransaction(ctx, callback)
 ````
 [Must Read: More about transaction](https://github.com/qiniu/qmgo/wiki/Transaction)
-
-## Features
-- CRUD to documents
-- Create indexes
-- Sort、limit、count、select
-- Cursor
-- Aggregate
-- Pool Monitor
 
 ## `Qmgo` vs `go.mongodb.org/mongo-driver`
 
