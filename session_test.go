@@ -64,49 +64,43 @@ func TestClient_DoTransaction(t *testing.T) {
 	ast.Equal(r["xyz"], int32(999))
 }
 
-//
-//func TestSession_AbortTransaction(t *testing.T) {
-//	ast := require.New(t)
-//	cli := initTransactionClient("test")
-//
-//	defer cli.DropCollection(context.Background())
-//	s, err := cli.Session()
-//	ast.NoError(err)
-//	ctx := context.Background()
-//	defer s.EndSession(ctx)
-//
-//	if !okRunTransaction() {
-//		t.Skip("can't run transaction")
-//	}
-//
-//	callback := func(sCtx context.Context) (interface{}, error) {
-//		if _, err := cli.InsertOne(sCtx, bson.D{{"abc", int32(1)}}); err != nil {
-//			return nil, err
-//		}
-//		if _, err := cli.InsertOne(sCtx, bson.D{{"xyz", int32(999)}}); err != nil {
-//			return nil, err
-//		}
-//		time.Sleep(5 * time.Second)
-//		return nil, nil
-//	}
-//	go func() {
-//		time.Sleep(3 * time.Second)
-//		// abort the already worked operation, can't abort the later operation
-//		// it seems a mongodb-go-driver bug
-//		err = s.AbortTransaction(ctx)
-//	}()
-//	_, err = s.StartTransaction(ctx, callback)
-//	ast.NoError(err)
-//
-//	ast.NoError(err)
-//	r := bson.M{}
-//	err = cli.Find(ctx, bson.M{"abc": 1}).One(&r)
-//	ast.Error(err)
-//	// abort the already worked operation, can't abort the later operation
-//	// it seems a mongodb-go-driver bug
-//	err = cli.Find(ctx, bson.M{"xyz": 999}).One(&r)
-//	ast.Error(err)
-//}
+func TestSession_AbortTransaction(t *testing.T) {
+	ast := require.New(t)
+	cli := initTransactionClient("test")
+
+	defer cli.DropCollection(context.Background())
+	s, err := cli.Session()
+	ast.NoError(err)
+	ctx := context.Background()
+	defer s.EndSession(ctx)
+
+	if !okRunTransaction() {
+		t.Skip("can't run transaction")
+	}
+
+	callback := func(sCtx context.Context) (interface{}, error) {
+		if _, err := cli.InsertOne(sCtx, bson.D{{"abc", int32(1)}}); err != nil {
+			return nil, err
+		}
+		if _, err := cli.InsertOne(sCtx, bson.D{{"xyz", int32(999)}}); err != nil {
+			return nil, err
+		}
+		err = s.AbortTransaction(ctx)
+
+		return nil, nil
+	}
+
+	_, err = s.StartTransaction(ctx, callback)
+	ast.NoError(err)
+
+	r := bson.M{}
+	err = cli.Find(ctx, bson.M{"abc": 1}).One(&r)
+	ast.Error(err)
+	// abort the already worked operation, can't abort the later operation
+	// it seems a mongodb-go-driver bug
+	err = cli.Find(ctx, bson.M{"xyz": 999}).One(&r)
+	ast.Error(err)
+}
 
 func TestSession_Cancel(t *testing.T) {
 	ast := require.New(t)
@@ -182,6 +176,7 @@ func okRunTransaction() bool {
 		return false
 	}
 	topo, err := cli.topology()
+	fmt.Println(topo)
 	if topo == description.Single {
 		return false
 	}
