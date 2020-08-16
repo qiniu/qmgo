@@ -11,9 +11,9 @@ before_script:
   - |-
     echo "  replSetName: \"rs0\"" | sudo tee -a /etc/mongod.conf
   - sudo service mongod restart
-  - sleep 20
-  - mongo --eval 'rs.initiate()'
   - sleep 15
+  - mongo --eval 'rs.initiate()'
+  - sleep 5
 
 script:
   - mongod --version
