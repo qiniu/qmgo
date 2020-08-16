@@ -201,7 +201,7 @@ result, err = cli.DoTransaction(ctx, callback)
 - Aggregate
 - Pool Monitor
 
-## `Qmgo` & `mgo` vs `go.mongodb.org/mongo-driver`
+## `Qmgo` vs `go.mongodb.org/mongo-driver`
 
 Below we give an example of multi-file search、sort and limit to illustrate the similarities between `qmgo` and `mgo` and the improvement compare to `go.mongodb.org/mongo-driver`.
 How do we do in`go.mongodb.org/mongo-driver`:
@@ -236,6 +236,10 @@ coll.Find(bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 ## `Qmgo` vs `mgo`
 [Differences between qmgo and mgo](https://github.com/qiniu/qmgo/wiki/Known-differences-between-Qmgo-and-Mgo)
  
+## Who is using
+- Qiniu QCDN management system (private repo)
+
+
 ## Contributing
 
 The Qmgo project welcomes all contributors. We appreciate your help! 
