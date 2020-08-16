@@ -11,6 +11,15 @@
 - `Go 1.10` 及以上。
 - `MongoDB 2.6` 及以上。
 
+## 功能
+- 文档的增删改查
+- 索引配置
+- `Sort`、`Limit`、`Count`、`Select`
+- `Cursor`
+- 聚合`Aggregate`
+- Pool Monitor
+- 事务
+
 ## 安装
 
 推荐方式是使用`go mod`，通过在源码中`import github.com/qiniu/qmgo` 并`build` 来自动安装依赖。
@@ -187,14 +196,6 @@ callback := func(sessCtx context.Context) (interface{}, error) {
 result, err = cli.DoTransaction(ctx, callback)
 ````
 [必读：关于事务的更多内容](https://github.com/qiniu/qmgo/wiki/Transaction)
-
-## 功能
-- 文档的增删改查
-- 索引配置
-- `Sort`、`Limit`、`Count`、`Select`
-- `Cursor`
-- 聚合`Aggregate`
-- Pool Monitor
 
 
 ## `qmgo` vs `go.mongodb.org/mongo-driver`
