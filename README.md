@@ -238,7 +238,7 @@ coll.Find(bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 [Differences between qmgo and mgo](https://github.com/qiniu/qmgo/wiki/Known-differences-between-Qmgo-and-Mgo)
  
 ## Who is using
-If you are using qmgo, please feel free to update here and let everybody know！
+If you are using qmgo, please feel free to update here！
 
 - Qiniu QCDN management system
 - Qiniu RTC quality monitoring system
