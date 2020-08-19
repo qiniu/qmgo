@@ -63,7 +63,6 @@ func TestQmgoClient(t *testing.T) {
 		MaxPoolSize:      &maxPoolSize,
 		MinPoolSize:      &minPoolSize,
 		ReadPreference:   &ReadPref{Mode: readpref.SecondaryMode, MaxStalenessMS: 500},
-		Auth:             &Credential{Username: "admin", Password: "password"},
 	}
 
 	cli, err := Open(context.Background(), &cfg)
