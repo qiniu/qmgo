@@ -149,3 +149,21 @@ func TestClient_ServerVersion(t *testing.T) {
 	ast.NotEmpty(version)
 	fmt.Println(version)
 }
+
+func TestClient_newAuth(t *testing.T) {
+	ast := require.New(t)
+
+	auth := Credential{
+		AuthMechanism: "PLAIN",
+		AuthSource:    "PLAIN",
+		Username:      "qmgo",
+		Password:      "123",
+		PasswordSet:   false,
+	}
+	cred := newAuth(auth)
+	ast.Equal(auth.PasswordSet, cred.PasswordSet)
+	ast.Equal(auth.AuthSource, cred.AuthSource)
+	ast.Equal(auth.AuthMechanism, cred.AuthMechanism)
+	ast.Equal(auth.Username, cred.Username)
+	ast.Equal(auth.Password, cred.Password)
+}

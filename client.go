@@ -41,8 +41,39 @@ type Config struct {
 	// ReadPreference determines which servers are considered suitable for read operations.
 	// default is PrimaryMode
 	ReadPreference *ReadPref `json:"readPreference"`
+	// can be used to provide authentication options when configuring a Client.
+	Auth *Credential `json:"auth"`
 	// PoolMonitor to receive connection pool events
 	PoolMonitor *event.PoolMonitor
+}
+
+// Credential can be used to provide authentication options when configuring a Client.
+//
+// AuthMechanism: the mechanism to use for authentication. Supported values include "SCRAM-SHA-256", "SCRAM-SHA-1",
+// "MONGODB-CR", "PLAIN", "GSSAPI", "MONGODB-X509", and "MONGODB-AWS". This can also be set through the "authMechanism"
+// URI option. (e.g. "authMechanism=PLAIN"). For more information, see
+// https://docs.mongodb.com/manual/core/authentication-mechanisms/.
+// AuthSource: the name of the database to use for authentication. This defaults to "$external" for MONGODB-X509,
+// GSSAPI, and PLAIN and "admin" for all other mechanisms. This can also be set through the "authSource" URI option
+// (e.g. "authSource=otherDb").
+//
+// Username: the username for authentication. This can also be set through the URI as a username:password pair before
+// the first @ character. For example, a URI for user "user", password "pwd", and host "localhost:27017" would be
+// "mongodb://user:pwd@localhost:27017". This is optional for X509 authentication and will be extracted from the
+// client certificate if not specified.
+//
+// Password: the password for authentication. This must not be specified for X509 and is optional for GSSAPI
+// authentication.
+//
+// PasswordSet: For GSSAPI, this must be true if a password is specified, even if the password is the empty string, and
+// false if no password is specified, indicating that the password should be taken from the context of the running
+// process. For other mechanisms, this field is ignored.
+type Credential struct {
+	AuthMechanism string `json:"authMechanism"`
+	AuthSource    string `json:"authSource"`
+	Username      string `json:"username"`
+	Password      string `json:"password"`
+	PasswordSet   bool   `json:"passwordSet"`
 }
 
 // ReadPref determines which servers are considered suitable for read operations.
@@ -105,6 +136,24 @@ func NewClient(ctx context.Context, conf *Config) (cli *Client, err error) {
 
 // client creates connection to mongo
 func client(ctx context.Context, conf *Config) (client *mongo.Client, err error) {
+	opts, err := newConnectOpts(conf)
+	if err != nil {
+		return nil, err
+	}
+	client, err = mongo.Connect(ctx, opts)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	pCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	if err = client.Ping(pCtx, readpref.Primary()); err != nil {
+		fmt.Println(err)
+		return
+	}
+	return
+}
+func newConnectOpts(conf *Config) (*options.ClientOptions, error) {
 	var opts *options.ClientOptions
 	opts = new(options.ClientOptions)
 
@@ -135,20 +184,29 @@ func client(ctx context.Context, conf *Config) (client *mongo.Client, err error)
 		}
 		opts.SetReadPreference(readPreference)
 	}
+	if conf.Auth != nil {
+		opts.SetAuth(newAuth(*conf.Auth))
+	}
 	opts.ApplyURI(conf.Uri)
+	return opts, nil
+}
 
-	client, err = mongo.Connect(ctx, opts)
-	if err != nil {
-		fmt.Println(err)
-		return
+func newAuth(auth Credential) options.Credential {
+	credential := options.Credential{}
+	if auth.AuthMechanism != "" {
+		credential.AuthMechanism = auth.AuthMechanism
 	}
-	pCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	defer cancel()
-	if err = client.Ping(pCtx, readpref.Primary()); err != nil {
-		fmt.Println(err)
-		return
+	if auth.AuthSource != "" {
+		credential.AuthSource = auth.AuthSource
 	}
-	return
+	if auth.Username != "" {
+		credential.Username = auth.Username
+	}
+	if auth.Password != "" {
+		credential.Password = auth.Password
+	}
+	credential.PasswordSet = auth.PasswordSet
+	return credential
 }
 
 // newReadPref create readpref.ReadPref from config

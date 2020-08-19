@@ -22,11 +22,11 @@
 
 ## Features
 - CRUD to documents
+- Configuration when create connection:connection pool、pool Monitor、Auth、ReadPreference
 - Create indexes
 - Sort、limit、count、select
 - Cursor
 - Aggregate
-- Pool Monitor
 - Transactions
 
 ## Installation

@@ -13,11 +13,11 @@
 
 ## 功能
 - 文档的增删改查
+- 创建链接时支持配置: 连接池、pool Monitor、Auth、ReadPreference
 - 索引配置
 - `Sort`、`Limit`、`Count`、`Select`
 - `Cursor`
 - 聚合`Aggregate`
-- Pool Monitor
 - 事务
 
 ## 安装
