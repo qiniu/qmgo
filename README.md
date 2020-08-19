@@ -242,6 +242,8 @@ If you are using qmgo, please feel free to add your project name or repository h
 
 - Qiniu QCDN management system
 - Qiniu RTC quality monitoring system
+- Jesselivermore huanshoulv stock real-time quotes system
+
 
 ## Contributing
 
