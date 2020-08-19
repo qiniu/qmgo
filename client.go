@@ -69,11 +69,11 @@ type Config struct {
 // false if no password is specified, indicating that the password should be taken from the context of the running
 // process. For other mechanisms, this field is ignored.
 type Credential struct {
-	AuthMechanism string
-	AuthSource    string
-	Username      string
-	Password      string
-	PasswordSet   bool
+	AuthMechanism string `json:"authMechanism"`
+	AuthSource    string `json:"authSource"`
+	Username      string `json:"username"`
+	Password      string `json:"password"`
+	PasswordSet   bool   `json:"passwordSet"`
 }
 
 // ReadPref determines which servers are considered suitable for read operations.
