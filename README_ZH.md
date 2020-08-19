@@ -237,8 +237,9 @@ coll.Find(bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
  
 ## 谁在使用Qmgo
 如果您在使用Qmgo，随时欢迎您将项目名称或者repository链接更新在这里!
-- 七牛CDN管理系统
-- 七牛RTC质量监控系统
+- 七牛 CDN管理系统
+- 七牛 RTC质量监控系统
+- 利弗莫尔证券 换手率行情系统
  
 ## Contributing
 
