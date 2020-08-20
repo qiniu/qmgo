@@ -69,23 +69,31 @@ func TestCollection_DropIndex(t *testing.T) {
 	// same index，panic
 	ast.Panics(func() { cli.ensureIndex(context.Background(), []string{"index1"}, false) })
 
-	err := cli.DropIndex(context.Background(), []string{"index1"})
+	err := cli.DropIndexes(context.Background(), []string{"index1"})
 	ast.NoError(err)
 	ast.NotPanics(func() { cli.ensureIndex(context.Background(), []string{"index1"}, false) })
 
 	cli.ensureIndex(context.Background(), []string{"-index1"}, true)
-
 	// same index，panic
 	ast.Panics(func() { cli.ensureIndex(context.Background(), []string{"-index1"}, false) })
 
-	err = cli.DropIndex(context.Background(), []string{"-index1"})
+	err = cli.DropIndexes(context.Background(), []string{"-index1"})
 	ast.NoError(err)
 	ast.NotPanics(func() { cli.ensureIndex(context.Background(), []string{"-index1"}, false) })
 
-	err = cli.DropIndex(context.Background(), []string{""})
+	err = cli.DropIndexes(context.Background(), []string{""})
 	ast.Error(err)
 
-	err = cli.DropIndex(context.Background(), []string{"index2"})
+	err = cli.DropIndexes(context.Background(), []string{"index2"})
+	ast.Error(err)
+
+	cli.ensureIndex(context.Background(), []string{"index2,-index1"}, true)
+	ast.Panics(func() { cli.ensureIndex(context.Background(), []string{"index2,-index1"}, false) })
+	err = cli.DropIndexes(context.Background(), []string{"index2,-index1"})
+	ast.NoError(err)
+	ast.NotPanics(func() { cli.ensureIndex(context.Background(), []string{"index2,-index1"}, false) })
+
+	err = cli.DropIndexes(context.Background(), []string{"-"})
 	ast.Error(err)
 }
 
