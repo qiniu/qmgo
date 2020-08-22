@@ -65,22 +65,22 @@ func TestCollection_EnsureIndexes(t *testing.T) {
 func TestCollection_Insert(t *testing.T) {
 	ast := require.New(t)
 
-	cli := initClient("test")
+	cli_i := initClient("test")
 
-	defer cli.Close(context.Background())
-	defer cli.DropCollection(context.Background())
+	defer cli_i.Close(context.Background())
+	defer cli_i.DropCollection(context.Background())
 
-	cli.EnsureIndexes(context.Background(), []string{"name"}, nil)
+	cli_i.EnsureIndexes(context.Background(), []string{"name"}, nil)
 
 	var err error
 	doc := bson.M{"_id": primitive.NewObjectID(), "name": "Alice"}
 
-	res, err := cli.InsertOne(context.Background(), doc)
+	res, err := cli_i.InsertOne(context.Background(), doc)
 	ast.NoError(err)
 	ast.NotEmpty(res)
 	ast.Equal(doc["_id"], res.InsertedID)
 
-	res, err = cli.InsertOne(context.Background(), doc)
+	res, err = cli_i.InsertOne(context.Background(), doc)
 	ast.Equal(true, IsDup(err))
 	ast.Empty(res)
 }
