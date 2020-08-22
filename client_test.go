@@ -54,7 +54,7 @@ func TestQmgoClient(t *testing.T) {
 
 	cfg = Config{
 		Uri:              "mongodb://localhost:27017",
-		Database:         "mongoxtest",
+		Database:         "qmgotest",
 		Coll:             "testopen",
 		ConnectTimeoutMS: &timeout,
 		MaxPoolSize:      &maxPoolSize,
@@ -64,7 +64,7 @@ func TestQmgoClient(t *testing.T) {
 
 	cli, err := Open(context.Background(), &cfg)
 	ast.NoError(err)
-	ast.Equal(cli.GetDatabaseName(), "mongoxtest")
+	ast.Equal(cli.GetDatabaseName(), "qmgotest")
 	ast.Equal(cli.GetCollectionName(), "testopen")
 
 	err = cli.Ping(5)
@@ -87,7 +87,7 @@ func TestQmgoClient(t *testing.T) {
 	// primary mode with max stalenessMS, error
 	cfg = Config{
 		Uri:              "mongodb://localhost:27017",
-		Database:         "mongoxtest",
+		Database:         "qmgotest",
 		Coll:             "testopen",
 		ConnectTimeoutMS: &timeout,
 		MaxPoolSize:      &maxPoolSize,
@@ -121,7 +121,7 @@ func TestClient(t *testing.T) {
 
 	c, err := NewClient(context.Background(), cfg)
 	ast.Equal(nil, err)
-	coll := c.Database("mongoxtest").Collection("testopen")
+	coll := c.Database("qmgotest").Collection("testopen")
 
 	res, err := coll.InsertOne(context.Background(), bson.D{{Key: "x", Value: 1}})
 	ast.NoError(err)
@@ -134,7 +134,7 @@ func TestClient_ServerVersion(t *testing.T) {
 
 	cfg := &Config{
 		Uri:      "mongodb://localhost:27017",
-		Database: "mongoxtest",
+		Database: "qmgotest",
 		Coll:     "transaction",
 	}
 

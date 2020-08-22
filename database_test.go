@@ -15,7 +15,7 @@ func TestDatabase(t *testing.T) {
 	var maxPoolSize uint64 = 3000
 	var minPoolSize uint64 = 0
 	collName := "testopen"
-	dbName := "mongoxtest"
+	dbName := "qmgotest"
 
 	cfg := Config{
 		Uri:              "mongodb://localhost:27017",
