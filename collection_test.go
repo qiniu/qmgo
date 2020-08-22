@@ -9,10 +9,12 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+var cli = initClient("test")
+
 func TestCollection_EnsureIndex(t *testing.T) {
 	ast := require.New(t)
-	cli := initClient("test")
-	defer cli.Close(context.Background())
+	// cli := initClient("test")
+	// defer cli.Close(context.Background())
 	defer cli.DropCollection(context.Background())
 
 	cli.ensureIndex(context.Background(), nil, false)
