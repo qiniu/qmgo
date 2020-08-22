@@ -120,7 +120,6 @@ func TestClient(t *testing.T) {
 		ConnectTimeoutMS: &timeout,
 		MaxPoolSize:      &maxPoolSize,
 		MinPoolSize:      &minPoolSize,
-		Auth:             &Credential{Username: "jiangzhi", Password: "applet&&||!$$", PasswordSet: false},
 	}
 
 	c, err := NewClient(context.Background(), cfg)
