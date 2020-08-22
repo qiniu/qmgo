@@ -21,7 +21,8 @@ type QueryTestItem2 struct {
 
 func TestQuery_One(t *testing.T) {
 	ast := require.New(t)
-
+	cli := initClient("test")
+	defer cli.Close(context.Background())
 	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
@@ -90,7 +91,8 @@ func TestQuery_One(t *testing.T) {
 
 func TestQuery_All(t *testing.T) {
 	ast := require.New(t)
-
+	cli := initClient("test")
+	defer cli.Close(context.Background())
 	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
@@ -159,7 +161,8 @@ func TestQuery_All(t *testing.T) {
 
 func TestQuery_Count(t *testing.T) {
 	ast := require.New(t)
-
+	cli := initClient("test")
+	defer cli.Close(context.Background())
 	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
@@ -207,7 +210,8 @@ func TestQuery_Count(t *testing.T) {
 
 func TestQuery_Skip(t *testing.T) {
 	ast := require.New(t)
-
+	cli := initClient("test")
+	defer cli.Close(context.Background())
 	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
@@ -251,7 +255,8 @@ func TestQuery_Skip(t *testing.T) {
 
 func TestQuery_Limit(t *testing.T) {
 	ast := require.New(t)
-
+	cli := initClient("test")
+	defer cli.Close(context.Background())
 	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
@@ -294,7 +299,8 @@ func TestQuery_Limit(t *testing.T) {
 
 func TestQuery_Sort(t *testing.T) {
 	ast := require.New(t)
-
+	cli := initClient("test")
+	defer cli.Close(context.Background())
 	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
@@ -349,7 +355,8 @@ func TestQuery_Sort(t *testing.T) {
 
 func TestQuery_Distinct(t *testing.T) {
 	ast := require.New(t)
-
+	cli := initClient("test")
+	defer cli.Close(context.Background())
 	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
@@ -427,7 +434,8 @@ func TestQuery_Distinct(t *testing.T) {
 
 func TestQuery_Select(t *testing.T) {
 	ast := require.New(t)
-
+	cli := initClient("test")
+	defer cli.Close(context.Background())
 	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
@@ -487,7 +495,8 @@ func TestQuery_Select(t *testing.T) {
 
 func TestQuery_Cursor(t *testing.T) {
 	ast := require.New(t)
-
+	cli := initClient("test")
+	defer cli.Close(context.Background())
 	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 

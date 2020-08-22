@@ -11,7 +11,8 @@ import (
 
 func TestCollection_EnsureIndex(t *testing.T) {
 	ast := require.New(t)
-
+	cli := initClient("test")
+	defer cli.Close(context.Background())
 	defer cli.DropCollection(context.Background())
 
 	cli.ensureIndex(context.Background(), nil, false)
@@ -38,7 +39,8 @@ func TestCollection_EnsureIndex(t *testing.T) {
 
 func TestCollection_EnsureIndexes(t *testing.T) {
 	ast := require.New(t)
-
+	cli := initClient("test")
+	defer cli.Close(context.Background())
 	defer cli.DropCollection(context.Background())
 
 	unique := []string{"id1"}
@@ -62,7 +64,8 @@ func TestCollection_EnsureIndexes(t *testing.T) {
 
 func TestCollection_Insert(t *testing.T) {
 	ast := require.New(t)
-
+	cli := initClient("test")
+	defer cli.Close(context.Background())
 	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), []string{"name"}, nil)
 
@@ -81,7 +84,8 @@ func TestCollection_Insert(t *testing.T) {
 
 func TestCollection_InsertMany(t *testing.T) {
 	ast := require.New(t)
-
+	cli := initClient("test")
+	defer cli.Close(context.Background())
 	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), []string{"name"}, nil)
 
@@ -112,7 +116,8 @@ func TestCollection_InsertMany(t *testing.T) {
 
 func TestCollection_Upsert(t *testing.T) {
 	ast := require.New(t)
-
+	cli := initClient("test")
+	defer cli.Close(context.Background())
 	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), []string{"name"}, nil)
 
@@ -186,7 +191,8 @@ func TestCollection_Upsert(t *testing.T) {
 
 func TestCollection_Update(t *testing.T) {
 	ast := require.New(t)
-
+	cli := initClient("test")
+	defer cli.Close(context.Background())
 	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), []string{"name"}, nil)
 
@@ -249,7 +255,8 @@ func TestCollection_Update(t *testing.T) {
 
 func TestCollection_UpdateAll(t *testing.T) {
 	ast := require.New(t)
-
+	cli := initClient("test")
+	defer cli.Close(context.Background())
 	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
@@ -323,7 +330,8 @@ func TestCollection_UpdateAll(t *testing.T) {
 
 func TestCollection_Remove(t *testing.T) {
 	ast := require.New(t)
-
+	cli := initClient("test")
+	defer cli.Close(context.Background())
 	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
@@ -388,7 +396,8 @@ func TestCollection_Remove(t *testing.T) {
 
 func TestCollection_DeleteAll(t *testing.T) {
 	ast := require.New(t)
-
+	cli := initClient("test")
+	defer cli.Close(context.Background())
 	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 

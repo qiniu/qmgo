@@ -168,6 +168,8 @@ func TestSession_RetryTransAction(t *testing.T) {
 }
 
 func okRunTransaction() bool {
+	cli := initClient("test")
+	defer cli.Close(context.Background())
 	vr, err := CompareVersions("4.0", cli.ServerVersion())
 	if err != nil {
 		return false

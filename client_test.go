@@ -11,12 +11,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-var cli = initClient("test")
-
 func initClient(col string) *QmgoClient {
 	cfg := Config{
 		Uri:      "mongodb://localhost:27017",
-		Database: "mongoxtest",
+		Database: "qmgotest",
 		Coll:     col,
 	}
 	var cTimeout int64 = 0
@@ -33,7 +31,6 @@ func initClient(col string) *QmgoClient {
 		fmt.Println(err)
 		panic(err)
 	}
-
 	return qClient
 }
 
