@@ -62,10 +62,10 @@ func TestCollection_EnsureIndexes(t *testing.T) {
 	ast.Equal(true, IsDup(err))
 }
 
+var cli_i = initClient("test")
+
 func TestCollection_Insert(t *testing.T) {
 	ast := require.New(t)
-
-	cli_i := initClient("test")
 
 	defer cli_i.Close(context.Background())
 	defer cli_i.DropCollection(context.Background())
