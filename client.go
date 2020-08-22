@@ -3,6 +3,8 @@ package qmgo
 import (
 	"context"
 	"fmt"
+	"net/url"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -153,6 +155,11 @@ func client(ctx context.Context, conf *Config) (client *mongo.Client, err error)
 	}
 	return
 }
+
+// newConnectOpts creates client options from conf
+// Qmgo will follow this way official mongodb driver do：
+// - the configuration in uri takes precedence over the configuration in the setter
+// - Check the validity of the configuration in the uri, while the configuration in the setter is basically not checked
 func newConnectOpts(conf *Config) (*options.ClientOptions, error) {
 	var opts *options.ClientOptions
 	opts = new(options.ClientOptions)
@@ -185,14 +192,18 @@ func newConnectOpts(conf *Config) (*options.ClientOptions, error) {
 		opts.SetReadPreference(readPreference)
 	}
 	if conf.Auth != nil {
-		opts.SetAuth(newAuth(*conf.Auth))
+		auth, err := newAuth(*conf.Auth)
+		if err != nil {
+			return nil, err
+		}
+		opts.SetAuth(auth)
 	}
 	opts.ApplyURI(conf.Uri)
 	return opts, nil
 }
 
-func newAuth(auth Credential) options.Credential {
-	credential := options.Credential{}
+// newAuth create options.Credential from conf.Auth
+func newAuth(auth Credential) (credential options.Credential, err error) {
 	if auth.AuthMechanism != "" {
 		credential.AuthMechanism = auth.AuthMechanism
 	}
@@ -200,13 +211,35 @@ func newAuth(auth Credential) options.Credential {
 		credential.AuthSource = auth.AuthSource
 	}
 	if auth.Username != "" {
-		credential.Username = auth.Username
-	}
-	if auth.Password != "" {
-		credential.Password = auth.Password
+		// Validate and process the username.
+		if strings.Contains(auth.Username, "/") {
+			err = ErrNotSupportedUsername
+			return
+		}
+		credential.Username, err = url.QueryUnescape(auth.Username)
+		if err != nil {
+			err = ErrNotSupportedUsername
+			return
+		}
 	}
 	credential.PasswordSet = auth.PasswordSet
-	return credential
+	if auth.Password != "" {
+		if strings.Contains(auth.Password, ":") {
+			err = ErrNotSupportedPassword
+			return
+		}
+		if strings.Contains(auth.Password, "/") {
+			err = ErrNotSupportedPassword
+			return
+		}
+		credential.Password, err = url.QueryUnescape(auth.Password)
+		if err != nil {
+			err = ErrNotSupportedPassword
+			return
+		}
+		credential.Password = auth.Password
+	}
+	return
 }
 
 // newReadPref create readpref.ReadPref from config

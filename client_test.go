@@ -120,6 +120,7 @@ func TestClient(t *testing.T) {
 		ConnectTimeoutMS: &timeout,
 		MaxPoolSize:      &maxPoolSize,
 		MinPoolSize:      &minPoolSize,
+		Auth:             &Credential{Username: "jiangzhi", Password: "applet&&||!$$", PasswordSet: false},
 	}
 
 	c, err := NewClient(context.Background(), cfg)
@@ -160,10 +161,61 @@ func TestClient_newAuth(t *testing.T) {
 		Password:      "123",
 		PasswordSet:   false,
 	}
-	cred := newAuth(auth)
+	cred, err := newAuth(auth)
+	ast.NoError(err)
 	ast.Equal(auth.PasswordSet, cred.PasswordSet)
 	ast.Equal(auth.AuthSource, cred.AuthSource)
 	ast.Equal(auth.AuthMechanism, cred.AuthMechanism)
 	ast.Equal(auth.Username, cred.Username)
 	ast.Equal(auth.Password, cred.Password)
+
+	auth = Credential{
+		AuthMechanism: "PLAIN",
+		AuthSource:    "PLAIN",
+		Username:      "qmg/o",
+		Password:      "123",
+		PasswordSet:   false,
+	}
+	_, err = newAuth(auth)
+	ast.Equal(ErrNotSupportedUsername, err)
+
+	auth = Credential{
+		AuthMechanism: "PLAIN",
+		AuthSource:    "PLAIN",
+		Username:      "qmgo",
+		Password:      "12:3",
+		PasswordSet:   false,
+	}
+	_, err = newAuth(auth)
+	ast.Equal(ErrNotSupportedPassword, err)
+
+	auth = Credential{
+		AuthMechanism: "PLAIN",
+		AuthSource:    "PLAIN",
+		Username:      "qmgo",
+		Password:      "1/23",
+		PasswordSet:   false,
+	}
+	_, err = newAuth(auth)
+	ast.Equal(ErrNotSupportedPassword, err)
+
+	auth = Credential{
+		AuthMechanism: "PLAIN",
+		AuthSource:    "PLAIN",
+		Username:      "qmgo",
+		Password:      "1%3",
+		PasswordSet:   false,
+	}
+	_, err = newAuth(auth)
+	ast.Equal(ErrNotSupportedPassword, err)
+
+	auth = Credential{
+		AuthMechanism: "PLAIN",
+		AuthSource:    "PLAIN",
+		Username:      "q%3mgo",
+		Password:      "13",
+		PasswordSet:   false,
+	}
+	_, err = newAuth(auth)
+	ast.Equal(ErrNotSupportedUsername, err)
 }
