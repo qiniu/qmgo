@@ -194,6 +194,35 @@ func (c *Collection) EnsureIndexes(ctx context.Context, uniques []string, indexe
 	return
 }
 
+// DropIndexes drop indexes in collection, indexes that be dropped should be in line with inputting indexes
+func (c *Collection) DropIndexes(ctx context.Context, indexes []string) error {
+
+	var err error
+	for _, index := range indexes {
+		_, err = c.collection.Indexes().DropOne(ctx, generateDroppedIndex(index))
+		if err != nil {
+			return err
+		}
+	}
+	return err
+}
+
+// generate indexes that store in mongo which may consist more than one index(like "index1,index2" is stored as "index1_1_index2_1")
+func generateDroppedIndex(index string) string {
+	var res string
+	s := strings.Split(index, ",")
+	for _, e := range s {
+		key, sort := SplitSortField(e)
+		n := key + "_" + fmt.Sprint(sort)
+		if len(res) == 0 {
+			res = n
+		} else {
+			res += "_" + n
+		}
+	}
+	return res
+}
+
 // DropCollection drops collection
 // it's safe even collection is not exists
 func (c *Collection) DropCollection(ctx context.Context) error {

@@ -22,8 +22,8 @@
 
 ## Features
 - CRUD to documents
-- Configuration when create connection:connection pool、pool Monitor、Auth、ReadPreference
-- Create indexes
+- Options when create connection: connection pool、pool Monitor、Auth、ReadPreference
+- Create indexes、Drop indexes
 - Sort、limit、count、select
 - Cursor
 - Aggregate

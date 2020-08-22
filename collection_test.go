@@ -62,25 +62,64 @@ func TestCollection_EnsureIndexes(t *testing.T) {
 	ast.Equal(true, IsDup(err))
 }
 
-var cli_i = initClient("test")
+func TestCollection_DropIndex(t *testing.T) {
+	ast := require.New(t)
+
+	cli := initClient("test")
+	defer cli.DropCollection(context.Background())
+
+	cli.ensureIndex(context.Background(), []string{"index1"}, true)
+
+	// same index，panic
+	ast.Panics(func() { cli.ensureIndex(context.Background(), []string{"index1"}, false) })
+
+	err := cli.DropIndexes(context.Background(), []string{"index1"})
+	ast.NoError(err)
+	ast.NotPanics(func() { cli.ensureIndex(context.Background(), []string{"index1"}, false) })
+
+	cli.ensureIndex(context.Background(), []string{"-index1"}, true)
+	// same index，panic
+	ast.Panics(func() { cli.ensureIndex(context.Background(), []string{"-index1"}, false) })
+
+	err = cli.DropIndexes(context.Background(), []string{"-index1"})
+	ast.NoError(err)
+	ast.NotPanics(func() { cli.ensureIndex(context.Background(), []string{"-index1"}, false) })
+
+	err = cli.DropIndexes(context.Background(), []string{""})
+	ast.Error(err)
+
+	err = cli.DropIndexes(context.Background(), []string{"index2"})
+	ast.Error(err)
+
+	cli.ensureIndex(context.Background(), []string{"index2,-index1"}, true)
+	ast.Panics(func() { cli.ensureIndex(context.Background(), []string{"index2,-index1"}, false) })
+	err = cli.DropIndexes(context.Background(), []string{"index2,-index1"})
+	ast.NoError(err)
+	ast.NotPanics(func() { cli.ensureIndex(context.Background(), []string{"index2,-index1"}, false) })
+
+	err = cli.DropIndexes(context.Background(), []string{"-"})
+	ast.Error(err)
+}
 
 func TestCollection_Insert(t *testing.T) {
 	ast := require.New(t)
 
-	defer cli_i.Close(context.Background())
-	defer cli_i.DropCollection(context.Background())
+	cli := initClient("test")
 
-	cli_i.EnsureIndexes(context.Background(), []string{"name"}, nil)
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
+
+	cli.EnsureIndexes(context.Background(), []string{"name"}, nil)
 
 	var err error
 	doc := bson.M{"_id": primitive.NewObjectID(), "name": "Alice"}
 
-	res, err := cli_i.InsertOne(context.Background(), doc)
+	res, err := cli.InsertOne(context.Background(), doc)
 	ast.NoError(err)
 	ast.NotEmpty(res)
 	ast.Equal(doc["_id"], res.InsertedID)
 
-	res, err = cli_i.InsertOne(context.Background(), doc)
+	res, err = cli.InsertOne(context.Background(), doc)
 	ast.Equal(true, IsDup(err))
 	ast.Empty(res)
 }
