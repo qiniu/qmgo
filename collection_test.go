@@ -9,8 +9,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-//var cli = initClient("test")
-
 func TestCollection_EnsureIndex(t *testing.T) {
 	ast := require.New(t)
 	cli := initClient("test")
@@ -66,9 +64,12 @@ func TestCollection_EnsureIndexes(t *testing.T) {
 
 func TestCollection_Insert(t *testing.T) {
 	ast := require.New(t)
+
 	cli := initClient("test")
+
 	defer cli.Close(context.Background())
 	defer cli.DropCollection(context.Background())
+
 	cli.EnsureIndexes(context.Background(), []string{"name"}, nil)
 
 	var err error
