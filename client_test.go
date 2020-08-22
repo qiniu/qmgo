@@ -11,12 +11,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-var cli = initClient("test")
-
 func initClient(col string) *QmgoClient {
 	cfg := Config{
 		Uri:      "mongodb://localhost:27017",
-		Database: "mongoxtest",
+		Database: "qmgotest",
 		Coll:     col,
 	}
 	var cTimeout int64 = 0
@@ -33,7 +31,6 @@ func initClient(col string) *QmgoClient {
 		fmt.Println(err)
 		panic(err)
 	}
-
 	return qClient
 }
 
@@ -57,7 +54,7 @@ func TestQmgoClient(t *testing.T) {
 
 	cfg = Config{
 		Uri:              "mongodb://localhost:27017",
-		Database:         "mongoxtest",
+		Database:         "qmgotest",
 		Coll:             "testopen",
 		ConnectTimeoutMS: &timeout,
 		MaxPoolSize:      &maxPoolSize,
@@ -67,7 +64,7 @@ func TestQmgoClient(t *testing.T) {
 
 	cli, err := Open(context.Background(), &cfg)
 	ast.NoError(err)
-	ast.Equal(cli.GetDatabaseName(), "mongoxtest")
+	ast.Equal(cli.GetDatabaseName(), "qmgotest")
 	ast.Equal(cli.GetCollectionName(), "testopen")
 
 	err = cli.Ping(5)
@@ -90,7 +87,7 @@ func TestQmgoClient(t *testing.T) {
 	// primary mode with max stalenessMS, error
 	cfg = Config{
 		Uri:              "mongodb://localhost:27017",
-		Database:         "mongoxtest",
+		Database:         "qmgotest",
 		Coll:             "testopen",
 		ConnectTimeoutMS: &timeout,
 		MaxPoolSize:      &maxPoolSize,
@@ -124,7 +121,7 @@ func TestClient(t *testing.T) {
 
 	c, err := NewClient(context.Background(), cfg)
 	ast.Equal(nil, err)
-	coll := c.Database("mongoxtest").Collection("testopen")
+	coll := c.Database("qmgotest").Collection("testopen")
 
 	res, err := coll.InsertOne(context.Background(), bson.D{{Key: "x", Value: 1}})
 	ast.NoError(err)
@@ -137,7 +134,7 @@ func TestClient_ServerVersion(t *testing.T) {
 
 	cfg := &Config{
 		Uri:      "mongodb://localhost:27017",
-		Database: "mongoxtest",
+		Database: "qmgotest",
 		Coll:     "transaction",
 	}
 
@@ -160,10 +157,61 @@ func TestClient_newAuth(t *testing.T) {
 		Password:      "123",
 		PasswordSet:   false,
 	}
-	cred := newAuth(auth)
+	cred, err := newAuth(auth)
+	ast.NoError(err)
 	ast.Equal(auth.PasswordSet, cred.PasswordSet)
 	ast.Equal(auth.AuthSource, cred.AuthSource)
 	ast.Equal(auth.AuthMechanism, cred.AuthMechanism)
 	ast.Equal(auth.Username, cred.Username)
 	ast.Equal(auth.Password, cred.Password)
+
+	auth = Credential{
+		AuthMechanism: "PLAIN",
+		AuthSource:    "PLAIN",
+		Username:      "qmg/o",
+		Password:      "123",
+		PasswordSet:   false,
+	}
+	_, err = newAuth(auth)
+	ast.Equal(ErrNotSupportedUsername, err)
+
+	auth = Credential{
+		AuthMechanism: "PLAIN",
+		AuthSource:    "PLAIN",
+		Username:      "qmgo",
+		Password:      "12:3",
+		PasswordSet:   false,
+	}
+	_, err = newAuth(auth)
+	ast.Equal(ErrNotSupportedPassword, err)
+
+	auth = Credential{
+		AuthMechanism: "PLAIN",
+		AuthSource:    "PLAIN",
+		Username:      "qmgo",
+		Password:      "1/23",
+		PasswordSet:   false,
+	}
+	_, err = newAuth(auth)
+	ast.Equal(ErrNotSupportedPassword, err)
+
+	auth = Credential{
+		AuthMechanism: "PLAIN",
+		AuthSource:    "PLAIN",
+		Username:      "qmgo",
+		Password:      "1%3",
+		PasswordSet:   false,
+	}
+	_, err = newAuth(auth)
+	ast.Equal(ErrNotSupportedPassword, err)
+
+	auth = Credential{
+		AuthMechanism: "PLAIN",
+		AuthSource:    "PLAIN",
+		Username:      "q%3mgo",
+		Password:      "13",
+		PasswordSet:   false,
+	}
+	_, err = newAuth(auth)
+	ast.Equal(ErrNotSupportedUsername, err)
 }

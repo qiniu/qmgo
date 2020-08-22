@@ -20,8 +20,12 @@ var (
 	ErrNoSuchDocuments = errors.New(mongo.ErrNoDocuments.Error())
 	// ErrTransactionRetry return if transaction need to retry
 	ErrTransactionRetry = errors.New("retry transaction")
-	// ErrTransactionRetry return if transaction not supported
+	// ErrTransactionNotSupported return if transaction not supported
 	ErrTransactionNotSupported = errors.New("transaction not supported")
+	// ErrNotSupportedUserName return if username is invalid
+	ErrNotSupportedUsername = errors.New("username not supported")
+	// ErrNotSupportedPassword return if password is invalid
+	ErrNotSupportedPassword = errors.New("password not supported")
 )
 
 // IsErrNoDocuments check if err is no documents, both mongo-go-driver error and qmgo custom error
