@@ -2,6 +2,7 @@ package qmgo
 
 import (
 	"context"
+	"github.com/qiniu/qmgo/operator"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -252,7 +253,7 @@ func TestCollection_Update(t *testing.T) {
 		"name": "Alice",
 	}
 	update1 := bson.M{
-		"$set": bson.M{
+		operator.Set: bson.M{
 			"name": "Alice1",
 			"age":  18,
 		},
@@ -265,7 +266,7 @@ func TestCollection_Update(t *testing.T) {
 		"name": "Lily",
 	}
 	update2 := bson.M{
-		"$set": bson.M{
+		operator.Set: bson.M{
 			"name": "Lily",
 			"age":  20,
 		},
@@ -318,7 +319,7 @@ func TestCollection_UpdateAll(t *testing.T) {
 		"name": "Alice",
 	}
 	update1 := bson.M{
-		"$set": bson.M{
+		operator.Set: bson.M{
 			"age": 33,
 		},
 	}
@@ -335,7 +336,7 @@ func TestCollection_UpdateAll(t *testing.T) {
 		"name": "Lily",
 	}
 	update2 := bson.M{
-		"$set": bson.M{
+		operator.Set: bson.M{
 			"age": 22,
 		},
 	}
