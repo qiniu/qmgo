@@ -22,22 +22,21 @@
 
 ## Features
 - CRUD to documents
-- Options when create connection: connection pool、pool Monitor、Auth、ReadPreference
+- Options when create connection: connection pool、pool monitor、auth、readPreference
 - Create indexes、Drop indexes
-- Sort、limit、count、select
+- Sort、limit、count、select、distinct
 - Cursor
 - Aggregate
 - Transactions
+- predefine operators
 
 ## Installation
 
-The recommended way is to use `go mod` to automatically install dependencies by `import github.com/qiniu/qmgo` and `build` .
+- Use `go mod` to automatically install dependencies by `import github.com/qiniu/qmgo`
 
-Of course, the following methods are also feasible:
+Or 
 
-```
-go get github.com/qiniu/qmgo
-```
+- Use `go get github.com/qiniu/qmgo`
 
 ## Usage
 
@@ -201,6 +200,15 @@ callback := func(sessCtx context.Context) (interface{}, error) {
 result, err = cli.DoTransaction(ctx, callback)
 ````
 [More about transaction](https://github.com/qiniu/qmgo/wiki/Transactions)
+
+- predefine operators
+````go
+// aggregate
+matchStage := bson.D{{operator.Match, []bson.E{{"weight", bson.D{{operator.Gt, 30}}}}}}
+groupStage := bson.D{{operator.Group, bson.D{{"_id", "$name"}, {"total", bson.D{{operator.Sum, "$age"}}}}}}
+var showsWithInfo []bson.M
+err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(&showsWithInfo)
+````
 
 ## `Qmgo` vs `go.mongodb.org/mongo-driver`
 

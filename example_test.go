@@ -3,6 +3,7 @@ package qmgo
 import (
 	"context"
 	"errors"
+	"github.com/qiniu/qmgo/operator"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -93,8 +94,8 @@ func TestQmgo(t *testing.T) {
 	ast.Equal(int64(4), count)
 
 	// aggregate
-	matchStage := bson.D{{"$match", []bson.E{{"weight", bson.D{{"$gt", 30}}}}}}
-	groupStage := bson.D{{"$group", bson.D{{"_id", "$name"}, {"total", bson.D{{"$sum", "$age"}}}}}}
+	matchStage := bson.D{{operator.Match, []bson.E{{"weight", bson.D{{operator.Gt, 30}}}}}}
+	groupStage := bson.D{{operator.Group, bson.D{{"_id", "$name"}, {"total", bson.D{{operator.Sum, "$age"}}}}}}
 	var showsWithInfo []bson.M
 	err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(&showsWithInfo)
 	ast.Equal(3, len(showsWithInfo))

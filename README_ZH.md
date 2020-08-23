@@ -15,14 +15,15 @@
 - 文档的增删改查
 - 创建链接时支持配置: 连接池、pool Monitor、Auth、ReadPreference
 - 索引配置、删除
-- `Sort`、`Limit`、`Count`、`Select`
+- `Sort`、`limit`、`count`、`select`、`distinct`
 - `Cursor`
 - 聚合`Aggregate`
 - 事务
+- 预定义操作符
 
 ## 安装
 
-推荐方式是使用`go mod`，通过在源码中`import github.com/qiniu/qmgo` 并`build` 来自动安装依赖。
+推荐方式是使用`go mod`，通过在源码中`import github.com/qiniu/qmgo` 来自动安装依赖。
 
 当然，通过下面方式同样可行：
 
@@ -197,6 +198,15 @@ result, err = cli.DoTransaction(ctx, callback)
 ````
 [关于事务的更多内容](https://github.com/qiniu/qmgo/wiki/Transactions)
 
+- 预定义操作符
+
+````go
+// aggregate
+matchStage := bson.D{{operator.Match, []bson.E{{"weight", bson.D{{operator.Gt, 30}}}}}}
+groupStage := bson.D{{operator.Group, bson.D{{"_id", "$name"}, {"total", bson.D{{operator.Sum, "$age"}}}}}}
+var showsWithInfo []bson.M
+err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(&showsWithInfo)
+````
 
 ## `qmgo` vs `go.mongodb.org/mongo-driver`
 

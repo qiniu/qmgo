@@ -22,7 +22,7 @@ var (
 	ErrTransactionRetry = errors.New("retry transaction")
 	// ErrTransactionNotSupported return if transaction not supported
 	ErrTransactionNotSupported = errors.New("transaction not supported")
-	// ErrNotSupportedUserName return if username is invalid
+	// ErrNotSupportedUsername return if username is invalid
 	ErrNotSupportedUsername = errors.New("username not supported")
 	// ErrNotSupportedPassword return if password is invalid
 	ErrNotSupportedPassword = errors.New("password not supported")
