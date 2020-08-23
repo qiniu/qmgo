@@ -28,7 +28,7 @@
 - Cursor
 - Aggregate
 - Transactions
-- predefine operators
+- predefine operator keys
 
 ## Installation
 
@@ -201,7 +201,7 @@ result, err = cli.DoTransaction(ctx, callback)
 ````
 [More about transaction](https://github.com/qiniu/qmgo/wiki/Transactions)
 
-- predefine operators
+- predefine operator keys
 ````go
 // aggregate
 matchStage := bson.D{{operator.Match, []bson.E{{"weight", bson.D{{operator.Gt, 30}}}}}}
