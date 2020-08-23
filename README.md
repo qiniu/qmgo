@@ -8,7 +8,7 @@
 
 [简体中文](README_ZH.md)
 
-`Qmgo` is a `MongoDB` `dirver` for `Go` . It is based on [MongoDB official driver](https://github.com/mongodb/mongo-go-driver), but easier to use like [mgo](https://github.com/go-mgo/mgo) (such as the chain call). 
+`Qmgo` is a `MongoDB` `driver` for `Go` . It is based on [MongoDB official driver](https://github.com/mongodb/mongo-go-driver), but easier to use like [mgo](https://github.com/go-mgo/mgo) (such as the chain call). 
 
 - `Qmgo` can allow user to use the new features of `MongoDB` in a more elegant way.
 
@@ -19,6 +19,15 @@
 -`Go 1.10` and above.
 
 -`MongoDB 2.6` and above.
+
+## Features
+- CRUD to documents
+- Options when create connection: connection pool、pool Monitor、Auth、ReadPreference
+- Create indexes、Drop indexes
+- Sort、limit、count、select
+- Cursor
+- Aggregate
+- Transactions
 
 ## Installation
 
@@ -136,6 +145,21 @@ cli.Find(ctx, bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 ````go
 count, err := cli.Find(ctx, bson.M{"age": 6}).Count()
 ````
+
+- Update
+````go
+// UpdateOne one
+err := cli.UpdateOne(ctx, bson.M{"name": "d4"}, bson.M{"$set": bson.M{"age": 7}})
+
+// UpdateAll
+result, err := cli.UpdateAll(ctx, bson.M{"age": 6}, bson.M{"$set": bson.M{"age": 10}})
+````
+
+- Select
+````go
+err := cli.Find(ctx, bson.M{"age": 10}).Select(bson.M{"age": 1}).One(&one)
+````
+
 - Aggregate
 ```go
 matchStage := bson.D{{"$match", []bson.E{{"weight", bson.D{{"$gt", 30}}}}}}
@@ -143,17 +167,44 @@ groupStage := bson.D{{"$group", bson.D{{"_id", "$name"}, {"total", bson.D{{"$sum
 var showsWithInfo []bson.M
 err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(&showsWithInfo)
 ```
-## Feature
-- CRUD to documents
-- Create indexes
-- Sort、limit、count、select
-- Cursor
-- Aggregate
 
-## `qmgo` vs `mgo` vs `go.mongodb.org/mongo-driver`
+- Pool Monitor
+````go
+poolMonitor := &event.PoolMonitor{
+	Event: func(evt *event.PoolEvent) {
+		switch evt.Type {
+		case event.GetSucceeded:
+			fmt.Println("GetSucceeded")
+		case event.ConnectionReturned:
+			fmt.Println("ConnectionReturned")
+		}
+	},
+}
+cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL, PoolMonitor: poolMonitor})
+
+````
+
+- Transactions
+
+The super simple and powerful transaction, with features like `timeout`、`retry`:
+````go
+callback := func(sessCtx context.Context) (interface{}, error) {
+    // Important: make sure the sessCtx used in every operation in the whole transaction
+    if _, err := cli.InsertOne(sessCtx, bson.D{{"abc", int32(1)}}); err != nil {
+        return nil, err
+    }
+    if _, err := cli.InsertOne(sessCtx, bson.D{{"xyz", int32(999)}}); err != nil {
+        return nil, err
+    }
+    return nil, nil
+}
+result, err = cli.DoTransaction(ctx, callback)
+````
+[More about transaction](https://github.com/qiniu/qmgo/wiki/Transactions)
+
+## `Qmgo` vs `go.mongodb.org/mongo-driver`
 
 Below we give an example of multi-file search、sort and limit to illustrate the similarities between `qmgo` and `mgo` and the improvement compare to `go.mongodb.org/mongo-driver`.
-
 How do we do in`go.mongodb.org/mongo-driver`:
 
 ```go
@@ -183,10 +234,23 @@ cli.Find(ctx, bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 coll.Find(bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 ```
 
+## `Qmgo` vs `mgo`
+[Differences between qmgo and mgo](https://github.com/qiniu/qmgo/wiki/Known-differences-between-Qmgo-and-Mgo)
+ 
+## Who is using
+If you are using qmgo, please feel free to add your project name or repository here！
+
+- Qiniu QCDN management system
+- Qiniu RTC quality monitoring system
+- Jesselivermore huanshoulv stock real-time quotes system
 
 
-## contributing
+## Contributing
 
 The Qmgo project welcomes all contributors. We appreciate your help! 
+
+## Join qmgo wechat group:
+
+![avatar](http://pgo8q04yu.bkt.clouddn.com/qmgoG-2)
 
 

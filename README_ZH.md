@@ -1,6 +1,6 @@
 # Qmgo
 
-`Qmgo` 是一款`Go`语言的`MongoDB` `dirver`，它基于[MongoDB 官方driver](https://github.com/mongodb/mongo-go-driver) 开发实现，同时使用更易用的接口设计，主要参考[mgo](https://github.com/go-mgo/mgo) （比如`mgo`的链式调用）。
+`Qmgo` 是一款`Go`语言的`MongoDB` `driver`，它基于[MongoDB 官方driver](https://github.com/mongodb/mongo-go-driver) 开发实现，同时使用更易用的接口设计，比如参考[mgo](https://github.com/go-mgo/mgo) （比如`mgo`的链式调用）。
 
 - `Qmgo`能让用户以更优雅的姿势使用`MongoDB`的新特性。
 
@@ -10,6 +10,15 @@
 
 - `Go 1.10` 及以上。
 - `MongoDB 2.6` 及以上。
+
+## 功能
+- 文档的增删改查
+- 创建链接时支持配置: 连接池、pool Monitor、Auth、ReadPreference
+- 索引配置、删除
+- `Sort`、`Limit`、`Count`、`Select`
+- `Cursor`
+- 聚合`Aggregate`
+- 事务
 
 ## 安装
 
@@ -132,6 +141,20 @@ cli.Find(ctx, bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 count, err := cli.Find(ctx, bson.M{"age": 6}).Count()
 ````
 
+- Update
+````go
+// UpdateOne one
+err := cli.UpdateOne(ctx, bson.M{"name": "d4"}, bson.M{"$set": bson.M{"age": 7}})
+
+// UpdateAll
+result, err := cli.UpdateAll(ctx, bson.M{"age": 6}, bson.M{"$set": bson.M{"age": 10}})
+````
+
+- Select
+````go
+err := cli.Find(ctx, bson.M{"age": 10}).Select(bson.M{"age": 1}).One(&one)
+````
+
 - Aggregate
 ```go
 matchStage := bson.D{{"$match", []bson.E{{"weight", bson.D{{"$gt", 30}}}}}}
@@ -140,15 +163,42 @@ var showsWithInfo []bson.M
 err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(&showsWithInfo)
 ```
 
-## 功能
-- 文档的增删改查
-- 索引配置
-- `Sort`、`Limit`、`Count`、`Select`
-- `Cursor`
-- 聚合`Aggregate`
+- Pool Monitor
+````go
+poolMonitor := &event.PoolMonitor{
+	Event: func(evt *event.PoolEvent) {
+		switch evt.Type {
+		case event.GetSucceeded:
+			fmt.Println("GetSucceeded")
+		case event.ConnectionReturned:
+			fmt.Println("ConnectionReturned")
+		}
+	},
+}
+cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL, PoolMonitor: poolMonitor})
+
+````
+
+- 事务
+
+有史以来最简单和强大的事务, 同时还有超时和重试等功能:
+````go
+callback := func(sessCtx context.Context) (interface{}, error) {
+    // 重要：确保事务中的每一个操作，都使用传入的sessCtx参数
+    if _, err := cli.InsertOne(sessCtx, bson.D{{"abc", int32(1)}}); err != nil {
+        return nil, err
+    }
+    if _, err := cli.InsertOne(sessCtx, bson.D{{"xyz", int32(999)}}); err != nil {
+        return nil, err
+    }
+    return nil, nil
+}
+result, err = cli.DoTransaction(ctx, callback)
+````
+[关于事务的更多内容](https://github.com/qiniu/qmgo/wiki/Transactions)
 
 
-## `qmgo` vs `mgo` vs `go.mongodb.org/mongo-driver`
+## `qmgo` vs `go.mongodb.org/mongo-driver`
 
 下面我们举一个多文件查找、`sort`和`limit`的例子, 说明`qmgo`和`mgo`的相似，以及对`go.mongodb.org/mongo-driver`的改进
 
@@ -181,7 +231,20 @@ cli.Find(ctx, bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 coll.Find(bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 ```
 
-## contributing
+## `Qmgo` vs `mgo`
+[Qmgo 和 Mgo 的差异](https://github.com/qiniu/qmgo/wiki/Known-differences-between-Qmgo-and-Mgo)
+ 
+ 
+## 谁在使用Qmgo
+如果您在使用Qmgo，随时欢迎您将项目名称或者repository链接更新在这里!
+- 七牛 CDN管理系统
+- 七牛 RTC质量监控系统
+- 利弗莫尔证券 换手率行情系统
+ 
+## Contributing
 
 非常欢迎您对`Qmgo`的任何贡献，非常感谢您的帮助！
 
+## 加入 qmgo 微信群:
+
+![avatar](http://pgo8q04yu.bkt.clouddn.com/qmgoG-2)

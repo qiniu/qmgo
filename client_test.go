@@ -8,27 +8,30 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 func initClient(col string) *QmgoClient {
 	cfg := Config{
 		Uri:      "mongodb://localhost:27017",
-		Database: "mongoxtest",
+		Database: "qmgotest",
 		Coll:     col,
 	}
 	var cTimeout int64 = 0
 	var sTimeout int64 = 500000
-	var maxPoolSize uint64 = 3000
+	var maxPoolSize uint64 = 30000
+	var minPoolSize uint64 = 0
 	cfg.ConnectTimeoutMS = &cTimeout
 	cfg.SocketTimeoutMS = &sTimeout
 	cfg.MaxPoolSize = &maxPoolSize
-	cli, err := Open(context.Background(), &cfg)
+	cfg.MinPoolSize = &minPoolSize
+	cfg.ReadPreference = &ReadPref{Mode: readpref.PrimaryMode}
+	qClient, err := Open(context.Background(), &cfg)
 	if err != nil {
 		fmt.Println(err)
 		panic(err)
 	}
-
-	return cli
+	return qClient
 }
 
 func TestQmgoClient(t *testing.T) {
@@ -47,18 +50,21 @@ func TestQmgoClient(t *testing.T) {
 
 	// Open 成功
 	var maxPoolSize uint64 = 100
+	var minPoolSize uint64 = 0
 
 	cfg = Config{
 		Uri:              "mongodb://localhost:27017",
-		Database:         "mongoxtest",
+		Database:         "qmgotest",
 		Coll:             "testopen",
 		ConnectTimeoutMS: &timeout,
 		MaxPoolSize:      &maxPoolSize,
+		MinPoolSize:      &minPoolSize,
+		ReadPreference:   &ReadPref{Mode: readpref.SecondaryMode, MaxStalenessMS: 500},
 	}
 
 	cli, err := Open(context.Background(), &cfg)
 	ast.NoError(err)
-	ast.Equal(cli.GetDatabaseName(), "mongoxtest")
+	ast.Equal(cli.GetDatabaseName(), "qmgotest")
 	ast.Equal(cli.GetCollectionName(), "testopen")
 
 	err = cli.Ping(5)
@@ -77,6 +83,19 @@ func TestQmgoClient(t *testing.T) {
 
 	err = cli.Ping(5)
 	ast.Error(err)
+
+	// primary mode with max stalenessMS, error
+	cfg = Config{
+		Uri:              "mongodb://localhost:27017",
+		Database:         "qmgotest",
+		Coll:             "testopen",
+		ConnectTimeoutMS: &timeout,
+		MaxPoolSize:      &maxPoolSize,
+		ReadPreference:   &ReadPref{Mode: readpref.PrimaryMode, MaxStalenessMS: 500},
+	}
+
+	cli, err = Open(context.Background(), &cfg)
+	ast.Error(err)
 }
 
 func TestIsDup(t *testing.T) {
@@ -90,20 +109,109 @@ func TestClient(t *testing.T) {
 	ast := require.New(t)
 
 	var maxPoolSize uint64 = 100
+	var minPoolSize uint64 = 0
 	var timeout int64 = 50
 
 	cfg := &Config{
 		Uri:              "mongodb://localhost:27017",
 		ConnectTimeoutMS: &timeout,
 		MaxPoolSize:      &maxPoolSize,
+		MinPoolSize:      &minPoolSize,
 	}
 
 	c, err := NewClient(context.Background(), cfg)
 	ast.Equal(nil, err)
-	coll := c.Database("mongoxtest").Collection("testopen")
+	coll := c.Database("qmgotest").Collection("testopen")
 
 	res, err := coll.InsertOne(context.Background(), bson.D{{Key: "x", Value: 1}})
 	ast.NoError(err)
 	ast.NotNil(res)
 	coll.DropCollection(context.Background())
+}
+
+func TestClient_ServerVersion(t *testing.T) {
+	ast := require.New(t)
+
+	cfg := &Config{
+		Uri:      "mongodb://localhost:27017",
+		Database: "qmgotest",
+		Coll:     "transaction",
+	}
+
+	ctx := context.Background()
+	cli, err := Open(ctx, cfg)
+	ast.NoError(err)
+
+	version := cli.ServerVersion()
+	ast.NotEmpty(version)
+	fmt.Println(version)
+}
+
+func TestClient_newAuth(t *testing.T) {
+	ast := require.New(t)
+
+	auth := Credential{
+		AuthMechanism: "PLAIN",
+		AuthSource:    "PLAIN",
+		Username:      "qmgo",
+		Password:      "123",
+		PasswordSet:   false,
+	}
+	cred, err := newAuth(auth)
+	ast.NoError(err)
+	ast.Equal(auth.PasswordSet, cred.PasswordSet)
+	ast.Equal(auth.AuthSource, cred.AuthSource)
+	ast.Equal(auth.AuthMechanism, cred.AuthMechanism)
+	ast.Equal(auth.Username, cred.Username)
+	ast.Equal(auth.Password, cred.Password)
+
+	auth = Credential{
+		AuthMechanism: "PLAIN",
+		AuthSource:    "PLAIN",
+		Username:      "qmg/o",
+		Password:      "123",
+		PasswordSet:   false,
+	}
+	_, err = newAuth(auth)
+	ast.Equal(ErrNotSupportedUsername, err)
+
+	auth = Credential{
+		AuthMechanism: "PLAIN",
+		AuthSource:    "PLAIN",
+		Username:      "qmgo",
+		Password:      "12:3",
+		PasswordSet:   false,
+	}
+	_, err = newAuth(auth)
+	ast.Equal(ErrNotSupportedPassword, err)
+
+	auth = Credential{
+		AuthMechanism: "PLAIN",
+		AuthSource:    "PLAIN",
+		Username:      "qmgo",
+		Password:      "1/23",
+		PasswordSet:   false,
+	}
+	_, err = newAuth(auth)
+	ast.Equal(ErrNotSupportedPassword, err)
+
+	auth = Credential{
+		AuthMechanism: "PLAIN",
+		AuthSource:    "PLAIN",
+		Username:      "qmgo",
+		Password:      "1%3",
+		PasswordSet:   false,
+	}
+	_, err = newAuth(auth)
+	ast.Equal(ErrNotSupportedPassword, err)
+
+	auth = Credential{
+		AuthMechanism: "PLAIN",
+		AuthSource:    "PLAIN",
+		Username:      "q%3mgo",
+		Password:      "13",
+		PasswordSet:   false,
+	}
+	_, err = newAuth(auth)
+	ast.Equal(ErrNotSupportedUsername, err)
 }

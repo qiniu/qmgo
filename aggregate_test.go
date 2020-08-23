@@ -12,11 +12,9 @@ import (
 
 func TestAggregate(t *testing.T) {
 	ast := require.New(t)
-
-	var cli *QmgoClient
-
-	cli = initClient("test")
-	cli.DropCollection(context.Background())
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
 	id1 := primitive.NewObjectID()

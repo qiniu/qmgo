@@ -7,7 +7,16 @@ services:
   - mongodb
 before_script:
   - sleep 15 # https://docs.travis-ci.com/user/database-setup/#mongodb-does-not-immediately-accept-connections
+  - echo "replication:" | sudo tee -a /etc/mongod.conf
+  - |-
+    echo "  replSetName: \"rs0\"" | sudo tee -a /etc/mongod.conf
+  - sudo service mongod restart
+  - sleep 15
+  - mongo --eval 'rs.initiate()'
+  - sleep 5
+
 script:
+  - mongod --version
   - go test -race -coverprofile=coverage.txt -covermode=atomic ./...
 after_success:
   - bash <(curl -s https://codecov.io/bash)

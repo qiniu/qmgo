@@ -21,11 +21,9 @@ type QueryTestItem2 struct {
 
 func TestQuery_One(t *testing.T) {
 	ast := require.New(t)
-
-	var cli *QmgoClient
-
-	cli = initClient("test")
-	cli.DropCollection(context.Background())
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
 	id1 := primitive.NewObjectID()
@@ -93,10 +91,9 @@ func TestQuery_One(t *testing.T) {
 
 func TestQuery_All(t *testing.T) {
 	ast := require.New(t)
-
-	var cli *QmgoClient
-	cli = initClient("test")
-	cli.DropCollection(context.Background())
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
 	id1 := primitive.NewObjectID()
@@ -164,11 +161,9 @@ func TestQuery_All(t *testing.T) {
 
 func TestQuery_Count(t *testing.T) {
 	ast := require.New(t)
-
-	var cli *QmgoClient
-
-	cli = initClient("test")
-	cli.DropCollection(context.Background())
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
 	id1 := primitive.NewObjectID()
@@ -215,12 +210,9 @@ func TestQuery_Count(t *testing.T) {
 
 func TestQuery_Skip(t *testing.T) {
 	ast := require.New(t)
-
-	var cli *QmgoClient
-
-	cli = initClient("test")
-
-	cli.DropCollection(context.Background())
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
 	id1 := primitive.NewObjectID()
@@ -263,12 +255,9 @@ func TestQuery_Skip(t *testing.T) {
 
 func TestQuery_Limit(t *testing.T) {
 	ast := require.New(t)
-
-	var cli *QmgoClient
-
-	cli = initClient("test")
-
-	cli.DropCollection(context.Background())
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
 	id1 := primitive.NewObjectID()
@@ -310,12 +299,9 @@ func TestQuery_Limit(t *testing.T) {
 
 func TestQuery_Sort(t *testing.T) {
 	ast := require.New(t)
-
-	var cli *QmgoClient
-
-	cli = initClient("test")
-
-	cli.DropCollection(context.Background())
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
 	id1 := primitive.NewObjectID()
@@ -369,12 +355,9 @@ func TestQuery_Sort(t *testing.T) {
 
 func TestQuery_Distinct(t *testing.T) {
 	ast := require.New(t)
-
-	var cli *QmgoClient
-
-	cli = initClient("test")
-
-	cli.DropCollection(context.Background())
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
 	id1 := primitive.NewObjectID()
@@ -424,11 +407,11 @@ func TestQuery_Distinct(t *testing.T) {
 	err = cli.Find(context.Background(), filter2).Distinct("age", &res5)
 	ast.EqualError(err, ErrQueryResultTypeInconsistent.Error())
 
-	var res6 []int32
-
-	err = cli.Find(context.Background(), filter2).Distinct("", &res6)
-	ast.NoError(err)
-	ast.Equal(0, len(res6))
+	//var res6 []int32
+	//
+	//err = cli.Find(context.Background(), filter2).Distinct("", &res6)
+	//ast.NoError(err)
+	//ast.Equal(0, len(res6))
 
 	var res7 []int32
 	filter3 := 1
@@ -451,12 +434,9 @@ func TestQuery_Distinct(t *testing.T) {
 
 func TestQuery_Select(t *testing.T) {
 	ast := require.New(t)
-
-	var cli *QmgoClient
-
-	cli = initClient("test")
-
-	cli.DropCollection(context.Background())
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
 	id1 := primitive.NewObjectID()
@@ -515,12 +495,9 @@ func TestQuery_Select(t *testing.T) {
 
 func TestQuery_Cursor(t *testing.T) {
 	ast := require.New(t)
-
-	var cli *QmgoClient
-
-	cli = initClient("test")
-
-	cli.DropCollection(context.Background())
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
 	id1 := primitive.NewObjectID()

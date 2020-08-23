@@ -12,9 +12,9 @@ import (
 
 func TestCollection_EnsureIndex(t *testing.T) {
 	ast := require.New(t)
-
 	cli := initClient("test")
-	cli.DropCollection(context.Background())
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
 
 	cli.ensureIndex(context.Background(), nil, false)
 	cli.ensureIndex(context.Background(), []string{"id1"}, true)
@@ -40,9 +40,9 @@ func TestCollection_EnsureIndex(t *testing.T) {
 
 func TestCollection_EnsureIndexes(t *testing.T) {
 	ast := require.New(t)
-
 	cli := initClient("test")
-	cli.DropCollection(context.Background())
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
 
 	unique := []string{"id1"}
 	common := []string{"id2,id3", "id4,-id5"}
@@ -63,13 +63,53 @@ func TestCollection_EnsureIndexes(t *testing.T) {
 	ast.Equal(true, IsDup(err))
 }
 
+func TestCollection_DropIndex(t *testing.T) {
+	ast := require.New(t)
+
+	cli := initClient("test")
+	defer cli.DropCollection(context.Background())
+
+	cli.ensureIndex(context.Background(), []string{"index1"}, true)
+
+	// same index，panic
+	ast.Panics(func() { cli.ensureIndex(context.Background(), []string{"index1"}, false) })
+
+	err := cli.DropIndexes(context.Background(), []string{"index1"})
+	ast.NoError(err)
+	ast.NotPanics(func() { cli.ensureIndex(context.Background(), []string{"index1"}, false) })
+
+	cli.ensureIndex(context.Background(), []string{"-index1"}, true)
+	// same index，panic
+	ast.Panics(func() { cli.ensureIndex(context.Background(), []string{"-index1"}, false) })
+
+	err = cli.DropIndexes(context.Background(), []string{"-index1"})
+	ast.NoError(err)
+	ast.NotPanics(func() { cli.ensureIndex(context.Background(), []string{"-index1"}, false) })
+
+	err = cli.DropIndexes(context.Background(), []string{""})
+	ast.Error(err)
+
+	err = cli.DropIndexes(context.Background(), []string{"index2"})
+	ast.Error(err)
+
+	cli.ensureIndex(context.Background(), []string{"index2,-index1"}, true)
+	ast.Panics(func() { cli.ensureIndex(context.Background(), []string{"index2,-index1"}, false) })
+	err = cli.DropIndexes(context.Background(), []string{"index2,-index1"})
+	ast.NoError(err)
+	ast.NotPanics(func() { cli.ensureIndex(context.Background(), []string{"index2,-index1"}, false) })
+
+	err = cli.DropIndexes(context.Background(), []string{"-"})
+	ast.Error(err)
+}
+
 func TestCollection_Insert(t *testing.T) {
 	ast := require.New(t)
 
-	var cli *QmgoClient
+	cli := initClient("test")
 
-	cli = initClient("test")
-	cli.DropCollection(context.Background())
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
+
 	cli.EnsureIndexes(context.Background(), []string{"name"}, nil)
 
 	var err error
@@ -87,11 +127,9 @@ func TestCollection_Insert(t *testing.T) {
 
 func TestCollection_InsertMany(t *testing.T) {
 	ast := require.New(t)
-
-	var cli *QmgoClient
-
-	cli = initClient("test")
-	cli.DropCollection(context.Background())
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), []string{"name"}, nil)
 
 	var err error
@@ -121,11 +159,9 @@ func TestCollection_InsertMany(t *testing.T) {
 
 func TestCollection_Upsert(t *testing.T) {
 	ast := require.New(t)
-
-	var cli *QmgoClient
-
-	cli = initClient("test")
-	cli.DropCollection(context.Background())
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), []string{"name"}, nil)
 
 	id1 := primitive.NewObjectID()
@@ -198,11 +234,9 @@ func TestCollection_Upsert(t *testing.T) {
 
 func TestCollection_Update(t *testing.T) {
 	ast := require.New(t)
-
-	var cli *QmgoClient
-
-	cli = initClient("test")
-	cli.DropCollection(context.Background())
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), []string{"name"}, nil)
 
 	id1 := primitive.NewObjectID()
@@ -224,7 +258,7 @@ func TestCollection_Update(t *testing.T) {
 			"age":  18,
 		},
 	}
-	err = cli.Update(context.Background(), filter1, update1)
+	err = cli.UpdateOne(context.Background(), filter1, update1)
 	ast.NoError(err)
 
 	// error when not exist
@@ -237,7 +271,7 @@ func TestCollection_Update(t *testing.T) {
 			"age":  20,
 		},
 	}
-	err = cli.Update(context.Background(), filter2, update2)
+	err = cli.UpdateOne(context.Background(), filter2, update2)
 	ast.Equal(err, ErrNoSuchDocuments)
 
 	// filter is nil or wrong BSON Document format
@@ -245,30 +279,28 @@ func TestCollection_Update(t *testing.T) {
 		"name": "Geek",
 		"age":  21,
 	}
-	err = cli.Update(context.Background(), nil, update3)
+	err = cli.UpdateOne(context.Background(), nil, update3)
 	ast.Error(err)
 
-	err = cli.Update(context.Background(), 1, update3)
+	err = cli.UpdateOne(context.Background(), 1, update3)
 	ast.Error(err)
 
 	// update is nil or wrong BSON Document format
 	filter4 := bson.M{
 		"name": "Geek",
 	}
-	err = cli.Update(context.Background(), filter4, nil)
+	err = cli.UpdateOne(context.Background(), filter4, nil)
 	ast.Error(err)
 
-	err = cli.Update(context.Background(), filter4, 1)
+	err = cli.UpdateOne(context.Background(), filter4, 1)
 	ast.Error(err)
 }
 
 func TestCollection_UpdateAll(t *testing.T) {
 	ast := require.New(t)
-
-	var cli *QmgoClient
-
-	cli = initClient("test")
-	cli.DropCollection(context.Background())
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
 	id1 := primitive.NewObjectID()
@@ -341,24 +373,31 @@ func TestCollection_UpdateAll(t *testing.T) {
 
 func TestCollection_Remove(t *testing.T) {
 	ast := require.New(t)
-
-	var cli *QmgoClient
-
-	cli = initClient("test")
-	cli.DropCollection(context.Background())
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
-	id1 := primitive.NewObjectID()
-	id2 := primitive.NewObjectID()
-	id3 := primitive.NewObjectID()
+	id1 := primitive.NewObjectID().Hex()
+	id2 := primitive.NewObjectID().Hex()
+	id3 := primitive.NewObjectID().Hex()
+	id4 := primitive.NewObjectID().Hex()
 	docs := []interface{}{
 		bson.D{{Key: "_id", Value: id1}, {Key: "name", Value: "Alice"}, {Key: "age", Value: 18}},
 		bson.D{{Key: "_id", Value: id2}, {Key: "name", Value: "Alice"}, {Key: "age", Value: 19}},
 		bson.D{{Key: "_id", Value: id3}, {Key: "name", Value: "Lucas"}, {Key: "age", Value: 20}},
+		bson.D{{Key: "_id", Value: id4}, {Key: "name", Value: "Joe"}, {Key: "age", Value: 20}},
 	}
 	_, _ = cli.InsertMany(context.Background(), docs)
 
 	var err error
+	// remove id
+	err = cli.RemoveId(context.Background(), "")
+	ast.Error(err)
+	err = cli.RemoveId(context.Background(), "not-exists-id")
+	ast.True(IsErrNoDocuments(err))
+	ast.NoError(cli.RemoveId(context.Background(), id4))
+
 	// delete record: name = "Alice" , after that, expect one name = "Alice" record
 	filter1 := bson.M{
 		"name": "Alice",
@@ -400,11 +439,9 @@ func TestCollection_Remove(t *testing.T) {
 
 func TestCollection_DeleteAll(t *testing.T) {
 	ast := require.New(t)
-
-	var cli *QmgoClient
-
-	cli = initClient("test")
-	cli.DropCollection(context.Background())
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
 	id1 := primitive.NewObjectID()

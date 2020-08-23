@@ -27,6 +27,6 @@ func (d *Database) GetDatabaseName() string {
 }
 
 // DropDatabase drops database
-func (d *Database) DropDatabase(ctx context.Context) {
-	d.database.Drop(ctx)
+func (d *Database) DropDatabase(ctx context.Context) error {
+	return d.database.Drop(ctx)
 }

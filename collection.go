@@ -3,6 +3,7 @@ package qmgo
 import (
 	"context"
 	"fmt"
+	"go.mongodb.org/mongo-driver/bson"
 	"strings"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -57,9 +58,9 @@ func (c *Collection) Upsert(ctx context.Context, filter interface{}, replacement
 	return
 }
 
-// Update executes an update command to update at most one document in the collection.
+// UpdateOne executes an update command to update at most one document in the collection.
 // Reference: https://docs.mongodb.com/manual/reference/operator/update/
-func (c *Collection) Update(ctx context.Context, filter interface{}, update interface{}) error {
+func (c *Collection) UpdateOne(ctx context.Context, filter interface{}, update interface{}) error {
 	var err error
 	var res *mongo.UpdateResult
 
@@ -92,6 +93,19 @@ func (c *Collection) UpdateAll(ctx context.Context, filter interface{}, update i
 func (c *Collection) Remove(ctx context.Context, filter interface{}) (err error) {
 
 	res, err := c.collection.DeleteOne(ctx, filter)
+	if err != nil {
+		return err
+	}
+	if res.DeletedCount == 0 {
+		err = ErrNoSuchDocuments
+	}
+
+	return err
+}
+
+// RemoveId executes a delete command to delete at most one document from the collection.
+func (c *Collection) RemoveId(ctx context.Context, id string) (err error) {
+	res, err := c.collection.DeleteOne(ctx, bson.M{"_id": id})
 	if err != nil {
 		return err
 	}
@@ -178,6 +192,35 @@ func (c *Collection) EnsureIndexes(ctx context.Context, uniques []string, indexe
 	}
 
 	return
+}
+
+// DropIndexes drop indexes in collection, indexes that be dropped should be in line with inputting indexes
+func (c *Collection) DropIndexes(ctx context.Context, indexes []string) error {
+
+	var err error
+	for _, index := range indexes {
+		_, err = c.collection.Indexes().DropOne(ctx, generateDroppedIndex(index))
+		if err != nil {
+			return err
+		}
+	}
+	return err
+}
+
+// generate indexes that store in mongo which may consist more than one index(like "index1,index2" is stored as "index1_1_index2_1")
+func generateDroppedIndex(index string) string {
+	var res string
+	s := strings.Split(index, ",")
+	for _, e := range s {
+		key, sort := SplitSortField(e)
+		n := key + "_" + fmt.Sprint(sort)
+		if len(res) == 0 {
+			res = n
+		} else {
+			res += "_" + n
+		}
+	}
+	return res
 }
 
 // DropCollection drops collection
