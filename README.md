@@ -167,7 +167,7 @@ var showsWithInfo []bson.M
 err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(&showsWithInfo)
 ```
 
-- Support Options
+- Support Options when create connection
 
 ````go
 poolMonitor := &event.PoolMonitor{
