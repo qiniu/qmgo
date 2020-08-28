@@ -164,7 +164,7 @@ var showsWithInfo []bson.M
 err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(&showsWithInfo)
 ```
 
-- Support Options
+- 建立连接时支持 Options 
 
 ````go
 poolMonitor := &event.PoolMonitor{
@@ -179,7 +179,7 @@ poolMonitor := &event.PoolMonitor{
 }
 cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL, , Options: []OptionFunc{
     SetPoolMonitor(poolMonitor),
-    ...
+    // more options ...
 }})
 
 ````
