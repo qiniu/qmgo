@@ -94,7 +94,7 @@ type QmgoClient struct {
 
 // Open creates client instance according to config
 // QmgoClient can operates all qmgo.client 、qmgo.database and qmgo.collection
-func Open(ctx context.Context, conf *Config, o ...Option) (cli *QmgoClient, err error) {
+func Open(ctx context.Context, conf *Config, o ...*options.ClientOptions) (cli *QmgoClient, err error) {
 	client, err := NewClient(ctx, conf, o...)
 	if err != nil {
 		fmt.Println("new client fail", err)
@@ -120,7 +120,7 @@ type Client struct {
 }
 
 // NewClient creates mongo.client
-func NewClient(ctx context.Context, conf *Config, o ...Option) (cli *Client, err error) {
+func NewClient(ctx context.Context, conf *Config, o ...*options.ClientOptions) (cli *Client, err error) {
 	client, err := client(ctx, conf, o...)
 	if err != nil {
 		fmt.Println("new client fail", err)
@@ -134,7 +134,7 @@ func NewClient(ctx context.Context, conf *Config, o ...Option) (cli *Client, err
 }
 
 // client creates connection to mongo
-func client(ctx context.Context, conf *Config, o ...Option) (client *mongo.Client, err error) {
+func client(ctx context.Context, conf *Config, o ...*options.ClientOptions) (client *mongo.Client, err error) {
 	opts, err := newConnectOpts(conf, o...)
 	if err != nil {
 		return nil, err
@@ -157,10 +157,12 @@ func client(ctx context.Context, conf *Config, o ...Option) (client *mongo.Clien
 // Qmgo will follow this way official mongodb driver do：
 // - the configuration in uri takes precedence over the configuration in the setter
 // - Check the validity of the configuration in the uri, while the configuration in the setter is basically not checked
-func newConnectOpts(conf *Config, o ...Option) (*options.ClientOptions, error) {
+func newConnectOpts(conf *Config, o ...*options.ClientOptions) (*options.ClientOptions, error) {
 	var opts *options.ClientOptions
 	opts = new(options.ClientOptions)
-
+	for _, apply := range o {
+		opts = options.MergeClientOptions(opts, apply)
+	}
 	if conf.ConnectTimeoutMS != nil {
 		timeoutDur := time.Duration(*conf.ConnectTimeoutMS) * time.Millisecond
 		opts.SetConnectTimeout(timeoutDur)
@@ -194,9 +196,6 @@ func newConnectOpts(conf *Config, o ...Option) (*options.ClientOptions, error) {
 	}
 	opts.ApplyURI(conf.Uri)
 
-	for _, apply := range o {
-		apply(opts)
-	}
 	return opts, nil
 }
 
