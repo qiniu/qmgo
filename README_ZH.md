@@ -165,30 +165,6 @@ err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(
 ```
 
 - Support Options
-    - SetAppName
-    - SetAuth
-    - SetCompressors
-    - SetConnectTimeout
-    - SetDialer
-    - SetDirect
-    - SetHeartbeatInterval
-    - SetHosts
-    - SetLocalThreshold
-    - SetMaxConnIdleTime
-    - SetMaxPoolSize
-    - SetMinPoolSize
-    - SetPoolMonitor
-    - SetMonitor
-    - SetReadConcern
-    - SetReadPreference
-    - SetRegistry
-    - SetReplicaSet
-    - SetRetryWrites
-    - SetServerSelectionTimeout
-    - SetSocketTimeout
-    - SetTLSConfig
-    - SetWriteConcern
-    - SetZlibLevel
 
 ````go
 poolMonitor := &event.PoolMonitor{
@@ -202,7 +178,8 @@ poolMonitor := &event.PoolMonitor{
 	},
 }
 cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL, , Options: []OptionFunc{
-	SetPoolMonitor(poolMonitor),
+    SetPoolMonitor(poolMonitor),
+    ...
 }})
 
 ````
