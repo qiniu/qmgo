@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/event"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const (
@@ -60,7 +61,8 @@ func TestQmgo(t *testing.T) {
 	ctx := context.Background()
 
 	// create connect
-	cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL}, SetAppName("example"))
+	opt := options.Client().SetAppName("example")
+	cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL}, opt)
 
 	ast.Nil(err)
 	defer func() {
