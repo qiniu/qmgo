@@ -12,8 +12,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/writeconcern"
 )
 
+// ClientOptions contains options to configure a Client instance. Each option can be set through setter functions. See
+// documentation for each setter function for an explanation of the option.
 type ClientOptions = options.ClientOptions
 
+// OptionFunc operation function to set the configure a Client instance.
 type OptionFunc func(*ClientOptions)
 
 // SetAppName specifies an application name that is sent to the server when creating new connections. It is used by the
@@ -227,20 +230,6 @@ func SetRetryWrites(b bool) OptionFunc {
 	}
 }
 
-// SetRetryReads specifies whether supported read operations should be retried once on certain errors, such as network
-// errors.
-//
-// Supported operations are Find, FindOne, Aggregate without a $out stage, Distinct, CountDocuments,
-// EstimatedDocumentCount, Watch (for Client, Database, and Collection), ListCollections, and ListDatabases. Note that
-// operations run through RunCommand are not retried.
-//
-// This option requires server version >= 3.6 and driver version >= 1.1.0. The default is true.
-func SetRetryReads(b bool) OptionFunc {
-	return func(opt *ClientOptions) {
-		opt.SetRetryReads(b)
-	}
-}
-
 // SetServerSelectionTimeout specifies how long the driver will wait to find an available, suitable server to execute an
 // operation. This can also be set through the "serverSelectionTimeoutMS" URI option (e.g.
 // "serverSelectionTimeoutMS=30000"). The default value is 30 seconds.
@@ -315,23 +304,5 @@ func SetWriteConcern(wc *writeconcern.WriteConcern) OptionFunc {
 func SetZlibLevel(level int) OptionFunc {
 	return func(opt *ClientOptions) {
 		opt.SetZlibLevel(level)
-	}
-}
-
-// SetZstdLevel sets the level for the zstd compressor. This option is ignored if zstd is not specified as a compressor
-// through ApplyURI or SetCompressors. Supported values are 1 through 20, inclusive. 1 means best speed and 20 means
-// best compression. This can also be set through the "zstdCompressionLevel" URI option. Defaults to 6.
-func SetZstdLevel(level int) OptionFunc {
-	return func(opt *ClientOptions) {
-		opt.SetZstdLevel(level)
-	}
-}
-
-// SetAutoEncryptionOptions specifies an AutoEncryptionOptions instance to automatically encrypt and decrypt commands
-// and their results. See the options.AutoEncryptionOptions documentation for more information about the supported
-// options.
-func SetAutoEncryptionOptions(opts *options.AutoEncryptionOptions) OptionFunc {
-	return func(opt *ClientOptions) {
-		opt.SetAutoEncryptionOptions(opts)
 	}
 }

@@ -3,8 +3,9 @@ package qmgo
 import (
 	"context"
 	"errors"
-	"github.com/qiniu/qmgo/operator"
 	"testing"
+
+	"github.com/qiniu/qmgo/operator"
 
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
@@ -59,7 +60,9 @@ func TestQmgo(t *testing.T) {
 	ctx := context.Background()
 
 	// create connect
-	cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL, PoolMonitor: poolMonitor})
+	cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL, Options: []OptionFunc{
+		SetAppName("example"),
+	}})
 
 	ast.Nil(err)
 	defer func() {
