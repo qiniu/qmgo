@@ -167,7 +167,8 @@ var showsWithInfo []bson.M
 err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(&showsWithInfo)
 ```
 
-- Pool Monitor
+- Support Options
+
 ````go
 poolMonitor := &event.PoolMonitor{
 	Event: func(evt *event.PoolEvent) {
@@ -179,9 +180,14 @@ poolMonitor := &event.PoolMonitor{
 		}
 	},
 }
-cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL, PoolMonitor: poolMonitor})
+cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL, , Options: []OptionFunc{
+    SetPoolMonitor(poolMonitor),
+    ...
+}})
 
 ````
+
+
 
 - Transactions
 

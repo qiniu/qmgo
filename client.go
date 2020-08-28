@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/event"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -45,8 +44,8 @@ type Config struct {
 	ReadPreference *ReadPref `json:"readPreference"`
 	// can be used to provide authentication options when configuring a Client.
 	Auth *Credential `json:"auth"`
-	// PoolMonitor to receive connection pool events
-	PoolMonitor *event.PoolMonitor
+	// Some Other mongo driver Options
+	Options []OptionFunc
 }
 
 // Credential can be used to provide authentication options when configuring a Client.
@@ -181,9 +180,6 @@ func newConnectOpts(conf *Config) (*options.ClientOptions, error) {
 	if conf.MinPoolSize != nil {
 		opts.SetMinPoolSize(*conf.MinPoolSize)
 	}
-	if conf.PoolMonitor != nil {
-		opts.SetPoolMonitor(conf.PoolMonitor)
-	}
 	if conf.ReadPreference != nil {
 		readPreference, err := newReadPref(*conf.ReadPreference)
 		if err != nil {
@@ -199,6 +195,10 @@ func newConnectOpts(conf *Config) (*options.ClientOptions, error) {
 		opts.SetAuth(auth)
 	}
 	opts.ApplyURI(conf.Uri)
+
+	for _, apply := range conf.Options {
+		apply(opts)
+	}
 	return opts, nil
 }
 
