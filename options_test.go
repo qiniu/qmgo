@@ -84,7 +84,7 @@ func TestClientOptions(t *testing.T) {
 			result := fn.Call(args)
 			ast.Equal(1, len(result))
 			optionFunc := result[0]
-			var a OptionFunc = func(opt *ClientOptions) {}
+			var a Option = func(opt *ClientOptions) {}
 			ast.Equal(reflect.TypeOf(a), optionFunc.Type())
 			wantT := want.Type()
 			gotT := got.Type()

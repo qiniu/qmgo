@@ -60,9 +60,7 @@ func TestQmgo(t *testing.T) {
 	ctx := context.Background()
 
 	// create connect
-	cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL, Options: []OptionFunc{
-		SetAppName("example"),
-	}})
+	cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL}, SetAppName("example"))
 
 	ast.Nil(err)
 	defer func() {
