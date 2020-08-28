@@ -137,10 +137,13 @@ func NewClient(ctx context.Context, conf *Config) (cli *Client, err error) {
 }
 
 // client creates connection to mongo
-func client(ctx context.Context, conf *Config) (client *mongo.Client, err error) {
+func client(ctx context.Context, conf *Config, o ...OptionFunc) (client *mongo.Client, err error) {
 	opts, err := newConnectOpts(conf)
 	if err != nil {
 		return nil, err
+	}
+	for _, apply := range o {
+		apply(opts)
 	}
 	client, err = mongo.Connect(ctx, opts)
 	if err != nil {
