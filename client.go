@@ -44,8 +44,6 @@ type Config struct {
 	ReadPreference *ReadPref `json:"readPreference"`
 	// can be used to provide authentication options when configuring a Client.
 	Auth *Credential `json:"auth"`
-	// Some Other mongo driver Options
-	Options []OptionFunc
 }
 
 // Credential can be used to provide authentication options when configuring a Client.
@@ -96,8 +94,8 @@ type QmgoClient struct {
 
 // Open creates client instance according to config
 // QmgoClient can operates all qmgo.client 、qmgo.database and qmgo.collection
-func Open(ctx context.Context, conf *Config) (cli *QmgoClient, err error) {
-	client, err := NewClient(ctx, conf)
+func Open(ctx context.Context, conf *Config, o ...Option) (cli *QmgoClient, err error) {
+	client, err := NewClient(ctx, conf, o...)
 	if err != nil {
 		fmt.Println("new client fail", err)
 		return
@@ -122,8 +120,8 @@ type Client struct {
 }
 
 // NewClient creates mongo.client
-func NewClient(ctx context.Context, conf *Config) (cli *Client, err error) {
-	client, err := client(ctx, conf)
+func NewClient(ctx context.Context, conf *Config, o ...Option) (cli *Client, err error) {
+	client, err := client(ctx, conf, o...)
 	if err != nil {
 		fmt.Println("new client fail", err)
 		return
@@ -136,8 +134,8 @@ func NewClient(ctx context.Context, conf *Config) (cli *Client, err error) {
 }
 
 // client creates connection to mongo
-func client(ctx context.Context, conf *Config) (client *mongo.Client, err error) {
-	opts, err := newConnectOpts(conf)
+func client(ctx context.Context, conf *Config, o ...Option) (client *mongo.Client, err error) {
+	opts, err := newConnectOpts(conf, o...)
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +157,7 @@ func client(ctx context.Context, conf *Config) (client *mongo.Client, err error)
 // Qmgo will follow this way official mongodb driver do：
 // - the configuration in uri takes precedence over the configuration in the setter
 // - Check the validity of the configuration in the uri, while the configuration in the setter is basically not checked
-func newConnectOpts(conf *Config) (*options.ClientOptions, error) {
+func newConnectOpts(conf *Config, o ...Option) (*options.ClientOptions, error) {
 	var opts *options.ClientOptions
 	opts = new(options.ClientOptions)
 
@@ -196,7 +194,7 @@ func newConnectOpts(conf *Config) (*options.ClientOptions, error) {
 	}
 	opts.ApplyURI(conf.Uri)
 
-	for _, apply := range conf.Options {
+	for _, apply := range o {
 		apply(opts)
 	}
 	return opts, nil

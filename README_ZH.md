@@ -177,10 +177,9 @@ poolMonitor := &event.PoolMonitor{
 		}
 	},
 }
-cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL, , Options: []OptionFunc{
-    SetPoolMonitor(poolMonitor),
-    // more options ...
-}})
+
+cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL}, 
+	SetPoolMonitor(poolMonitor)) // more options append to args.
 
 ````
 
