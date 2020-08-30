@@ -25,13 +25,13 @@ type UserInfo struct {
 	Weight uint32 `bson:"weight"`
 }
 
-var oneUserInfo = UserInfo{
+var userInfo = UserInfo{
 	Name:   "xm",
 	Age:    7,
 	Weight: 40,
 }
 
-var batchUserInfo = []UserInfo{
+var userInfos = []UserInfo{
 	{Name: "a1", Age: 6, Weight: 20},
 	{Name: "b2", Age: 6, Weight: 25},
 	{Name: "c3", Age: 6, Weight: 30},
@@ -67,17 +67,17 @@ func TestQmgo(t *testing.T) {
 
 	cli.EnsureIndexes(ctx, []string{}, []string{"age", "name,weight"})
 	// insert one document
-	_, err = cli.InsertOne(ctx, oneUserInfo)
+	_, err = cli.InsertOne(ctx, userInfo)
 	ast.Nil(err)
 
 	// find one document
 	one := UserInfo{}
-	err = cli.Find(ctx, bson.M{"name": oneUserInfo.Name}).One(&one)
+	err = cli.Find(ctx, bson.M{"name": userInfo.Name}).One(&one)
 	ast.Nil(err)
-	ast.Equal(oneUserInfo, one)
+	ast.Equal(userInfo, one)
 
 	// multiple insert
-	_, err = cli.Collection.InsertMany(ctx, batchUserInfo)
+	_, err = cli.Collection.InsertMany(ctx, userInfos)
 	ast.Nil(err)
 
 	// find all 、sort and limit
