@@ -22,13 +22,14 @@
 
 ## Features
 - CRUD to documents
-- Options when create connection: connection pool、pool monitor、auth、readPreference
+- All options when create connection, like: connection pool、pool monitor、auth、readPreference
 - Create indexes、Drop indexes
 - Sort、limit、count、select、distinct
 - Cursor
 - Aggregate
 - Transactions
 - Predefine operator keys
+- Hooks
 
 ## Installation
 
