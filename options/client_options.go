@@ -1,4 +1,4 @@
-package qmgo
+package options
 
 import (
 	"crypto/tls"
@@ -12,18 +12,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/writeconcern"
 )
 
-// ClientOptions contains options to configure a Client instance. Each option can be set through setter functions. See
-// documentation for each setter function for an explanation of the option.
-type ClientOptions = options.ClientOptions
-
-// Option operation function to set the configure a Client instance.
-type Option func(*ClientOptions)
+// ClientOption operation function to set the configure a Client instance.
+type ClientOption func(*options.ClientOptions)
 
 // SetAppName specifies an application name that is sent to the server when creating new connections. It is used by the
 // server to log connection and profiling information (e.g. slow query logs). This can also be set through the "appName"
 // URI option (e.g "appName=example_application"). The default is empty, meaning no app name will be sent.
-func SetAppName(s string) Option {
-	return func(opt *ClientOptions) {
+func SetAppName(s string) ClientOption {
+	return func(opt *options.ClientOptions) {
 		opt.SetAppName(s)
 	}
 }
@@ -31,8 +27,8 @@ func SetAppName(s string) Option {
 // SetAuth specifies a Credential containing options for configuring authentication. See the options.Credential
 // documentation for more information about Credential fields. The default is an empty Credential, meaning no
 // authentication will be configured.
-func SetAuth(auth options.Credential) Option {
-	return func(opt *ClientOptions) {
+func SetAuth(auth options.Credential) ClientOption {
+	return func(opt *options.ClientOptions) {
 		opt.SetAuth(auth)
 	}
 }
@@ -54,8 +50,8 @@ func SetAuth(auth options.Credential) Option {
 //
 // This can also be set through the "compressors" URI option (e.g. "compressors=zstd,zlib,snappy"). The default is
 // an empty slice, meaning no compression will be enabled.
-func SetCompressors(comps []string) Option {
-	return func(opt *ClientOptions) {
+func SetCompressors(comps []string) ClientOption {
+	return func(opt *options.ClientOptions) {
 		opt.SetCompressors(comps)
 	}
 }
@@ -64,16 +60,16 @@ func SetCompressors(comps []string) Option {
 // specified through SetDialer, this option must not be used. This can be set through ApplyURI with the
 // "connectTimeoutMS" (e.g "connectTimeoutMS=30") option. If set to 0, no timeout will be used. The default is 30
 // seconds.
-func SetConnectTimeout(d time.Duration) Option {
-	return func(opt *ClientOptions) {
+func SetConnectTimeout(d time.Duration) ClientOption {
+	return func(opt *options.ClientOptions) {
 		opt.SetConnectTimeout(d)
 	}
 }
 
 // SetDialer specifies a custom ContextDialer to be used to create new connections to the server. The default is a
 // net.Dialer instance with a 300 second keepalive time.
-func SetDialer(d options.ContextDialer) Option {
-	return func(opt *ClientOptions) {
+func SetDialer(d options.ContextDialer) ClientOption {
+	return func(opt *options.ClientOptions) {
 		opt.SetDialer(d)
 	}
 }
@@ -88,16 +84,16 @@ func SetDialer(d options.ContextDialer) Option {
 // 2. "connect=automatic" for automatic discovery.
 //
 // The default is false ("automatic" in the connection string).
-func SetDirect(b bool) Option {
-	return func(opt *ClientOptions) {
+func SetDirect(b bool) ClientOption {
+	return func(opt *options.ClientOptions) {
 		opt.SetDirect(b)
 	}
 }
 
 // SetHeartbeatInterval specifies the amount of time to wait between periodic background server checks. This can also be
 // set through the "heartbeatIntervalMS" URI option (e.g. "heartbeatIntervalMS=10000"). The default is 10 seconds.
-func SetHeartbeatInterval(d time.Duration) Option {
-	return func(opt *ClientOptions) {
+func SetHeartbeatInterval(d time.Duration) ClientOption {
+	return func(opt *options.ClientOptions) {
 		opt.SetHeartbeatInterval(d)
 	}
 }
@@ -107,8 +103,8 @@ func SetHeartbeatInterval(d time.Duration) Option {
 //
 // Hosts can also be specified as a comma-separated list in a URI. For example, to include "localhost:27017" and
 // "localhost:27018", a URI could be "mongodb://localhost:27017,localhost:27018". The default is ["localhost:27017"]
-func SetHosts(s []string) Option {
-	return func(opt *ClientOptions) {
+func SetHosts(s []string) ClientOption {
+	return func(opt *options.ClientOptions) {
 		opt.SetHosts(s)
 	}
 }
@@ -117,8 +113,8 @@ func SetHosts(s []string) Option {
 // operation, this is the acceptable non-negative delta between shortest and longest average round-trip times. A server
 // within the latency window is selected randomly. This can also be set through the "localThresholdMS" URI option (e.g.
 // "localThresholdMS=15000"). The default is 15 milliseconds.
-func SetLocalThreshold(d time.Duration) Option {
-	return func(opt *ClientOptions) {
+func SetLocalThreshold(d time.Duration) ClientOption {
+	return func(opt *options.ClientOptions) {
 		opt.SetLocalThreshold(d)
 	}
 }
@@ -126,8 +122,8 @@ func SetLocalThreshold(d time.Duration) Option {
 // SetMaxConnIdleTime specifies the maximum amount of time that a connection will remain idle in a connection pool
 // before it is removed from the pool and closed. This can also be set through the "maxIdleTimeMS" URI option (e.g.
 // "maxIdleTimeMS=10000"). The default is 0, meaning a connection can remain unused indefinitely.
-func SetMaxConnIdleTime(d time.Duration) Option {
-	return func(opt *ClientOptions) {
+func SetMaxConnIdleTime(d time.Duration) ClientOption {
+	return func(opt *options.ClientOptions) {
 		opt.SetMaxConnIdleTime(d)
 	}
 }
@@ -135,8 +131,8 @@ func SetMaxConnIdleTime(d time.Duration) Option {
 // SetMaxPoolSize specifies that maximum number of connections allowed in the driver's connection pool to each server.
 // Requests to a server will block if this maximum is reached. This can also be set through the "maxPoolSize" URI option
 // (e.g. "maxPoolSize=100"). The default is 100. If this is 0, it will be set to math.MaxInt64.
-func SetMaxPoolSize(u uint64) Option {
-	return func(opt *ClientOptions) {
+func SetMaxPoolSize(u uint64) ClientOption {
+	return func(opt *options.ClientOptions) {
 		opt.SetMaxPoolSize(u)
 	}
 }
@@ -144,24 +140,24 @@ func SetMaxPoolSize(u uint64) Option {
 // SetMinPoolSize specifies the minimum number of connections allowed in the driver's connection pool to each server. If
 // this is non-zero, each server's pool will be maintained in the background to ensure that the size does not fall below
 // the minimum. This can also be set through the "minPoolSize" URI option (e.g. "minPoolSize=100"). The default is 0.
-func SetMinPoolSize(u uint64) Option {
-	return func(opt *ClientOptions) {
+func SetMinPoolSize(u uint64) ClientOption {
+	return func(opt *options.ClientOptions) {
 		opt.SetMinPoolSize(u)
 	}
 }
 
 // SetPoolMonitor specifies a PoolMonitor to receive connection pool events. See the event.PoolMonitor documentation
 // for more information about the structure of the monitor and events that can be received.
-func SetPoolMonitor(m *event.PoolMonitor) Option {
-	return func(opt *ClientOptions) {
+func SetPoolMonitor(m *event.PoolMonitor) ClientOption {
+	return func(opt *options.ClientOptions) {
 		opt.SetPoolMonitor(m)
 	}
 }
 
 // SetMonitor specifies a CommandMonitor to receive command events. See the event.CommandMonitor documentation for more
 // information about the structure of the monitor and events that can be received.
-func SetMonitor(m *event.CommandMonitor) Option {
-	return func(opt *ClientOptions) {
+func SetMonitor(m *event.CommandMonitor) ClientOption {
+	return func(opt *options.ClientOptions) {
 		opt.SetMonitor(m)
 	}
 }
@@ -169,8 +165,8 @@ func SetMonitor(m *event.CommandMonitor) Option {
 // SetReadConcern specifies the read concern to use for read operations. A read concern level can also be set through
 // the "readConcernLevel" URI option (e.g. "readConcernLevel=majority"). The default is nil, meaning the server will use
 // its configured default.
-func SetReadConcern(rc *readconcern.ReadConcern) Option {
-	return func(opt *ClientOptions) {
+func SetReadConcern(rc *readconcern.ReadConcern) ClientOption {
+	return func(opt *options.ClientOptions) {
 		opt.SetReadConcern(rc)
 	}
 }
@@ -188,16 +184,16 @@ func SetReadConcern(rc *readconcern.ReadConcern) Option {
 //
 // The default is readpref.Primary(). See https://docs.mongodb.com/manual/core/read-preference/#read-preference for
 // more information about read preferences.
-func SetReadPreference(rp *readpref.ReadPref) Option {
-	return func(opt *ClientOptions) {
+func SetReadPreference(rp *readpref.ReadPref) ClientOption {
+	return func(opt *options.ClientOptions) {
 		opt.SetReadPreference(rp)
 	}
 }
 
 // SetRegistry specifies the BSON registry to use for BSON marshalling/unmarshalling operations. The default is
 // bson.DefaultRegistry.
-func SetRegistry(registry *bsoncodec.Registry) Option {
-	return func(opt *ClientOptions) {
+func SetRegistry(registry *bsoncodec.Registry) ClientOption {
+	return func(opt *options.ClientOptions) {
 		opt.SetRegistry(registry)
 	}
 }
@@ -207,8 +203,8 @@ func SetRegistry(registry *bsoncodec.Registry) Option {
 // ApplyURI or SetHosts. All nodes in the replica set must have the same replica set name, or they will not be
 // considered as part of the set by the Client. This can also be set through the "replicaSet" URI option (e.g.
 // "replicaSet=replset"). The default is empty.
-func SetReplicaSet(s string) Option {
-	return func(opt *ClientOptions) {
+func SetReplicaSet(s string) ClientOption {
+	return func(opt *options.ClientOptions) {
 		opt.SetReplicaSet(s)
 	}
 }
@@ -224,8 +220,8 @@ func SetReplicaSet(s string) Option {
 // This option requires server version >= 3.6 and a replica set or sharded cluster and will be ignored for any other
 // cluster type. This can also be set through the "retryWrites" URI option (e.g. "retryWrites=true"). The default is
 // true.
-func SetRetryWrites(b bool) Option {
-	return func(opt *ClientOptions) {
+func SetRetryWrites(b bool) ClientOption {
+	return func(opt *options.ClientOptions) {
 		opt.SetRetryWrites(b)
 	}
 }
@@ -233,8 +229,8 @@ func SetRetryWrites(b bool) Option {
 // SetServerSelectionTimeout specifies how long the driver will wait to find an available, suitable server to execute an
 // operation. This can also be set through the "serverSelectionTimeoutMS" URI option (e.g.
 // "serverSelectionTimeoutMS=30000"). The default value is 30 seconds.
-func SetServerSelectionTimeout(d time.Duration) Option {
-	return func(opt *ClientOptions) {
+func SetServerSelectionTimeout(d time.Duration) ClientOption {
+	return func(opt *options.ClientOptions) {
 		opt.SetServerSelectionTimeout(d)
 	}
 }
@@ -242,8 +238,8 @@ func SetServerSelectionTimeout(d time.Duration) Option {
 // SetSocketTimeout specifies how long the driver will wait for a socket read or write to return before returning a
 // network error. This can also be set through the "socketTimeoutMS" URI option (e.g. "socketTimeoutMS=1000"). The
 // default value is 0, meaning no timeout is used and socket operations can block indefinitely.
-func SetSocketTimeout(d time.Duration) Option {
-	return func(opt *ClientOptions) {
+func SetSocketTimeout(d time.Duration) ClientOption {
+	return func(opt *options.ClientOptions) {
 		opt.SetSocketTimeout(d)
 	}
 }
@@ -271,8 +267,8 @@ func SetSocketTimeout(d time.Duration) Option {
 // man-in-the-middle attacks and should only be done for testing.
 //
 // The default is nil, meaning no TLS will be enabled.
-func SetTLSConfig(cfg *tls.Config) Option {
-	return func(opt *ClientOptions) {
+func SetTLSConfig(cfg *tls.Config) ClientOption {
+	return func(opt *options.ClientOptions) {
 		opt.SetTLSConfig(cfg)
 	}
 }
@@ -291,8 +287,8 @@ func SetTLSConfig(cfg *tls.Config) Option {
 // returning (e.g. "journal=true").
 //
 // The default is nil, meaning the server will use its configured default.
-func SetWriteConcern(wc *writeconcern.WriteConcern) Option {
-	return func(opt *ClientOptions) {
+func SetWriteConcern(wc *writeconcern.WriteConcern) ClientOption {
+	return func(opt *options.ClientOptions) {
 		opt.SetWriteConcern(wc)
 	}
 }
@@ -301,8 +297,8 @@ func SetWriteConcern(wc *writeconcern.WriteConcern) Option {
 // compressor through ApplyURI or SetCompressors. Supported values are -1 through 9, inclusive. -1 tells the zlib
 // library to use its default, 0 means no compression, 1 means best speed, and 9 means best compression.
 // This can also be set through the "zlibCompressionLevel" URI option (e.g. "zlibCompressionLevel=-1"). Defaults to -1.
-func SetZlibLevel(level int) Option {
-	return func(opt *ClientOptions) {
+func SetZlibLevel(level int) ClientOption {
+	return func(opt *options.ClientOptions) {
 		opt.SetZlibLevel(level)
 	}
 }

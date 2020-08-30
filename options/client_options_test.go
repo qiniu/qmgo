@@ -1,4 +1,4 @@
-package qmgo
+package options
 
 import (
 	"context"
@@ -17,7 +17,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/writeconcern"
 )
 
-var tClientOptions = reflect.TypeOf(&ClientOptions{})
+var tClientOptions = reflect.TypeOf(&options.ClientOptions{})
 
 func TestClientOptions(t *testing.T) {
 	ast := require.New(t)
@@ -54,7 +54,7 @@ func TestClientOptions(t *testing.T) {
 		{"ZlibLevel", SetZlibLevel, 6, "ZlibLevel", true},
 	}
 
-	var opt = &ClientOptions{}
+	var opt = &options.ClientOptions{}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -84,7 +84,7 @@ func TestClientOptions(t *testing.T) {
 			result := fn.Call(args)
 			ast.Equal(1, len(result))
 			optionFunc := result[0]
-			var a Option = func(opt *ClientOptions) {}
+			var a ClientOption = func(opt *options.ClientOptions) {}
 			ast.Equal(reflect.TypeOf(a), optionFunc.Type())
 			wantT := want.Type()
 			gotT := got.Type()

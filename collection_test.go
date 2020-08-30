@@ -3,11 +3,10 @@ package qmgo
 import (
 	"context"
 	"github.com/qiniu/qmgo/operator"
-	"testing"
-
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"testing"
 )
 
 func TestCollection_EnsureIndex(t *testing.T) {
@@ -461,7 +460,7 @@ func TestCollection_DeleteAll(t *testing.T) {
 	filter1 := bson.M{
 		"name": "Alice",
 	}
-	res, err := cli.DeleteAll(context.Background(), filter1)
+	res, err := cli.RemoveAll(context.Background(), filter1)
 	ast.NoError(err)
 	ast.NotNil(res)
 	ast.Equal(int64(2), res.DeletedCount)
@@ -474,7 +473,7 @@ func TestCollection_DeleteAll(t *testing.T) {
 	filter2 := bson.M{
 		"name": "Lily",
 	}
-	res, err = cli.DeleteAll(context.Background(), filter2)
+	res, err = cli.RemoveAll(context.Background(), filter2)
 	ast.NoError(err)
 	ast.NotNil(res)
 	ast.Equal(int64(0), res.DeletedCount)
@@ -485,7 +484,7 @@ func TestCollection_DeleteAll(t *testing.T) {
 	ast.NoError(err)
 	ast.Equal(int64(2), preCnt)
 
-	res, err = cli.DeleteAll(context.Background(), filter3)
+	res, err = cli.RemoveAll(context.Background(), filter3)
 	ast.NoError(err)
 	ast.NotNil(res)
 	ast.Equal(preCnt, res.DeletedCount)
@@ -495,11 +494,11 @@ func TestCollection_DeleteAll(t *testing.T) {
 	ast.Equal(int64(0), afterCnt)
 
 	// filter is nil or wrong BSON Document format
-	res, err = cli.DeleteAll(context.Background(), nil)
+	res, err = cli.RemoveAll(context.Background(), nil)
 	ast.Error(err)
 	ast.Nil(res)
 
-	res, err = cli.DeleteAll(context.Background(), 1)
+	res, err = cli.RemoveAll(context.Background(), 1)
 	ast.Error(err)
 	ast.Nil(res)
 }

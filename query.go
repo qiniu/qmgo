@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/qiniu/qmgo/hook"
+	qOpts "github.com/qiniu/qmgo/options"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -12,13 +14,15 @@ import (
 
 // Query struct definition
 type Query struct {
+	filter  interface{}
+	sort    interface{}
+	project interface{}
+	limit   *int64
+	skip    *int64
+
 	ctx        context.Context
 	collection *mongo.Collection
-	filter     interface{}
-	sort       interface{}
-	project    interface{}
-	limit      *int64
-	skip       *int64
+	opts       []qOpts.FindOptions
 }
 
 // Sort is Used to set the sorting rules for the returned results
@@ -94,6 +98,11 @@ func (q *Query) Limit(n int64) QueryI {
 // One query a record that meets the filter conditions
 // If the search fails, an error will be returned
 func (q *Query) One(result interface{}) error {
+	if len(q.opts) > 0 {
+		if err := hook.Do(q.opts[0].QueryHook, hook.BeforeQuery); err != nil {
+			return err
+		}
+	}
 	opt := options.FindOne()
 
 	if q.sort != nil {
@@ -111,12 +120,22 @@ func (q *Query) One(result interface{}) error {
 	if err != nil {
 		return err
 	}
-	return err
+	if len(q.opts) > 0 {
+		if err := hook.Do(q.opts[0].QueryHook, hook.AfterQuery); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // All query multiple records that meet the filter conditions
 // The static type of result must be a slice pointer
 func (q *Query) All(result interface{}) error {
+	if len(q.opts) > 0 {
+		if err := hook.Do(q.opts[0].QueryHook, hook.BeforeQuery); err != nil {
+			return err
+		}
+	}
 	opt := options.Find()
 
 	if q.sort != nil {
@@ -142,7 +161,16 @@ func (q *Query) All(result interface{}) error {
 		cursor: cursor,
 		err:    err,
 	}
-	return c.All(result)
+	err = c.All(result)
+	if err != nil {
+		return err
+	}
+	if len(q.opts) > 0 {
+		if err := hook.Do(q.opts[0].QueryHook, hook.AfterQuery); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Count count the number of eligible entries

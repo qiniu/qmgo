@@ -10,7 +10,7 @@ package qmgo
 //	UpdateOne(filter interface{}, update interface{}) error
 //	UpdateAll(filter interface{}, update interface{}) (*mongo.UpdateResult, error)
 //	DeleteOne(filter interface{}) error
-//	DeleteAll(selector interface{}) (*mongo.DeleteResult, error)
+//	RemoveAll(selector interface{}) (*mongo.DeleteResult, error)
 //	EnsureIndex(indexes []string, isUnique bool)
 //	EnsureIndexes(uniques []string, indexes []string)
 //}
