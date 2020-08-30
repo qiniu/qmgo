@@ -39,14 +39,7 @@ var batchUserInfo = []UserInfo{
 	{Name: "a1", Age: 7, Weight: 40},
 	{Name: "a1", Age: 8, Weight: 45},
 }
-var batchUserInfoI = []interface{}{
-	UserInfo{Name: "a1", Age: 6, Weight: 20},
-	UserInfo{Name: "b2", Age: 6, Weight: 25},
-	UserInfo{Name: "c3", Age: 6, Weight: 30},
-	UserInfo{Name: "d4", Age: 6, Weight: 35},
-	UserInfo{Name: "a1", Age: 7, Weight: 40},
-	UserInfo{Name: "a1", Age: 8, Weight: 45},
-}
+
 var poolMonitor = &event.PoolMonitor{
 	Event: func(evt *event.PoolEvent) {
 		switch evt.Type {
@@ -84,7 +77,7 @@ func TestQmgo(t *testing.T) {
 	ast.Equal(oneUserInfo, one)
 
 	// multiple insert
-	_, err = cli.Collection.InsertMany(ctx, batchUserInfoI)
+	_, err = cli.Collection.InsertMany(ctx, batchUserInfo)
 	ast.Nil(err)
 
 	// find all 、sort and limit

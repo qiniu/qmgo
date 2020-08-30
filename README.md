@@ -123,7 +123,7 @@ err = cli.Remove(ctx, bson.M{"age": 7})
 
 ```go
 // multiple insert
-var batchUserInfoI = []interface{}{
+var batchUserInfo = []UserInfo{
 	UserInfo{Name: "a1", Age: 6, Weight: 20},
 	UserInfo{Name: "b2", Age: 6, Weight: 25},
 	UserInfo{Name: "c3", Age: 6, Weight: 30},
@@ -131,7 +131,7 @@ var batchUserInfoI = []interface{}{
 	UserInfo{Name: "a1", Age: 7, Weight: 40},
 	UserInfo{Name: "a1", Age: 8, Weight: 45},
 }
-result, err = cli.Collection.InsertMany(ctx, batchUserInfoI)
+result, err = cli.Collection.InsertMany(ctx, batchUserInfo)
 ```
 
 - Search all, sort and limit
