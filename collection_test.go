@@ -509,23 +509,23 @@ func TestCollection_DeleteAll(t *testing.T) {
 func TestSliceInsert(t *testing.T) {
 	newDocs := []UserInfo{{Name: "Alice", Age: 10}, {Name: "Lucas", Age: 11}}
 	di := interface{}(newDocs)
-	dis := sliceToSliceInterface(di)
+	dis := interfaceToSliceInterface(di)
 	ast := require.New(t)
 	ast.Len(dis, 2)
 
 	newDocs_1 := []interface{}{UserInfo{Name: "Alice", Age: 10}, UserInfo{Name: "Lucas", Age: 11}}
 	di = interface{}(newDocs_1)
-	dis = sliceToSliceInterface(di)
+	dis = interfaceToSliceInterface(di)
 	ast.Len(dis, 2)
 
 	newDocs_2 := UserInfo{Name: "Alice", Age: 10}
 	di = interface{}(newDocs_2)
-	dis = sliceToSliceInterface(di)
+	dis = interfaceToSliceInterface(di)
 	ast.Nil(dis)
 
 	newDocs_3 := []UserInfo{}
 	di = interface{}(newDocs_3)
-	dis = sliceToSliceInterface(di)
+	dis = interfaceToSliceInterface(di)
 	ast = require.New(t)
 	ast.Nil(dis)
 }

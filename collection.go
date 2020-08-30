@@ -43,7 +43,7 @@ func (c *Collection) InsertOne(ctx context.Context, doc interface{}) (result *In
 func (c *Collection) InsertMany(ctx context.Context, docs interface{}) (result *InsertManyResult, err error) {
 	sDocs := []interface{}{}
 
-	sDocs = sliceToSliceInterface(docs)
+	sDocs = interfaceToSliceInterface(docs)
 	if sDocs == nil {
 		return nil, ErrNotValidSliceToInsert
 	}
@@ -55,7 +55,8 @@ func (c *Collection) InsertMany(ctx context.Context, docs interface{}) (result *
 	return
 }
 
-func sliceToSliceInterface(docs interface{}) []interface{} {
+// interfaceToSliceInterface convert interface to slice interface
+func interfaceToSliceInterface(docs interface{}) []interface{} {
 	if reflect.Slice != reflect.TypeOf(docs).Kind() {
 		return nil
 	}
