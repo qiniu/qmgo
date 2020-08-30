@@ -85,7 +85,7 @@ type UserInfo struct {
 	Weight uint32 `bson:"weight"`
 }
 
-var oneUserInfo = UserInfo{
+var userInfo = UserInfo{
     Name: "xm",
     Age: 7,
     Weight: 40,
@@ -102,7 +102,7 @@ cli.EnsureIndexes(ctx, []string{}, []string{"age", "name,weight"})
 
 ```go
 // insert one document
-result, err := cli.Insert(ctx, oneUserInfo)
+result, err := cli.Insert(ctx, userInfo)
 ```
 
 - Find a document
@@ -110,7 +110,7 @@ result, err := cli.Insert(ctx, oneUserInfo)
 ```go
 // find one document
   one := UserInfo{}
-  err = cli.Find(ctx, bson.M{"name": oneUserInfo.Name}).One(&one)
+  err = cli.Find(ctx, bson.M{"name": userInfo.Name}).One(&one)
 ```
 
 - Delete documents
