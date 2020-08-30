@@ -213,6 +213,31 @@ var showsWithInfo []bson.M
 err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(&showsWithInfo)
 ````
 
+- Hooks
+Qmgo 灵活的 hooks:
+[More about hooks](https://github.com/qiniu/qmgo/wiki/Hooks)
+[详情介绍](https://github.com/qiniu/qmgo/wiki/Hooks--(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)) 
+````go
+type User struct {
+	Name         string    `bson:"name"`
+	Age          int       `bson:"age"`
+}
+func (u *User) BeforeInsert() error {
+  fmt.Println("before insert called")
+	return nil
+}
+func (u *User) AfterInsert() error {
+  fmt.Println("before insert called")
+	return nil
+}
+
+// --- running codes:
+u := &User{Name: "Alice", Age: 7}
+_, err := cli.InsertOne(context.Background(), u, options.InsertOneOptions{
+  InsertHook: u,
+})
+````
+
 ## `qmgo` vs `go.mongodb.org/mongo-driver`
 
 下面我们举一个多文件查找、`sort`和`limit`的例子, 说明`qmgo`和`mgo`的相似，以及对`go.mongodb.org/mongo-driver`的改进

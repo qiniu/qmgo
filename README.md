@@ -167,7 +167,7 @@ var showsWithInfo []bson.M
 err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(&showsWithInfo)
 ```
 
-- Support Options when create connection
+- Support All mongoDB Options when create connection
 
 ````go
 poolMonitor := &event.PoolMonitor{
@@ -185,8 +185,6 @@ cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL}, opt)
 
 
 ````
-
-
 
 - Transactions
 
@@ -213,6 +211,31 @@ matchStage := bson.D{{operator.Match, []bson.E{{"weight", bson.D{{operator.Gt, 3
 groupStage := bson.D{{operator.Group, bson.D{{"_id", "$name"}, {"total", bson.D{{operator.Sum, "$age"}}}}}}
 var showsWithInfo []bson.M
 err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(&showsWithInfo)
+````
+
+- Hooks
+Qmgo flexible hooks:
+[More about hooks](https://github.com/qiniu/qmgo/wiki/Hooks)
+[详情介绍](https://github.com/qiniu/qmgo/wiki/Hooks--(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)) 
+````go
+type User struct {
+	Name         string    `bson:"name"`
+	Age          int       `bson:"age"`
+}
+func (u *User) BeforeInsert() error {
+  fmt.Println("before insert called")
+	return nil
+}
+func (u *User) AfterInsert() error {
+  fmt.Println("before insert called")
+	return nil
+}
+
+// --- running codes:
+u := &User{Name: "Alice", Age: 7}
+_, err := cli.InsertOne(context.Background(), u, options.InsertOneOptions{
+  InsertHook: u,
+})
 ````
 
 ## `Qmgo` vs `go.mongodb.org/mongo-driver`
