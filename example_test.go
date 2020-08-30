@@ -25,13 +25,13 @@ type UserInfo struct {
 	Weight uint32 `bson:"weight"`
 }
 
-var oneUserInfo = UserInfo{
+var userInfo = UserInfo{
 	Name:   "xm",
 	Age:    7,
 	Weight: 40,
 }
 
-var batchUserInfo = []UserInfo{
+var userInfos = []UserInfo{
 	{Name: "a1", Age: 6, Weight: 20},
 	{Name: "b2", Age: 6, Weight: 25},
 	{Name: "c3", Age: 6, Weight: 30},
@@ -39,14 +39,7 @@ var batchUserInfo = []UserInfo{
 	{Name: "a1", Age: 7, Weight: 40},
 	{Name: "a1", Age: 8, Weight: 45},
 }
-var batchUserInfoI = []interface{}{
-	UserInfo{Name: "a1", Age: 6, Weight: 20},
-	UserInfo{Name: "b2", Age: 6, Weight: 25},
-	UserInfo{Name: "c3", Age: 6, Weight: 30},
-	UserInfo{Name: "d4", Age: 6, Weight: 35},
-	UserInfo{Name: "a1", Age: 7, Weight: 40},
-	UserInfo{Name: "a1", Age: 8, Weight: 45},
-}
+
 var poolMonitor = &event.PoolMonitor{
 	Event: func(evt *event.PoolEvent) {
 		switch evt.Type {
@@ -74,17 +67,17 @@ func TestQmgo(t *testing.T) {
 
 	cli.EnsureIndexes(ctx, []string{}, []string{"age", "name,weight"})
 	// insert one document
-	_, err = cli.InsertOne(ctx, oneUserInfo)
+	_, err = cli.InsertOne(ctx, userInfo)
 	ast.Nil(err)
 
 	// find one document
 	one := UserInfo{}
-	err = cli.Find(ctx, bson.M{"name": oneUserInfo.Name}).One(&one)
+	err = cli.Find(ctx, bson.M{"name": userInfo.Name}).One(&one)
 	ast.Nil(err)
-	ast.Equal(oneUserInfo, one)
+	ast.Equal(userInfo, one)
 
 	// multiple insert
-	_, err = cli.Collection.InsertMany(ctx, batchUserInfoI)
+	_, err = cli.Collection.InsertMany(ctx, userInfos)
 	ast.Nil(err)
 
 	// find all 、sort and limit

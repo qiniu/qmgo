@@ -3,9 +3,10 @@ package qmgo
 import (
 	"context"
 	"fmt"
-	"go.mongodb.org/mongo-driver/bson"
+	"reflect"
 	"strings"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"
@@ -39,12 +40,33 @@ func (c *Collection) InsertOne(ctx context.Context, doc interface{}) (result *In
 // e.g. docs := []interface{}{myDocsInstance1, myDocsInstance2}
 // TODO need a function which translate slice to []interface
 // Reference: https://docs.mongodb.com/manual/reference/command/insert/
-func (c *Collection) InsertMany(ctx context.Context, docs []interface{}) (result *InsertManyResult, err error) {
-	res, err := c.collection.InsertMany(ctx, docs)
+func (c *Collection) InsertMany(ctx context.Context, docs interface{}) (result *InsertManyResult, err error) {
+	sDocs := interfaceToSliceInterface(docs)
+	if sDocs == nil {
+		return nil, ErrNotValidSliceToInsert
+	}
+
+	res, err := c.collection.InsertMany(ctx, sDocs)
 	if res != nil {
 		result = &InsertManyResult{InsertedIDs: res.InsertedIDs}
 	}
 	return
+}
+
+// interfaceToSliceInterface convert interface to slice interface
+func interfaceToSliceInterface(docs interface{}) []interface{} {
+	if reflect.Slice != reflect.TypeOf(docs).Kind() {
+		return nil
+	}
+	s := reflect.ValueOf(docs)
+	if s.Len() == 0 {
+		return nil
+	}
+	sDocs := []interface{}{}
+	for i := 0; i < s.Len(); i++ {
+		sDocs = append(sDocs, s.Index(i).Interface())
+	}
+	return sDocs
 }
 
 // Upsert updates one documents if filter match, inserts one document if filter is not match

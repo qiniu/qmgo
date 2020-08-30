@@ -26,6 +26,8 @@ var (
 	ErrNotSupportedUsername = errors.New("username not supported")
 	// ErrNotSupportedPassword return if password is invalid
 	ErrNotSupportedPassword = errors.New("password not supported")
+	// ErrNotValidSliceToInsert return if insert argument is not valid slice
+	ErrNotValidSliceToInsert = errors.New("must be valid slice to insert")
 )
 
 // IsErrNoDocuments check if err is no documents, both mongo-go-driver error and qmgo custom error
