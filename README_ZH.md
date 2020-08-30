@@ -164,7 +164,7 @@ var showsWithInfo []bson.M
 err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(&showsWithInfo)
 ```
 
-- 建立连接时支持 Options 
+- 建立连接时支持所有mongoDB的`Options` 
 
 ````go
 poolMonitor := &event.PoolMonitor{
@@ -231,7 +231,6 @@ func (u *User) AfterInsert() error {
 	return nil
 }
 
-// --- running codes:
 u := &User{Name: "Alice", Age: 7}
 _, err := cli.InsertOne(context.Background(), u, options.InsertOneOptions{
   InsertHook: u,

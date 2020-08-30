@@ -231,7 +231,6 @@ func (u *User) AfterInsert() error {
 	return nil
 }
 
-// --- running codes:
 u := &User{Name: "Alice", Age: 7}
 _, err := cli.InsertOne(context.Background(), u, options.InsertOneOptions{
   InsertHook: u,
