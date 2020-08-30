@@ -107,7 +107,7 @@ func TestInsertManyHook(t *testing.T) {
 	afterInsertCount = 0
 	u1 := &UserHook{Name: "jz", Age: 7}
 	u2 := &UserHook{Name: "xm", Age: 7}
-	us := []interface{}{u1, u2}
+	us := []*UserHook{u1, u2}
 	_, err := cli.InsertMany(ctx, us, options.InsertManyOptions{
 		InsertHook: us,
 	})

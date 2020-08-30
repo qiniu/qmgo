@@ -6,5 +6,5 @@ type InsertOneOptions struct {
 	InsertHook hook.InsertHook
 }
 type InsertManyOptions struct {
-	InsertHook []interface{}
+	InsertHook interface{}
 }

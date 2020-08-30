@@ -80,7 +80,7 @@ type UserInfo struct {
 	Weight uint32 `bson:"weight"`
 }
 
-var oneUserInfo = UserInfo{
+var userInfo = UserInfo{
 	Name:   "xm",
 	Age:    7,
 	Weight: 40,
@@ -97,7 +97,7 @@ cli.EnsureIndexes(ctx, []string{}, []string{"age", "name,weight"})
 
 ```go
 // insert one document
-result, err := cli.Insert(ctx, oneUserInfo)
+result, err := cli.Insert(ctx, userInfo)
 ```
 
 - 查找一个文档
@@ -105,7 +105,7 @@ result, err := cli.Insert(ctx, oneUserInfo)
 ```go
 	// find one document
 one := UserInfo{}
-err = cli.Find(ctx, bson.M{"name": oneUserInfo.Name}).One(&one)
+err = cli.Find(ctx, bson.M{"name": userInfo.Name}).One(&one)
 ```
 
 - 删除文档
@@ -118,7 +118,7 @@ err = cli.Remove(ctx, bson.M{"age": 7})
 
 ```go
 // multiple insert
-var batchUserInfoI = []interface{}{
+var userInfos = []UserInfo{
 	UserInfo{Name: "a1", Age: 6, Weight: 20},
 	UserInfo{Name: "b2", Age: 6, Weight: 25},
 	UserInfo{Name: "c3", Age: 6, Weight: 30},
@@ -126,7 +126,7 @@ var batchUserInfoI = []interface{}{
 	UserInfo{Name: "a1", Age: 7, Weight: 40},
 	UserInfo{Name: "a1", Age: 8, Weight: 45},
 }
-result, err = cli.Collection.InsertMany(ctx, batchUserInfoI)
+result, err = cli.Collection.InsertMany(ctx, userInfos)
 ```
 
 - 批量查找、`Sort`和`Limit`
@@ -178,8 +178,8 @@ poolMonitor := &event.PoolMonitor{
 	},
 }
 
-cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL}, 
-	SetPoolMonitor(poolMonitor)) // more options append to args.
+opt := options.Client().SetPoolMonitor(poolMonitor)  // more options use the chain options.
+cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL}, opt) 
 
 ````
 
@@ -262,4 +262,4 @@ coll.Find(bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 
 ## 加入 qmgo 微信群:
 
-![avatar](http://pgo8q04yu.bkt.clouddn.com/qmgoG-2)
+![avatar](http://pgo8q04yu.bkt.clouddn.com/qmgoG-3.png)

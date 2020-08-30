@@ -132,28 +132,31 @@ func TestCollection_InsertMany(t *testing.T) {
 	cli.EnsureIndexes(context.Background(), []string{"name"}, nil)
 
 	var err error
-
-	docs := []interface{}{
-		bson.D{{Key: "_id", Value: primitive.NewObjectID()}, {Key: "name", Value: "Alice"}},
-		bson.D{{Key: "_id", Value: primitive.NewObjectID()}, {Key: "name", Value: "Lucas"}},
-	}
-	res, err := cli.InsertMany(context.Background(), docs)
+	newDocs := []UserInfo{{Name: "Alice", Age: 10}, {Name: "Lucas", Age: 11}}
+	res, err := cli.InsertMany(context.Background(), newDocs)
 	ast.NoError(err)
 	ast.NotEmpty(res)
 	ast.Equal(2, len(res.InsertedIDs))
 
-	docs2 := []interface{}{
-		bson.D{{Key: "_id", Value: primitive.NewObjectID()}, {Key: "name", Value: "Alice"}},
-		bson.D{{Key: "_id", Value: primitive.NewObjectID()}, {Key: "name", Value: "Lucas"}},
+	newPDocs := []*UserInfo{{Name: "Alice03", Age: 10}, {Name: "Lucas03", Age: 11}}
+	res, err = cli.InsertMany(context.Background(), newPDocs)
+	ast.NoError(err)
+	ast.NotEmpty(res)
+	ast.Equal(2, len(res.InsertedIDs))
+
+	docs2 := []UserInfo{
+		{Name: "Alice"},
+		{Name: "Lucas"},
 	}
 	res, err = cli.InsertMany(context.Background(), docs2)
 	ast.Equal(true, IsDup(err))
 	ast.Equal(0, len(res.InsertedIDs))
 
-	docs4 := []bson.M{}
+	docs4 := []UserInfo{}
 	res, err = cli.InsertMany(context.Background(), []interface{}{docs4})
 	ast.Error(err)
 	ast.Empty(res)
+
 }
 
 func TestCollection_Upsert(t *testing.T) {
@@ -502,35 +505,26 @@ func TestCollection_DeleteAll(t *testing.T) {
 	ast.Error(err)
 	ast.Nil(res)
 }
+func TestSliceInsert(t *testing.T) {
+	newDocs := []UserInfo{{Name: "Alice", Age: 10}, {Name: "Lucas", Age: 11}}
+	di := interface{}(newDocs)
+	dis := interfaceToSliceInterface(di)
+	ast := require.New(t)
+	ast.Len(dis, 2)
 
-// it's not stable when server is different
-//func TestCollectionConrruent(t *testing.T) {
-//	ast := require.New(t)
-//
-//	var cli *QmgoClient
-//	cli = initClient("test")
-//	cli.DropCollection(context.Background())
-//	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
-//
-//	wg := sync.WaitGroup{}
-//	dataNum := 5000
-//	for i := 0; i < dataNum; i++ {
-//		wg.Add(1)
-//		go func(j int) {
-//			defer wg.Done()
-//			var err error
-//			var res *mongo.InsertResult
-//			doc := bson.M{"_id": primitive.NewObjectID(), "name": "Alice_" + strconv.Itoa(i)}
-//
-//			res, err = cli.Insert(context.Background(), doc)
-//			ast.NoError(err)
-//			ast.NotEmpty(res)
-//			ast.Equal(doc["_id"], res.InsertedID)
-//			time.Sleep(10 * time.Millisecond)
-//		}(i)
-//	}
-//	wg.Wait()
-//	count, err := cli.Find(context.Background(), bson.M{}).Count()
-//	ast.Equal(nil, err)
-//	ast.Equal(dataNum, int(count))
-//}
+	newDocs_1 := []interface{}{UserInfo{Name: "Alice", Age: 10}, UserInfo{Name: "Lucas", Age: 11}}
+	di = interface{}(newDocs_1)
+	dis = interfaceToSliceInterface(di)
+	ast.Len(dis, 2)
+
+	newDocs_2 := UserInfo{Name: "Alice", Age: 10}
+	di = interface{}(newDocs_2)
+	dis = interfaceToSliceInterface(di)
+	ast.Nil(dis)
+
+	newDocs_3 := []UserInfo{}
+	di = interface{}(newDocs_3)
+	dis = interfaceToSliceInterface(di)
+	ast = require.New(t)
+	ast.Nil(dis)
+}
