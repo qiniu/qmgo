@@ -41,9 +41,7 @@ func (c *Collection) InsertOne(ctx context.Context, doc interface{}) (result *In
 // TODO need a function which translate slice to []interface
 // Reference: https://docs.mongodb.com/manual/reference/command/insert/
 func (c *Collection) InsertMany(ctx context.Context, docs interface{}) (result *InsertManyResult, err error) {
-	sDocs := []interface{}{}
-
-	sDocs = interfaceToSliceInterface(docs)
+	sDocs := interfaceToSliceInterface(docs)
 	if sDocs == nil {
 		return nil, ErrNotValidSliceToInsert
 	}
