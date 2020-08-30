@@ -73,6 +73,9 @@ func TestInsertHook(t *testing.T) {
 		ast.True(vv.AfterCalled)
 	}
 
+	u3 := User{Name: "jz", Age: 7}
+	err = Do(u3, BeforeInsert)
+	ast.NoError(err)
 }
 
 func (u *User) BeforeUpdate() error {

@@ -94,7 +94,6 @@ type QmgoClient struct {
 
 // Open creates client instance according to config
 // QmgoClient can operates all qmgo.client 、qmgo.database and qmgo.collection
-
 func Open(ctx context.Context, conf *Config, o ...*options.ClientOptions) (cli *QmgoClient, err error) {
 	client, err := NewClient(ctx, conf, o...)
 	if err != nil {
@@ -121,7 +120,6 @@ type Client struct {
 }
 
 // NewClient creates mongo.client
-
 func NewClient(ctx context.Context, conf *Config, o ...*options.ClientOptions) (cli *Client, err error) {
 	client, err := client(ctx, conf, o...)
 	if err != nil {

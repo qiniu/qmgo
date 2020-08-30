@@ -15,10 +15,9 @@ func (d *Database) Collection(name string) *Collection {
 	var cp *mongo.Collection
 	cp = d.database.Collection(name)
 
-	c := &Collection{
+	return &Collection{
 		collection: cp,
 	}
-	return c
 }
 
 // GetDatabaseName returns the name of database
