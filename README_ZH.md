@@ -1,6 +1,6 @@
 # Qmgo
 
-`Qmgo` 是一款`Go`语言的`MongoDB` `driver`，它基于[MongoDB 官方driver](https://github.com/mongodb/mongo-go-driver) 开发实现，同时使用更易用的接口设计，比如参考[mgo](https://github.com/go-mgo/mgo) （比如`mgo`的链式调用）。
+`Qmgo` 是一款`Go`语言的`MongoDB` `driver`，它基于[MongoDB 官方 driver](https://github.com/mongodb/mongo-go-driver) 开发实现，同时使用更易用的接口设计，比如参考[mgo](https://github.com/go-mgo/mgo) （比如`mgo`的链式调用）。
 
 - `Qmgo`能让用户以更优雅的姿势使用`MongoDB`的新特性。
 
@@ -12,6 +12,7 @@
 - `MongoDB 2.6` 及以上。
 
 ## 功能
+
 - 文档的增删改查
 - 创建链接时支持配置: 连接池、pool Monitor、Auth、ReadPreference
 - 索引配置、删除
@@ -37,10 +38,11 @@ go get github.com/qiniu/qmgo
 - 开始
 
 `import`并新建连接
-```go  
+
+```go
 import(
     "context"
-    
+
     "github.com/qiniu/qmgo"
 )
 
@@ -48,18 +50,18 @@ ctx := context.Background()
 client, err := qmgo.NewClient(ctx, &qmgo.Config{Uri: "mongodb://localhost:27017"})
 db := client.Database("class")
 coll := db.Collection("user")
-      
+
 ```
 
-如果你的连接是指向固定的database和collection，我们推荐使用下面的更方便的方法初始化连接，后续操作都基于`cli`而不用再关心database和collection
+如果你的连接是指向固定的 database 和 collection，我们推荐使用下面的更方便的方法初始化连接，后续操作都基于`cli`而不用再关心 database 和 collection
 
 ```go
 cli, err := qmgo.Open(ctx, &qmgo.Config{Uri: "mongodb://localhost:27017", Database: "class", Coll: "user"})
 ```
 
-***后面都会基于`cli`来举例，如果你使用第一种传统的方式进行初始化，根据上下文，将`cli`替换成`client`、`db` 或 `coll`即可***
+**_后面都会基于`cli`来举例，如果你使用第一种传统的方式进行初始化，根据上下文，将`cli`替换成`client`、`db` 或 `coll`即可_**
 
-在初始化成功后，请`defer`来关闭连接 
+在初始化成功后，请`defer`来关闭连接
 
 ```go
 defer func() {
@@ -85,7 +87,7 @@ var userInfo = UserInfo{
 	Name:   "xm",
 	Age:    7,
 	Weight: 40,
-}	
+}
 ```
 
 创建索引
@@ -139,25 +141,29 @@ cli.Find(ctx, bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 ```
 
 - Count
-````go
+
+```go
 count, err := cli.Find(ctx, bson.M{"age": 6}).Count()
-````
+```
 
 - Update
-````go
+
+```go
 // UpdateOne one
 err := cli.UpdateOne(ctx, bson.M{"name": "d4"}, bson.M{"$set": bson.M{"age": 7}})
 
 // UpdateAll
 result, err := cli.UpdateAll(ctx, bson.M{"age": 6}, bson.M{"$set": bson.M{"age": 10}})
-````
+```
 
 - Select
-````go
+
+```go
 err := cli.Find(ctx, bson.M{"age": 10}).Select(bson.M{"age": 1}).One(&one)
-````
+```
 
 - Aggregate
+
 ```go
 matchStage := bson.D{{"$match", []bson.E{{"weight", bson.D{{"$gt", 30}}}}}}
 groupStage := bson.D{{"$group", bson.D{{"_id", "$name"}, {"total", bson.D{{"$sum", "$age"}}}}}}
@@ -165,9 +171,9 @@ var showsWithInfo []bson.M
 err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(&showsWithInfo)
 ```
 
-- 建立连接时支持所有mongoDB的`Options` 
+- 建立连接时支持所有 mongoDB 的`Options`
 
-````go
+```go
 poolMonitor := &event.PoolMonitor{
 	Event: func(evt *event.PoolEvent) {
 		switch evt.Type {
@@ -180,16 +186,15 @@ poolMonitor := &event.PoolMonitor{
 }
 
 opt := options.Client().SetPoolMonitor(poolMonitor)  // more options use the chain options.
-cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL}, opt) 
+cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL}, opt)
 
-````
-
-````
+```
 
 - 事务
 
 有史以来最简单和强大的事务, 同时还有超时和重试等功能:
-````go
+
+```go
 callback := func(sessCtx context.Context) (interface{}, error) {
     // 重要：确保事务中的每一个操作，都使用传入的sessCtx参数
     if _, err := cli.InsertOne(sessCtx, bson.D{{"abc", int32(1)}}); err != nil {
@@ -201,24 +206,25 @@ callback := func(sessCtx context.Context) (interface{}, error) {
     return nil, nil
 }
 result, err = cli.DoTransaction(ctx, callback)
-````
+```
+
 [关于事务的更多内容](https://github.com/qiniu/qmgo/wiki/Transactions)
 
 - 预定义操作符
 
-````go
+```go
 // aggregate
 matchStage := bson.D{{operator.Match, []bson.E{{"weight", bson.D{{operator.Gt, 30}}}}}}
 groupStage := bson.D{{operator.Group, bson.D{{"_id", "$name"}, {"total", bson.D{{operator.Sum, "$age"}}}}}}
 var showsWithInfo []bson.M
 err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(&showsWithInfo)
-````
+```
 
 - Hooks
 
 Qmgo 灵活的 hooks:
 
-````go
+```go
 type User struct {
 	Name         string    `bson:"name"`
 	Age          int       `bson:"age"`
@@ -236,8 +242,9 @@ u := &User{Name: "Alice", Age: 7}
 _, err := cli.InsertOne(context.Background(), u, options.InsertOneOptions{
   InsertHook: u,
 })
-````
-[Hooks 详情介绍](https://github.com/qiniu/qmgo/wiki/Hooks--(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)) 
+```
+
+[Hooks 详情介绍](<https://github.com/qiniu/qmgo/wiki/Hooks--(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)>)
 
 ## `qmgo` vs `go.mongodb.org/mongo-driver`
 
@@ -275,14 +282,15 @@ coll.Find(bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 ## `Qmgo` vs `mgo`
 
 [Qmgo 和 Mgo 的差异](https://github.com/qiniu/qmgo/wiki/Known-differences-between-Qmgo-and-Mgo)
- 
- 
-## 谁在使用Qmgo
-如果您在使用Qmgo，随时欢迎您将项目名称或者repository链接更新在这里!
-- 七牛 CDN管理系统
-- 七牛 RTC质量监控系统
+
+## 谁在使用 Qmgo
+
+如果您在使用 Qmgo，随时欢迎您将项目名称或者 repository 链接更新在这里!
+
+- 七牛 CDN 管理系统
+- 七牛 RTC 质量监控系统
 - 利弗莫尔证券 换手率行情系统
- 
+
 ## Contributing
 
 非常欢迎您对`Qmgo`的任何贡献，非常感谢您的帮助！
