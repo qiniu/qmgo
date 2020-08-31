@@ -215,6 +215,7 @@ err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(
 ````
 
 - Hooks
+
 Qmgo flexible hooks:
 
 ````go
