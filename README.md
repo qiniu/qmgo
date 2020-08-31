@@ -6,7 +6,7 @@
 [![GitHub release](https://img.shields.io/github/v/tag/qiniu/qmgo.svg?label=release)](https://github.com/qiniu/qmgo/releases)
 [![GoDoc](https://pkg.go.dev/badge/github.com/qiniu/qmgo?status.svg)](https://pkg.go.dev/github.com/qiniu/qmgo?tab=doc)
 
-[简体中文](README_ZH.md)
+English | [简体中文](README_ZH.md)
 
 `Qmgo` is a `MongoDB` `driver` for `Go` . It is based on [MongoDB official driver](https://github.com/mongodb/mongo-go-driver), but easier to use like [mgo](https://github.com/go-mgo/mgo) (such as the chain call). 
 
@@ -236,7 +236,7 @@ _, err := cli.InsertOne(context.Background(), u, options.InsertOneOptions{
   InsertHook: u,
 })
 ````
-[More about hooks](https://github.com/qiniu/qmgo/wiki/Hooks) | [详情介绍](https://github.com/qiniu/qmgo/wiki/Hooks--(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)) 
+[More about hooks](https://github.com/qiniu/qmgo/wiki/Hooks)
 
 
 ## `Qmgo` vs `go.mongodb.org/mongo-driver`
