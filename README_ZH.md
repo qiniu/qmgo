@@ -216,8 +216,7 @@ err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(
 
 - Hooks
 Qmgo 灵活的 hooks:
-[More about hooks](https://github.com/qiniu/qmgo/wiki/Hooks)
-[详情介绍](https://github.com/qiniu/qmgo/wiki/Hooks--(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)) 
+
 ````go
 type User struct {
 	Name         string    `bson:"name"`
@@ -237,6 +236,7 @@ _, err := cli.InsertOne(context.Background(), u, options.InsertOneOptions{
   InsertHook: u,
 })
 ````
+[Hooks 详情介绍](https://github.com/qiniu/qmgo/wiki/Hooks--(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)) 
 
 ## `qmgo` vs `go.mongodb.org/mongo-driver`
 
