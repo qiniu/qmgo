@@ -22,14 +22,12 @@ English | [简体中文](README_ZH.md)
 
 ## Features
 - CRUD to documents
-- All options when create connection, like: connection pool、pool monitor、auth、readPreference
-- Create indexes、Drop indexes
 - Sort、limit、count、select、distinct
-- Cursor
-- Aggregate
 - Transactions
-- Predefine operator keys
 - Hooks
+- Predefine operator keys
+- Aggregate、indexes operation、cursor
+- All options when create connection, like: connection pool、pool monitor、auth、readPreference
 
 ## Installation
 
