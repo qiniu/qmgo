@@ -14,14 +14,12 @@
 ## 功能
 
 - 文档的增删改查
-- 创建链接时支持配置: 连接池、pool Monitor、Auth、ReadPreference
-- 索引配置、删除
 - `Sort`、`limit`、`count`、`select`、`distinct`
-- `Cursor`
-- 聚合`Aggregate`
 - 事务
-- 预定义操作符
 - `Hooks`
+- 预定义操作符
+- 聚合`Aggregate`、索引操作、`cursor`
+- 创建链接时支持配置: 连接池、pool Monitor、Auth、ReadPreference
 
 ## 安装
 
