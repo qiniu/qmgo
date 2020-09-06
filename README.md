@@ -226,7 +226,7 @@ func (u *User) BeforeInsert() error {
 	return nil
 }
 func (u *User) AfterInsert() error {
-  fmt.Println("before insert called")
+  fmt.Println("after insert called")
 	return nil
 }
 
