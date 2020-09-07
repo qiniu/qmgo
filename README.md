@@ -223,11 +223,11 @@ type User struct {
 }
 func (u *User) BeforeInsert() error {
   fmt.Println("before insert called")
-	return nil
+  return nil
 }
 func (u *User) AfterInsert() error {
   fmt.Println("after insert called")
-	return nil
+  return nil
 }
 
 u := &User{Name: "Alice", Age: 7}
