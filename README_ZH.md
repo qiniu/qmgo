@@ -228,11 +228,11 @@ type User struct {
 	Age          int       `bson:"age"`
 }
 func (u *User) BeforeInsert() error {
-  fmt.Println("before insert called")
+	fmt.Println("before insert called")
 	return nil
 }
 func (u *User) AfterInsert() error {
-  fmt.Println("before insert called")
+  	fmt.Println("after insert called")
 	return nil
 }
 
