@@ -287,6 +287,6 @@ The Qmgo project welcomes all contributors. We appreciate your help!
 
 ## Join qmgo wechat group:
 
-![avatar](http://pgo8q04yu.bkt.clouddn.com/qmgoG-3.png)
+![avatar](http://pgo8q04yu.bkt.clouddn.com/qmgo-4.png)
 
 
