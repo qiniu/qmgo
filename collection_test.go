@@ -377,7 +377,7 @@ func TestCollection_Remove(t *testing.T) {
 	ast := require.New(t)
 	cli := initClient("test")
 	defer cli.Close(context.Background())
-	//defer cli.DropCollection(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
 	id1 := primitive.NewObjectID().Hex()
