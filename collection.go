@@ -174,7 +174,7 @@ func (c *Collection) Remove(ctx context.Context, filter interface{}, opts ...qOp
 }
 
 // RemoveId executes a delete command to delete at most one document from the collection.
-func (c *Collection) RemoveId(ctx context.Context, id string, opts ...qOpts.RemoveOptions) (err error) {
+func (c *Collection) RemoveId(ctx context.Context, id interface{}, opts ...qOpts.RemoveOptions) (err error) {
 	if len(opts) > 0 {
 		if err = hook.Do(opts[0].RemoveHook, hook.BeforeRemove); err != nil {
 			return err

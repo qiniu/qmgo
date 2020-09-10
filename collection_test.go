@@ -377,18 +377,20 @@ func TestCollection_Remove(t *testing.T) {
 	ast := require.New(t)
 	cli := initClient("test")
 	defer cli.Close(context.Background())
-	defer cli.DropCollection(context.Background())
+	//defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
 	id1 := primitive.NewObjectID().Hex()
 	id2 := primitive.NewObjectID().Hex()
 	id3 := primitive.NewObjectID().Hex()
 	id4 := primitive.NewObjectID().Hex()
+	id5 := primitive.NewObjectID()
 	docs := []interface{}{
 		bson.D{{Key: "_id", Value: id1}, {Key: "name", Value: "Alice"}, {Key: "age", Value: 18}},
 		bson.D{{Key: "_id", Value: id2}, {Key: "name", Value: "Alice"}, {Key: "age", Value: 19}},
 		bson.D{{Key: "_id", Value: id3}, {Key: "name", Value: "Lucas"}, {Key: "age", Value: 20}},
 		bson.D{{Key: "_id", Value: id4}, {Key: "name", Value: "Joe"}, {Key: "age", Value: 20}},
+		bson.D{{Key: "_id", Value: id5}, {Key: "name", Value: "Ethan"}, {Key: "age", Value: 1}},
 	}
 	_, _ = cli.InsertMany(context.Background(), docs)
 
@@ -399,6 +401,7 @@ func TestCollection_Remove(t *testing.T) {
 	err = cli.RemoveId(context.Background(), "not-exists-id")
 	ast.True(IsErrNoDocuments(err))
 	ast.NoError(cli.RemoveId(context.Background(), id4))
+	ast.NoError(cli.RemoveId(context.Background(), id5))
 
 	// delete record: name = "Alice" , after that, expect one name = "Alice" record
 	filter1 := bson.M{
