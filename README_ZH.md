@@ -238,9 +238,7 @@ func (u *User) AfterInsert() error {
 }
 
 u := &User{Name: "Alice", Age: 7}
-_, err := cli.InsertOne(context.Background(), u, options.InsertOneOptions{
-  InsertHook: u,
-})
+_, err := cli.InsertOne(context.Background(), u)
 ```
 
 [Hooks 详情介绍](<https://github.com/qiniu/qmgo/wiki/Hooks--(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)>)
