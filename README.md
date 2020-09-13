@@ -254,7 +254,7 @@ _, err := cli.InsertOne(context.Background(), u)
   
   	u := &User{Name: "Lucas", Age: 7}
   	_, err := cli.InsertOne(context.Background(), u)
-    // createAt、updateAt and _id will be generated automatically 
+    // Fields with tag createAt、updateAt and _id will be generated automatically 
     ```` 
 
     - Custom fields

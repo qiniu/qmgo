@@ -262,7 +262,7 @@ _, err := cli.InsertOne(context.Background(), u)
   
   	u := &User{Name: "Lucas", Age: 7}
   	_, err := cli.InsertOne(context.Background(), u)
-    // createAt、updateAt and _id will 会自动更新插入
+    // tag为createAt、updateAt 和 _id 的字段会自动更新插入
     ```` 
 
     - Custom fields
