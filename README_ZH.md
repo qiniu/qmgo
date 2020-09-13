@@ -252,16 +252,20 @@ _, err := cli.InsertOne(context.Background(), u)
     
     在文档结构体里注入 `field.DefaultField`, `Qmgo` 会自动在更新和插入操作时更新 `createAt`、`updateAt` and `_id` field的值.
     
-    ```go
+    ````go
        type User struct {
         field.DefaultField `bson:",inline"`
        
         Name string `bson:"name"`
         Age  int    `bson:"age"`
        }
-    ``` 
+  
+  	u := &User{Name: "Lucas", Age: 7}
+  	_, err := cli.InsertOne(context.Background(), u)
+    // createAt、updateAt and _id will 会自动更新插入
+    ```` 
 
-    - 自定义 fields
+    - Custom fields
     
     可以自定义这些field `createAt`、`updateAt` 和 `_id`, `Qmgo` 会自动在更新和插入操作时更新他们.
 
@@ -278,7 +282,16 @@ _, err := cli.InsertOne(context.Background(), u)
     func (u *User) CustomFields() field.CustomFieldsBuilder {
         return field.NewCustom().SetCreateAt("CreateTimeAt").SetUpdateAt("UpdateTimeAt").SetId("MyId")
     }
+  
+    u := &User{Name: "Lucas", Age: 7}
+    _, err := cli.InsertOne(context.Background(), u)
+    // CreateTimeAt、UpdateTimeAt and MyId 会自动更新并插入DB 
+  
+    // 假设Id和ui已经初始化
+  	err = cli.UpdateWithDocument(context.Background(), bson.M{"_id": Id}, &ui)
+    // UpdateTimeAt 会被自动更新
     ```
+  
 [例子介绍](https://github.com/qiniu/qmgo/blob/master/field_test.go)
 
 [自动化 fields 详情介绍](https://github.com/qiniu/qmgo/wiki/Automatically-fields)
