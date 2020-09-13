@@ -279,7 +279,7 @@ _, err := cli.InsertOne(context.Background(), u)
     _, err := cli.InsertOne(context.Background(), u)
     // CreateTimeAt、UpdateTimeAt and MyId will be generated automatically 
   
-    // support Id and ui is ready
+    // suppose Id and ui is ready
   	err = cli.UpdateWithDocument(context.Background(), bson.M{"_id": Id}, &ui)
     // UpdateTimeAt will update
     ```
