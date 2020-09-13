@@ -1,11 +1,11 @@
 package field
 
 import (
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func TestDefaultField(t *testing.T) {

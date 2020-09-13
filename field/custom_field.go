@@ -19,31 +19,31 @@ type CustomFieldsHook interface {
 	CustomFields() CustomFieldsBuilder
 }
 
-// CustomFieldsBuilder defines the interface which user use to setTime custom fields
+// CustomFieldsBuilder defines the interface which user use to set custom fields
 type CustomFieldsBuilder interface {
 	SetUpdateAt(filedName string) CustomFieldsBuilder
 	SetCreateAt(filedName string) CustomFieldsBuilder
 	SetId(filedName string) CustomFieldsBuilder
 }
 
-// NewCustom creates new Builder which is used to setTime the custom fields
+// NewCustom creates new Builder which is used to set the custom fields
 func NewCustom() CustomFieldsBuilder {
 	return &CustomFields{}
 }
 
-// SetUpdateAt setTime the custom UpdateAt field
+// SetUpdateAt set the custom UpdateAt field
 func (c *CustomFields) SetUpdateAt(filedName string) CustomFieldsBuilder {
 	c.updateAt = filedName
 	return c
 }
 
-// SetCreateAt setTime the custom CreateAt field
+// SetCreateAt set the custom CreateAt field
 func (c *CustomFields) SetCreateAt(filedName string) CustomFieldsBuilder {
 	c.createAt = filedName
 	return c
 }
 
-// SetId setTime the custom Id field
+// SetId set the custom Id field
 func (c *CustomFields) SetId(filedName string) CustomFieldsBuilder {
 	c.id = filedName
 	return c

@@ -3,10 +3,10 @@ package qmgo
 import (
 	"context"
 	"fmt"
-	"github.com/qiniu/qmgo/field"
 	"reflect"
 	"strings"
 
+	"github.com/qiniu/qmgo/field"
 	"github.com/qiniu/qmgo/hook"
 	opts "github.com/qiniu/qmgo/options"
 	"go.mongodb.org/mongo-driver/bson"
@@ -164,23 +164,8 @@ func (c *Collection) UpdateAll(ctx context.Context, filter interface{}, update i
 	return
 }
 
-//func GetId(doc interface{}) interface{} {
-//	d := reflect.ValueOf(doc)
-//	t := reflect.TypeOf(doc)
-//	if t.Kind() == reflect.Ptr {
-//		d = d.Elem()
-//		t = t.Elem()
-//	}
-//	for i := 0; i < d.NumField(); i++ {
-//		fmt.Println(t.Field(i).Tag)
-//		if "_id" == t.Field(i).Tag.Get("bson") || "_id" == t.Field(i).Tag.Get("json") {
-//			return d.FieldByName(t.Field(i).Name).Interface()
-//		}
-//	}
-//	return nil
-//}
-
 // UpdateWithDocument executes an update command to update at most one document in the collection.
+// If UpdateHook in opts is set, hook works on it, otherwise hook try the doc as hook
 // Expect type of the doc is the define of user's document
 func (c *Collection) UpdateWithDocument(ctx context.Context, filter interface{}, doc interface{}, opts ...opts.UpdateOptions) (err error) {
 	h := doc
