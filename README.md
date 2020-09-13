@@ -251,6 +251,10 @@ _, err := cli.InsertOne(context.Background(), u)
         Name string `bson:"name"`
         Age  int    `bson:"age"`
        }
+  
+  	u := &User{Name: "Lucas", Age: 7}
+  	_, err := cli.InsertOne(context.Background(), u)
+    // Fields with tag createAt、updateAt and _id will be generated automatically 
     ```` 
 
     - Custom fields
@@ -270,6 +274,14 @@ _, err := cli.InsertOne(context.Background(), u)
     func (u *User) CustomFields() field.CustomFieldsBuilder {
         return field.NewCustom().SetCreateAt("CreateTimeAt").SetUpdateAt("UpdateTimeAt").SetId("MyId")
     }
+  
+    u := &User{Name: "Lucas", Age: 7}
+    _, err := cli.InsertOne(context.Background(), u)
+    // CreateTimeAt、UpdateTimeAt and MyId will be generated automatically 
+  
+    // suppose Id and ui is ready
+  	err = cli.UpdateWithDocument(context.Background(), bson.M{"_id": Id}, &ui)
+    // UpdateTimeAt will update
     ```
 
 Check [examples here](https://github.com/qiniu/qmgo/blob/master/field_test.go)
