@@ -50,33 +50,33 @@ func (c *CustomFields) SetId(filedName string) CustomFieldsBuilder {
 }
 
 // CustomCreateTime changes the custom create time
-func (c CustomFields) CustomCreateTime(doc interface{}) CustomFields {
+func (c CustomFields) CustomCreateTime(doc interface{}) {
 	if c.createAt == "" {
-		return c
+		return
 	}
 	fieldName := c.createAt
 	setTime(doc, fieldName)
-	return c
+	return
 }
 
 // CustomUpdateTime changes the custom update time
-func (c CustomFields) CustomUpdateTime(doc interface{}) CustomFields {
+func (c CustomFields) CustomUpdateTime(doc interface{}) {
 	if c.updateAt == "" {
-		return c
+		return
 	}
 	fieldName := c.updateAt
 	setTime(doc, fieldName)
-	return c
+	return
 }
 
 // CustomUpdateTime changes the custom update time
-func (c CustomFields) CustomId(doc interface{}) CustomFields {
+func (c CustomFields) CustomId(doc interface{}) {
 	if c.id == "" {
-		return c
+		return
 	}
 	fieldName := c.id
 	setId(doc, fieldName)
-	return c
+	return
 }
 
 // setTime changes the custom time fields
