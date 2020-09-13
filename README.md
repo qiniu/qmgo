@@ -274,7 +274,7 @@ _, err := cli.InsertOne(context.Background(), u, options.InsertOneOptions{
     }
     ```
 
-[examples here](https://github.com/qiniu/qmgo/blob/master/field_test.go)
+Check [examples here](https://github.com/qiniu/qmgo/blob/master/field_test.go)
 
 [More about automatically fields](https://github.com/qiniu/qmgo/wiki/Automatically-fields)
 
