@@ -3,21 +3,14 @@ package hook
 import (
 	"errors"
 	"fmt"
-	"testing"
-	"time"
-
-	"github.com/qiniu/qmgo/field"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"testing"
 )
 
 type User struct {
-	field.DefaultField `bson:",inline"`
-
-	Name         string    `bson:"name"`
-	Age          int       `bson:"age"`
-	CreateTimeAt time.Time `bson:"createTimeAt"`
-	UpdateTimeAt int64     `bson:"updateTimeAt"`
+	Name string `bson:"name"`
+	Age  int    `bson:"age"`
 	// for test
 	AfterCalled bool `bson:"afterCalled"`
 }
@@ -34,10 +27,6 @@ func (u *User) AfterInsert() error {
 	return nil
 }
 
-func (u *User) CustomFields() field.CustomFieldsBuilder {
-	return field.NewCustom().SetCreateAt("CreateTimeAt").SetUpdateAt("UpdateTimeAt")
-}
-
 func TestInsertHook(t *testing.T) {
 	ast := require.New(t)
 
@@ -45,12 +34,6 @@ func TestInsertHook(t *testing.T) {
 	err := Do(u, BeforeInsert)
 	ast.NoError(err)
 	ast.Equal(17, u.Age)
-	// default fields
-	ast.NotEqual(time.Time{}, u.CreateAt)
-	ast.NotEqual(time.Time{}, u.UpdateAt)
-	// custom fields
-	ast.NotEqual(time.Time{}, u.CreateTimeAt)
-	ast.NotEqual(time.Time{}, u.UpdateTimeAt)
 
 	err = Do(u, AfterInsert)
 	ast.NoError(err)
@@ -96,11 +79,6 @@ func TestUpdateHook(t *testing.T) {
 	err := Do(u, BeforeUpdate)
 	ast.NoError(err)
 	ast.Equal(17, u.Age)
-	// default field
-	ast.NotEqual(time.Time{}, u.UpdateAt)
-
-	// custom fields
-	ast.NotEqual(time.Time{}, u.UpdateTimeAt)
 
 	err = Do(u, AfterUpdate)
 	ast.NoError(err)

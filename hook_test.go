@@ -3,24 +3,31 @@ package qmgo
 import (
 	"context"
 	"errors"
+	"testing"
+
 	"github.com/qiniu/qmgo/operator"
 	"github.com/qiniu/qmgo/options"
+	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"testing"
-	"time"
-
-	"github.com/qiniu/qmgo/field"
-	"github.com/stretchr/testify/require"
 )
 
 type UserHook struct {
-	field.DefaultField `bson:",inline"`
+	Name string `bson:"name"`
+	Age  int    `bson:"age"`
 
-	Name         string    `bson:"name"`
-	Age          int       `bson:"age"`
-	CreateTimeAt time.Time `bson:"createTimeAt"`
-	UpdateTimeAt int64     `bson:"updateTimeAt"`
+	beforeUpdate int
+	afterUpdate  int
+}
+
+func (u *UserHook) BeforeUpdate() error {
+	u.beforeUpdate++
+	return nil
+}
+
+func (u *UserHook) AfterUpdate() error {
+	u.afterUpdate++
+	return nil
 }
 
 func (u *UserHook) BeforeInsert() error {
@@ -35,10 +42,6 @@ var afterInsertCount = 0
 func (u *UserHook) AfterInsert() error {
 	afterInsertCount++
 	return nil
-}
-
-func (u *UserHook) CustomFields() field.CustomFieldsBuilder {
-	return field.NewCustom().SetCreateAt("CreateTimeAt").SetUpdateAt("UpdateTimeAt")
 }
 
 type MyQueryHook struct {
@@ -56,9 +59,6 @@ func (q *MyQueryHook) AfterQuery() error {
 	return nil
 }
 
-// insert & insertMany可以直接用文档做为hook，为了保持和其他接口一致，还是用opts来传递hook，只是hook可以直接赋值为文档
-// - 当然，也可以自己实现hook并通过opts注册
-// - 能做自定义和default的field修改
 func TestInsertHook(t *testing.T) {
 	ast := require.New(t)
 	cli := initClient("test")
@@ -82,21 +82,12 @@ func TestInsertHook(t *testing.T) {
 	ast.NoError(err)
 
 	ast.Equal(17, ur.Age)
-	// default fields
-	ast.NotEqual(time.Time{}, ur.CreateAt)
-	ast.NotEqual(time.Time{}, ur.UpdateAt)
-	// custom fields
-	ast.NotEqual(time.Time{}, ur.CreateTimeAt)
-	ast.NotEqual(time.Time{}, ur.UpdateTimeAt)
 
 	ast.Equal(1, afterInsertCount)
 	ast.Equal(1, uk.beforeCount)
 	ast.Equal(1, uk.afterCount)
 }
 
-// query因为不传入用户定义的文档结构体，所以需要
-// - 自己实现hook并通过opts注册
-// - 暂时不能在hook里修改文档里的东西
 func TestInsertManyHook(t *testing.T) {
 	ast := require.New(t)
 	cli := initClient("test")
@@ -122,12 +113,6 @@ func TestInsertManyHook(t *testing.T) {
 	ast.NoError(err)
 
 	ast.Equal(17, ur[0].Age)
-	// default fields
-	ast.NotEqual(time.Time{}, ur[0].CreateAt)
-	ast.NotEqual(time.Time{}, ur[0].UpdateAt)
-	// custom fields
-	ast.NotEqual(time.Time{}, ur[0].CreateTimeAt)
-	ast.NotEqual(time.Time{}, ur[0].UpdateTimeAt)
 
 	ast.Equal(2, afterInsertCount)
 	ast.Equal(1, qh.afterCount)
@@ -150,9 +135,6 @@ func (u *MyUpdateHook) AfterUpdate() error {
 	return nil
 }
 
-// update因为不传入用户定义的文档结构体，所以需要
-// - 自己实现hook并通过opts注册
-// - 暂时不能在hook里修改文档里的东西
 func TestUpdateHook(t *testing.T) {
 	ast := require.New(t)
 	cli := initClient("test")
@@ -160,19 +142,31 @@ func TestUpdateHook(t *testing.T) {
 	defer cli.Close(ctx)
 	defer cli.DropCollection(ctx)
 
-	u := UserHook{Name: "jz", Age: 7}
+	u := UserHook{Name: "Lucas", Age: 7}
 	uh := &MyUpdateHook{}
 	_, err := cli.InsertOne(context.Background(), u)
 	ast.NoError(err)
 
-	err = cli.UpdateOne(ctx, bson.M{"name": "jz"}, bson.M{operator.Set: bson.M{"age": 27}}, options.UpdateOptions{
+	err = cli.UpdateOne(ctx, bson.M{"name": "Lucas"}, bson.M{operator.Set: bson.M{"age": 27}}, options.UpdateOptions{
 		UpdateHook: uh,
 	})
 	ast.NoError(err)
 	ast.Equal(1, uh.beforeUpdateCount)
 	ast.Equal(1, uh.afterUpdateCount)
 
-	cli.UpdateAll(ctx, bson.M{"name": "jz"}, bson.M{operator.Set: bson.M{"age": 27}}, options.UpdateOptions{
+	err = cli.UpdateWithDocument(ctx, bson.M{"name": "Lucas"}, &u)
+	ast.NoError(err)
+	ast.Equal(1, u.beforeUpdate)
+	ast.Equal(1, u.afterUpdate)
+
+	err = cli.UpdateWithDocument(ctx, bson.M{"name": "Lucas"}, &u, options.UpdateOptions{
+		UpdateHook: &u,
+	})
+	ast.NoError(err)
+	ast.Equal(2, u.beforeUpdate)
+	ast.Equal(2, u.afterUpdate)
+
+	cli.UpdateAll(ctx, bson.M{"name": "Lucas"}, bson.M{operator.Set: bson.M{"age": 27}}, options.UpdateOptions{
 		UpdateHook: uh,
 	})
 	ast.NoError(err)
@@ -195,9 +189,6 @@ func (m *MyRemoveHook) AfterRemove() error {
 	return nil
 }
 
-// remove因为不传入用户定义的文档结构体，所以需要
-// - 自己实现hook并通过opts注册
-// - 暂时不能在hook里修改文档里的东西
 func TestRemoveHook(t *testing.T) {
 	ast := require.New(t)
 	cli := initClient("test")
@@ -205,13 +196,13 @@ func TestRemoveHook(t *testing.T) {
 	defer cli.Close(ctx)
 	defer cli.DropCollection(ctx)
 
-	u := []interface{}{UserHook{Name: "jz", Age: 7}, UserHook{Name: "xm", Age: 7},
-		UserHook{Name: "wxy", Age: 7}, UserHook{Name: "zp", Age: 7}}
+	u := []*UserHook{&UserHook{Name: "jz", Age: 7}, &UserHook{Name: "xm", Age: 7},
+		&UserHook{Name: "wxy", Age: 7}, &UserHook{Name: "zp", Age: 7}}
 	rlt, err := cli.InsertMany(context.Background(), u)
 	ast.NoError(err)
 
 	rh := &MyRemoveHook{}
-	err = cli.RemoveId(ctx, rlt.InsertedIDs[0].(primitive.ObjectID).String(), options.RemoveOptions{
+	err = cli.RemoveId(ctx, rlt.InsertedIDs[0].(primitive.ObjectID), options.RemoveOptions{
 		RemoveHook: rh,
 	})
 	ast.NoError(err)

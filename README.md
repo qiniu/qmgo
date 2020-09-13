@@ -237,6 +237,45 @@ _, err := cli.InsertOne(context.Background(), u, options.InsertOneOptions{
 ````
 [More about hooks](https://github.com/qiniu/qmgo/wiki/Hooks)
 
+- Automatically fields
+
+    Qmgo support two ways to make specific fields automatically update in specific API
+   
+    - Default fields
+    
+    Inject `field.DefaultField` in document struct, Qmgo will update `createAt`、`updateAt` and `_id` in update and insert operation.
+    
+    ````go
+       type User struct {
+        field.DefaultField `bson:",inline"`
+       
+        Name string `bson:"name"`
+        Age  int    `bson:"age"`
+       }
+    ```` 
+
+    - Custom fields
+    
+    Define the custom fields associated with `createAt`、`updateAt` and `_id`, Qmgo will update them in update and insert operation.
+
+    ```go
+    type User struct {
+        Name string `bson:"name"`
+        Age  int    `bson:"age"`
+    
+        MyId         string    `bson:"myId"`
+        CreateTimeAt time.Time `bson:"createTimeAt"`
+        UpdateTimeAt int64     `bson:"updateTimeAt"`
+    }
+    // Define the custom fields
+    func (u *User) CustomFields() field.CustomFieldsBuilder {
+        return field.NewCustom().SetCreateAt("CreateTimeAt").SetUpdateAt("UpdateTimeAt").SetId("MyId")
+    }
+    ```
+
+[examples here](https://github.com/qiniu/qmgo/blob/master/field_test.go)
+
+[More about automatically fields](https://github.com/qiniu/qmgo/wiki/Automatically-fields)
 
 ## `Qmgo` vs `go.mongodb.org/mongo-driver`
 

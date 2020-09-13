@@ -132,13 +132,13 @@ func TestCollection_InsertMany(t *testing.T) {
 	cli.EnsureIndexes(context.Background(), []string{"name"}, nil)
 
 	var err error
-	newDocs := []UserInfo{{Name: "Alice", Age: 10}, {Name: "Lucas", Age: 11}}
+	newDocs := []UserInfo{{Id: NewObjectID(), Name: "Alice", Age: 10}, {Id: NewObjectID(), Name: "Lucas", Age: 11}}
 	res, err := cli.InsertMany(context.Background(), newDocs)
 	ast.NoError(err)
 	ast.NotEmpty(res)
 	ast.Equal(2, len(res.InsertedIDs))
 
-	newPDocs := []*UserInfo{{Name: "Alice03", Age: 10}, {Name: "Lucas03", Age: 11}}
+	newPDocs := []*UserInfo{{Id: NewObjectID(), Name: "Alice03", Age: 10}, {Id: NewObjectID(), Name: "Lucas03", Age: 11}}
 	res, err = cli.InsertMany(context.Background(), newPDocs)
 	ast.NoError(err)
 	ast.NotEmpty(res)
@@ -530,4 +530,27 @@ func TestSliceInsert(t *testing.T) {
 	dis = interfaceToSliceInterface(di)
 	ast = require.New(t)
 	ast.Nil(dis)
+}
+
+func TestCollection_UpdateWithDocument(t *testing.T) {
+	ast := require.New(t)
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
+	cli.EnsureIndexes(context.Background(), []string{"name"}, nil)
+
+	id := primitive.NewObjectID()
+	ui := UserInfo{Id: id, Name: "Lucas", Age: 17}
+	_, err := cli.InsertOne(context.Background(), ui)
+	ast.NoError(err)
+	ui.Id = id
+	ui.Age = 27
+	err = cli.UpdateWithDocument(context.Background(), bson.M{"_id": id}, &ui)
+	ast.NoError(err)
+
+	findUi := UserInfo{}
+	err = cli.Find(context.Background(), bson.M{"name": "Lucas"}).One(&findUi)
+	ast.NoError(err)
+	ast.Equal(ui.Age, findUi.Age)
+
 }

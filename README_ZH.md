@@ -244,6 +244,45 @@ _, err := cli.InsertOne(context.Background(), u, options.InsertOneOptions{
 
 [Hooks 详情介绍](<https://github.com/qiniu/qmgo/wiki/Hooks--(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)>)
 
+
+- 自动化 fields
+
+    Qmgo支持2种方式来自动化更新特定的字段
+
+    - 默认 fields
+    
+    在文档结构体里注入 `field.DefaultField`, `Qmgo` 会自动在更新和插入操作时更新 `createAt`、`updateAt` and `_id` field的值.
+    
+    ```go
+       type User struct {
+        field.DefaultField `bson:",inline"`
+       
+        Name string `bson:"name"`
+        Age  int    `bson:"age"`
+       }
+    ``` 
+
+    - 自定义 fields
+    
+    可以自定义这些field `createAt`、`updateAt` 和 `_id`, `Qmgo` 会自动在更新和插入操作时更新他们.
+
+    ```go
+    type User struct {
+        Name string `bson:"name"`
+        Age  int    `bson:"age"`
+    
+        MyId         string    `bson:"myId"`
+        CreateTimeAt time.Time `bson:"createTimeAt"`
+        UpdateTimeAt int64     `bson:"updateTimeAt"`
+    }
+    // 指定自定义field的field名
+    func (u *User) CustomFields() field.CustomFieldsBuilder {
+        return field.NewCustom().SetCreateAt("CreateTimeAt").SetUpdateAt("UpdateTimeAt").SetId("MyId")
+    }
+    ```
+  
+[自动化 fields 详情介绍](https://github.com/qiniu/qmgo/wiki/Automatically-fields)
+  
 ## `qmgo` vs `go.mongodb.org/mongo-driver`
 
 下面我们举一个多文件查找、`sort`和`limit`的例子, 说明`qmgo`和`mgo`的相似，以及对`go.mongodb.org/mongo-driver`的改进
