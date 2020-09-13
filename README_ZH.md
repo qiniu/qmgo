@@ -17,6 +17,7 @@
 - `Sort`、`limit`、`count`、`select`、`distinct`
 - 事务
 - `Hooks`
+- 自动化修改的默认和定制fields
 - 预定义操作符
 - 聚合`Aggregate`、索引操作、`cursor`
 - 创建链接时支持配置: 连接池、pool Monitor、Auth、ReadPreference
