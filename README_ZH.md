@@ -17,7 +17,7 @@
 - `Sort`、`limit`、`count`、`select`、`distinct`
 - 事务
 - `Hooks`
-- 自动化修改的默认和定制fields
+- 自动化更新的默认和定制fields
 - 预定义操作符
 - 聚合`Aggregate`、索引操作、`cursor`
 - 创建链接时支持配置: 连接池、pool Monitor、Auth、ReadPreference
@@ -244,7 +244,7 @@ _, err := cli.InsertOne(context.Background(), u)
 [Hooks 详情介绍](<https://github.com/qiniu/qmgo/wiki/Hooks--(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)>)
 
 
-- 自动化 fields
+- 自动化更新fields
 
     Qmgo支持2种方式来自动化更新特定的字段
 
