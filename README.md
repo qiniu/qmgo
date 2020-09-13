@@ -245,12 +245,12 @@ _, err := cli.InsertOne(context.Background(), u)
     Inject `field.DefaultField` in document struct, Qmgo will update `createAt`、`updateAt` and `_id` in update and insert operation.
     
     ````go
-       type User struct {
-        field.DefaultField `bson:",inline"`
-       
-        Name string `bson:"name"`
-        Age  int    `bson:"age"`
-       }
+    type User struct {
+      field.DefaultField `bson:",inline"`
+    
+      Name string `bson:"name"`
+      Age  int    `bson:"age"`
+    }
   
   	u := &User{Name: "Lucas", Age: 7}
   	_, err := cli.InsertOne(context.Background(), u)
@@ -259,7 +259,7 @@ _, err := cli.InsertOne(context.Background(), u)
 
     - Custom fields
     
-    Define the custom fields associated with `createAt`、`updateAt` and `_id`, Qmgo will update them in update and insert operation.
+    Define the custom fields, Qmgo will update them in update and insert operation.
 
     ```go
     type User struct {
