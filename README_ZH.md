@@ -294,7 +294,7 @@ _, err := cli.InsertOne(context.Background(), u)
   
 [例子介绍](https://github.com/qiniu/qmgo/blob/master/field_test.go)
 
-[自动化 fields 详情介绍](https://github.com/qiniu/qmgo/wiki/Automatically-fields)
+[自动化 fields 详情介绍](https://github.com/qiniu/qmgo/wiki/Automatically-update-fields)
   
 ## `qmgo` vs `go.mongodb.org/mongo-driver`
 
