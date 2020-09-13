@@ -25,6 +25,7 @@ English | [简体中文](README_ZH.md)
 - Sort、limit、count、select、distinct
 - Transactions
 - Hooks
+- Automatically default and custom fields
 - Predefine operator keys
 - Aggregate、indexes operation、cursor
 - All options when create connection, like: connection pool、pool monitor、auth、readPreference
