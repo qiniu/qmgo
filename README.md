@@ -147,10 +147,10 @@ count, err := cli.Find(ctx, bson.M{"age": 6}).Count()
 - Update
 ````go
 // UpdateOne one
-err := cli.UpdateOne(ctx, bson.M{"name": "d4"}, bson.M{"$set": bson.M{"age": 7}})
+err := cli.UpdateOne(ctx, bson.M{"name": "d4"}, bson.M{"$setTime": bson.M{"age": 7}})
 
 // UpdateAll
-result, err := cli.UpdateAll(ctx, bson.M{"age": 6}, bson.M{"$set": bson.M{"age": 10}})
+result, err := cli.UpdateAll(ctx, bson.M{"age": 6}, bson.M{"$setTime": bson.M{"age": 10}})
 ````
 
 - Select
@@ -237,6 +237,45 @@ _, err := cli.InsertOne(context.Background(), u, options.InsertOneOptions{
 ````
 [More about hooks](https://github.com/qiniu/qmgo/wiki/Hooks)
 
+- Automatically fields
+
+    Qmgo support two ways to make specific fields automatically update in specific API
+   
+    - Default fields
+    
+    Inject `field.DefaultField` in document struct, Qmgo will update `createAt`、`updateAt` and `_id` in update and insert operation.
+    
+    ````go
+       type User struct {
+        field.DefaultField `bson:",inline"`
+       
+        Name string `bson:"name"`
+        Age  int    `bson:"age"`
+       }
+    ```` 
+
+    - Custom fields
+    
+    Define the custom fields associated with `createAt`、`updateAt` and `_id`, Qmgo will update them in update and insert operation.
+
+    ```go
+    type User struct {
+        Name string `bson:"name"`
+        Age  int    `bson:"age"`
+    
+        MyId         string    `bson:"myId"`
+        CreateTimeAt time.Time `bson:"createTimeAt"`
+        UpdateTimeAt int64     `bson:"updateTimeAt"`
+    }
+    // Define the custom fields
+    func (u *User) CustomFields() field.CustomFieldsBuilder {
+        return field.NewCustom().SetCreateAt("CreateTimeAt").SetUpdateAt("UpdateTimeAt").SetId("MyId")
+    }
+    ```
+
+[examples here](https://github.com/qiniu/qmgo/blob/master/field_test.go)
+
+[More about automatically fields](https://github.com/qiniu/qmgo/wiki/Automatically-fields)
 
 ## `Qmgo` vs `go.mongodb.org/mongo-driver`
 
@@ -247,10 +286,10 @@ How do we do in`go.mongodb.org/mongo-driver`:
 // go.mongodb.org/mongo-driver
 // find all, sort and limit
 findOptions := options.Find()
-findOptions.SetLimit(7) // set limit
+findOptions.SetLimit(7) // setTime limit
 var sorts D
 sorts = append(sorts, E{Key: "weight", Value: 1})
-findOptions.SetSort(sorts) // set sort
+findOptions.SetSort(sorts) // setTime sort
 
 batch := []UserInfo{}
 cur, err := coll.Find(ctx, bson.M{"age": 6}, findOptions)

@@ -1,7 +1,6 @@
 package hook
 
 import (
-	"github.com/qiniu/qmgo/field"
 	"reflect"
 )
 
@@ -78,15 +77,6 @@ type InsertHook interface {
 
 // beforeInsert calls custom BeforeInsert
 func beforeInsert(hook interface{}) error {
-	if ih, ok := hook.(field.DefaultFieldHook); ok {
-		ih.DefaultCreateAt()
-		ih.DefaultUpdateAt()
-	}
-	if ih, ok := hook.(field.CustomFieldsHook); ok {
-		fields := ih.CustomFields()
-		fields.(*field.CustomFields).CustomCreateTime(hook)
-		fields.(*field.CustomFields).CustomUpdateTime(hook)
-	}
 	if ih, ok := hook.(InsertHook); ok {
 		return ih.BeforeInsert()
 	}
@@ -109,13 +99,6 @@ type UpdateHook interface {
 
 // beforeUpdate calls custom BeforeUpdate
 func beforeUpdate(hook interface{}) error {
-	if ih, ok := hook.(field.DefaultFieldHook); ok {
-		ih.DefaultUpdateAt()
-	}
-	if ih, ok := hook.(field.CustomFieldsHook); ok {
-		fields := ih.CustomFields()
-		fields.(*field.CustomFields).CustomUpdateTime(hook)
-	}
 	if ih, ok := hook.(UpdateHook); ok {
 		return ih.BeforeUpdate()
 	}

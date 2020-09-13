@@ -3,6 +3,7 @@ package qmgo
 import (
 	"context"
 	"errors"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"testing"
 
 	"github.com/qiniu/qmgo/operator"
@@ -20,24 +21,26 @@ const (
 )
 
 type UserInfo struct {
-	Name   string `bson:"name"`
-	Age    uint16 `bson:"age"`
-	Weight uint32 `bson:"weight"`
+	Id     primitive.ObjectID `bson:"_id"`
+	Name   string             `bson:"name"`
+	Age    uint16             `bson:"age"`
+	Weight uint32             `bson:"weight"`
 }
 
 var userInfo = UserInfo{
+	Id:     NewObjectID(),
 	Name:   "xm",
 	Age:    7,
 	Weight: 40,
 }
 
 var userInfos = []UserInfo{
-	{Name: "a1", Age: 6, Weight: 20},
-	{Name: "b2", Age: 6, Weight: 25},
-	{Name: "c3", Age: 6, Weight: 30},
-	{Name: "d4", Age: 6, Weight: 35},
-	{Name: "a1", Age: 7, Weight: 40},
-	{Name: "a1", Age: 8, Weight: 45},
+	{Id: NewObjectID(), Name: "a1", Age: 6, Weight: 20},
+	{Id: NewObjectID(), Name: "b2", Age: 6, Weight: 25},
+	{Id: NewObjectID(), Name: "c3", Age: 6, Weight: 30},
+	{Id: NewObjectID(), Name: "d4", Age: 6, Weight: 35},
+	{Id: NewObjectID(), Name: "a1", Age: 7, Weight: 40},
+	{Id: NewObjectID(), Name: "a1", Age: 8, Weight: 45},
 }
 
 var poolMonitor = &event.PoolMonitor{

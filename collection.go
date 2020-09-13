@@ -3,11 +3,12 @@ package qmgo
 import (
 	"context"
 	"fmt"
+	"github.com/qiniu/qmgo/field"
 	"reflect"
 	"strings"
 
 	"github.com/qiniu/qmgo/hook"
-	qOpts "github.com/qiniu/qmgo/options"
+	opts "github.com/qiniu/qmgo/options"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -20,7 +21,7 @@ type Collection struct {
 }
 
 // Find find by condition filter，return QueryI
-func (c *Collection) Find(ctx context.Context, filter interface{}, opts ...qOpts.FindOptions) QueryI {
+func (c *Collection) Find(ctx context.Context, filter interface{}, opts ...opts.FindOptions) QueryI {
 	return &Query{
 		ctx:        ctx,
 		collection: c.collection,
@@ -30,32 +31,45 @@ func (c *Collection) Find(ctx context.Context, filter interface{}, opts ...qOpts
 }
 
 // InsertOne insert one document into the collection
+// If InsertHook in opts is set, hook works on it, otherwise hook try the doc as hook
 // Reference: https://docs.mongodb.com/manual/reference/command/insert/
-func (c *Collection) InsertOne(ctx context.Context, doc interface{}, opts ...qOpts.InsertOneOptions) (result *InsertOneResult, err error) {
-	if len(opts) > 0 {
-		if err = hook.Do(opts[0].InsertHook, hook.BeforeInsert); err != nil {
-			return
-		}
+func (c *Collection) InsertOne(ctx context.Context, doc interface{}, opts ...opts.InsertOneOptions) (result *InsertOneResult, err error) {
+	h := doc
+	if len(opts) > 0 && opts[0].InsertHook != nil {
+		h = opts[0].InsertHook
+	}
+	if err = hook.Do(h, hook.BeforeInsert); err != nil {
+		return
+	}
+	if err = field.Do(doc, field.BeforeInsert); err != nil {
+		return
 	}
 	res, err := c.collection.InsertOne(ctx, doc)
 	if res != nil {
 		result = &InsertOneResult{InsertedID: res.InsertedID}
 	}
-	if len(opts) > 0 {
-		if err = hook.Do(opts[0].InsertHook, hook.AfterInsert); err != nil {
-			return
-		}
+	if err != nil {
+		return
+	}
+	if err = hook.Do(h, hook.AfterInsert); err != nil {
+		return
 	}
 	return
 }
 
 // InsertMany executes an insert command to insert multiple documents into the collection.
+// If InsertHook in opts is set, hook works on it, otherwise hook try the doc as hook
 // Reference: https://docs.mongodb.com/manual/reference/command/insert/
-func (c *Collection) InsertMany(ctx context.Context, docs interface{}, opts ...qOpts.InsertManyOptions) (result *InsertManyResult, err error) {
-	if len(opts) > 0 {
-		if err = hook.Do(opts[0].InsertHook, hook.BeforeInsert); err != nil {
-			return
-		}
+func (c *Collection) InsertMany(ctx context.Context, docs interface{}, opts ...opts.InsertManyOptions) (result *InsertManyResult, err error) {
+	h := docs
+	if len(opts) > 0 && opts[0].InsertHook != nil {
+		h = opts[0].InsertHook
+	}
+	if err = hook.Do(h, hook.BeforeInsert); err != nil {
+		return
+	}
+	if err = field.Do(docs, field.BeforeInsert); err != nil {
+		return
 	}
 	sDocs := interfaceToSliceInterface(docs)
 	if sDocs == nil {
@@ -66,11 +80,11 @@ func (c *Collection) InsertMany(ctx context.Context, docs interface{}, opts ...q
 	if res != nil {
 		result = &InsertManyResult{InsertedIDs: res.InsertedIDs}
 	}
-	if len(opts) > 0 {
-
-		if err = hook.Do(opts[0].InsertHook, hook.AfterInsert); err != nil {
-			return
-		}
+	if err != nil {
+		return
+	}
+	if err = hook.Do(h, hook.AfterInsert); err != nil {
+		return
 	}
 	return
 }
@@ -104,23 +118,21 @@ func (c *Collection) Upsert(ctx context.Context, filter interface{}, replacement
 
 // UpdateOne executes an update command to update at most one document in the collection.
 // Reference: https://docs.mongodb.com/manual/reference/operator/update/
-func (c *Collection) UpdateOne(ctx context.Context, filter interface{}, update interface{}, opts ...qOpts.UpdateOptions) (err error) {
-	if len(opts) > 0 {
+func (c *Collection) UpdateOne(ctx context.Context, filter interface{}, update interface{}, opts ...opts.UpdateOptions) (err error) {
+	if len(opts) > 0 && opts[0].UpdateHook != nil {
 		if err = hook.Do(opts[0].UpdateHook, hook.BeforeUpdate); err != nil {
 			return
 		}
 	}
 
-	var res *mongo.UpdateResult
-
-	if res, err = c.collection.UpdateOne(ctx, filter, update); err != nil {
-		return err
-	}
-
-	if res.MatchedCount == 0 {
+	res, err := c.collection.UpdateOne(ctx, filter, update)
+	if res != nil && res.MatchedCount == 0 {
 		err = ErrNoSuchDocuments
 	}
-	if len(opts) > 0 {
+	if err != nil {
+		return err
+	}
+	if len(opts) > 0 && opts[0].UpdateHook != nil {
 		if err = hook.Do(opts[0].UpdateHook, hook.AfterUpdate); err != nil {
 			return
 		}
@@ -131,8 +143,8 @@ func (c *Collection) UpdateOne(ctx context.Context, filter interface{}, update i
 // UpdateAll executes an update command to update documents in the collection.
 // The matchedCount is 0 in UpdateResult if no document updated
 // Reference: https://docs.mongodb.com/manual/reference/operator/update/
-func (c *Collection) UpdateAll(ctx context.Context, filter interface{}, update interface{}, opts ...qOpts.UpdateOptions) (result *UpdateResult, err error) {
-	if len(opts) > 0 {
+func (c *Collection) UpdateAll(ctx context.Context, filter interface{}, update interface{}, opts ...opts.UpdateOptions) (result *UpdateResult, err error) {
+	if len(opts) > 0 && opts[0].UpdateHook != nil {
 		if err = hook.Do(opts[0].UpdateHook, hook.BeforeUpdate); err != nil {
 			return
 		}
@@ -141,7 +153,10 @@ func (c *Collection) UpdateAll(ctx context.Context, filter interface{}, update i
 	if res != nil {
 		result = translateUpdateResult(res)
 	}
-	if len(opts) > 0 {
+	if err != nil {
+		return
+	}
+	if len(opts) > 0 && opts[0].UpdateHook != nil {
 		if err = hook.Do(opts[0].UpdateHook, hook.AfterUpdate); err != nil {
 			return
 		}
@@ -149,23 +164,66 @@ func (c *Collection) UpdateAll(ctx context.Context, filter interface{}, update i
 	return
 }
 
+//func GetId(doc interface{}) interface{} {
+//	d := reflect.ValueOf(doc)
+//	t := reflect.TypeOf(doc)
+//	if t.Kind() == reflect.Ptr {
+//		d = d.Elem()
+//		t = t.Elem()
+//	}
+//	for i := 0; i < d.NumField(); i++ {
+//		fmt.Println(t.Field(i).Tag)
+//		if "_id" == t.Field(i).Tag.Get("bson") || "_id" == t.Field(i).Tag.Get("json") {
+//			return d.FieldByName(t.Field(i).Name).Interface()
+//		}
+//	}
+//	return nil
+//}
+
+// UpdateWithDocument executes an update command to update at most one document in the collection.
+// Expect type of the doc is the define of user's document
+func (c *Collection) UpdateWithDocument(ctx context.Context, filter interface{}, doc interface{}, opts ...opts.UpdateOptions) (err error) {
+	h := doc
+	if len(opts) > 0 && opts[0].UpdateHook != nil {
+		h = opts[0].UpdateHook
+	}
+	if err = hook.Do(h, hook.BeforeUpdate); err != nil {
+		return
+	}
+	if err = field.Do(doc, field.BeforeUpdate); err != nil {
+		return
+	}
+	res, err := c.collection.UpdateOne(ctx, filter, bson.M{"$set": doc})
+	if res != nil && res.MatchedCount == 0 {
+		err = ErrNoSuchDocuments
+	}
+	if err != nil {
+		return err
+	}
+	if err = hook.Do(h, hook.AfterUpdate); err != nil {
+		return
+	}
+
+	return err
+}
+
 // Remove executes a delete command to delete at most one document from the collection.
 // if filter is bson.M{}，DeleteOne will delete one document in collection
 // Reference: https://docs.mongodb.com/manual/reference/command/delete/
-func (c *Collection) Remove(ctx context.Context, filter interface{}, opts ...qOpts.RemoveOptions) (err error) {
-	if len(opts) > 0 {
+func (c *Collection) Remove(ctx context.Context, filter interface{}, opts ...opts.RemoveOptions) (err error) {
+	if len(opts) > 0 && opts[0].RemoveHook != nil {
 		if err = hook.Do(opts[0].RemoveHook, hook.BeforeRemove); err != nil {
 			return err
 		}
 	}
 	res, err := c.collection.DeleteOne(ctx, filter)
+	if res != nil && res.DeletedCount == 0 {
+		err = ErrNoSuchDocuments
+	}
 	if err != nil {
 		return err
 	}
-	if res.DeletedCount == 0 {
-		err = ErrNoSuchDocuments
-	}
-	if len(opts) > 0 {
+	if len(opts) > 0 && opts[0].RemoveHook != nil {
 		if err = hook.Do(opts[0].RemoveHook, hook.AfterRemove); err != nil {
 			return err
 		}
@@ -174,20 +232,21 @@ func (c *Collection) Remove(ctx context.Context, filter interface{}, opts ...qOp
 }
 
 // RemoveId executes a delete command to delete at most one document from the collection.
-func (c *Collection) RemoveId(ctx context.Context, id interface{}, opts ...qOpts.RemoveOptions) (err error) {
-	if len(opts) > 0 {
+func (c *Collection) RemoveId(ctx context.Context, id interface{}, opts ...opts.RemoveOptions) (err error) {
+	if len(opts) > 0 && opts[0].RemoveHook != nil {
 		if err = hook.Do(opts[0].RemoveHook, hook.BeforeRemove); err != nil {
 			return err
 		}
 	}
 	res, err := c.collection.DeleteOne(ctx, bson.M{"_id": id})
+	if res != nil && res.DeletedCount == 0 {
+		err = ErrNoSuchDocuments
+	}
 	if err != nil {
 		return err
 	}
-	if res.DeletedCount == 0 {
-		err = ErrNoSuchDocuments
-	}
-	if len(opts) > 0 {
+
+	if len(opts) > 0 && opts[0].RemoveHook != nil {
 		if err = hook.Do(opts[0].RemoveHook, hook.AfterRemove); err != nil {
 			return err
 		}
@@ -198,8 +257,8 @@ func (c *Collection) RemoveId(ctx context.Context, id interface{}, opts ...qOpts
 // RemoveAll executes a delete command to delete documents from the collection.
 // If filter is bson.M{}，all ducuments in Collection will be deleted
 // Reference: https://docs.mongodb.com/manual/reference/command/delete/
-func (c *Collection) RemoveAll(ctx context.Context, filter interface{}, opts ...qOpts.RemoveOptions) (result *DeleteResult, err error) {
-	if len(opts) > 0 {
+func (c *Collection) RemoveAll(ctx context.Context, filter interface{}, opts ...opts.RemoveOptions) (result *DeleteResult, err error) {
+	if len(opts) > 0 && opts[0].RemoveHook != nil {
 		if err = hook.Do(opts[0].RemoveHook, hook.BeforeRemove); err != nil {
 			return
 		}
@@ -208,7 +267,10 @@ func (c *Collection) RemoveAll(ctx context.Context, filter interface{}, opts ...
 	if res != nil {
 		result = &DeleteResult{DeletedCount: res.DeletedCount}
 	}
-	if len(opts) > 0 {
+	if err != nil {
+		return
+	}
+	if len(opts) > 0 && opts[0].RemoveHook != nil {
 		if err = hook.Do(opts[0].RemoveHook, hook.AfterRemove); err != nil {
 			return
 		}
