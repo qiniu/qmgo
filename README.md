@@ -336,11 +336,12 @@ If you are using qmgo, please feel free to add your project name or repository h
 
 The Qmgo project welcomes all contributors. We appreciate your help! 
 
-## communication:
+## Communication:
 
-Join [gitter room](https://gitter.im/qiniu/qmgo-room)
+- Join [gitter room](https://gitter.im/qiniu/qmgo-room)
 
-Join wechat group:
+- Join wechat group:
+
 ![avatar](http://pgo8q04yu.bkt.clouddn.com/qmgo-4.png)
 
 
