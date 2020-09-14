@@ -345,6 +345,11 @@ coll.Find(bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 
 非常欢迎您对`Qmgo`的任何贡献，非常感谢您的帮助！
 
-## 加入 qmgo 微信群:
+
+## 沟通交流:
+
+- 加入 [gitter room](https://gitter.im/qiniu/qmgo-room)
+
+- 加入 微信群:
 
 ![avatar](http://pgo8q04yu.bkt.clouddn.com/qmgo-4.png)
