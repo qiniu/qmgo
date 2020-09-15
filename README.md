@@ -338,7 +338,7 @@ The Qmgo project welcomes all contributors. We appreciate your help!
 
 ## Communication:
 
-- Join [gitter room](https://gitter.im/qiniu/qmgo-room)
+- Join [gitter room](https://gitter.im/qiniu/qmgo)
 
 - Join wechat group:
 
