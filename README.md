@@ -5,7 +5,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/qiniu/qmgo)](https://goreportcard.com/report/github.com/qiniu/qmgo)
 [![GitHub release](https://img.shields.io/github/v/tag/qiniu/qmgo.svg?label=release)](https://github.com/qiniu/qmgo/releases)
 [![GoDoc](https://pkg.go.dev/badge/github.com/qiniu/qmgo?status.svg)](https://pkg.go.dev/github.com/qiniu/qmgo?tab=doc) 
-[![Join the chat at https://gitter.im/qiniu/qmgo-room](https://badges.gitter.im/qiniu/qmgo-room.svg)](https://gitter.im/qiniu/qmgo-room?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Join the chat at https://gitter.im/qiniu/qmgo](https://badges.gitter.im/qiniu/qmgo.svg)](https://gitter.im/qiniu/qmgo?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Join the chat at https://gitter.im/qiniu/qmgo](https://badges.gitter.im/qiniu/qmgo.svg)](https://gitter.im/qiniu/qmgo?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 English | [简体中文](README_ZH.md)
 
