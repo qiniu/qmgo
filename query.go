@@ -25,6 +25,22 @@ type Query struct {
 	opts       []qOpts.FindOptions
 }
 
+// Change holds fields for running a findAndModify MongoDB command via
+// the Query.Apply method.
+type Change struct {
+	Update    interface{} // The update document
+	Upsert    bool        // Whether to insert in case the document isn't found
+	Remove    bool        // Whether to remove the document found rather than updating
+	ReturnNew bool        // Should the modified document be returned rather than the old one
+}
+
+// ChangeInfo holds details about the outcome of an update operation.
+type ChangeInfo struct {
+	Updated    int         // Number of existing documents updated
+	Removed    int         // Number of documents removed
+	UpsertedId interface{} // Upserted _id field, when not explicitly provided
+}
+
 // Sort is Used to set the sorting rules for the returned results
 // Format: "age" or "+age" means to sort the age field in ascending order, "-age" means in descending order
 // When multiple sort fields are passed in at the same time, they are arranged in the order in which the fields are passed in.
@@ -260,4 +276,21 @@ func (q *Query) Cursor() CursorI {
 		cursor: cur,
 		err:    err,
 	}
+}
+
+// Apply
+func (q *Query) Apply(change Change, result interface{}) (*ChangeInfo, error) {
+	//var changeInfo ChangeInfo
+	//var res *mongo.SingleResult
+	if change.Remove {
+		opt := q.opts[0].FindOneAndDeleteOptions
+		q.collection.FindOneAndDelete(context.Background(), q.filter, &opt)
+	} else if change.Upsert {
+		opt := q.opts[0].FindOneAndReplaceOptions
+		q.collection.FindOneAndReplace(context.Background(), q.filter, change.Update, &opt)
+	} else {
+		opt := q.opts[0].FindOneAndUpdateOptions
+		q.collection.FindOneAndUpdate(context.Background(), q.filter, change.Update, &opt)
+	}
+	return nil, nil
 }

@@ -35,6 +35,7 @@ type QueryI interface {
 	Count() (n int64, err error)
 	Distinct(key string, result interface{}) error
 	Cursor() CursorI
+	Apply(change Change, result interface{}) (*ChangeInfo, error)
 }
 
 // AggregateI define the interface of aggregate
