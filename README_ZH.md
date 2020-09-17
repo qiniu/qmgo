@@ -333,14 +333,6 @@ coll.Find(bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 
 [Qmgo 和 Mgo 的差异](https://github.com/qiniu/qmgo/wiki/Known-differences-between-Qmgo-and-Mgo)
 
-## 谁在使用 Qmgo
-
-如果您在使用 Qmgo，随时欢迎您将项目名称或者 repository 链接更新在这里!
-
-- 七牛 CDN 管理系统
-- 七牛 RTC 质量监控系统
-- 利弗莫尔证券 换手率行情系统
-
 ## Contributing
 
 非常欢迎您对`Qmgo`的任何贡献，非常感谢您的帮助！
@@ -352,4 +344,4 @@ coll.Find(bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 
 - 加入 微信群:
 
-![avatar](http://pgo8q04yu.bkt.clouddn.com/qmgo-4.png)
+![avatar](http://pgo8q04yu.bkt.clouddn.com/qmgo-5.png)
