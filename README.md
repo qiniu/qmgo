@@ -324,14 +324,6 @@ coll.Find(bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 ## `Qmgo` vs `mgo`
 [Differences between qmgo and mgo](https://github.com/qiniu/qmgo/wiki/Known-differences-between-Qmgo-and-Mgo)
  
-## Who is using
-If you are using qmgo, please feel free to add your project name or repository here！
-
-- Qiniu QCDN management system
-- Qiniu RTC quality monitoring system
-- Jesselivermore huanshoulv stock real-time quotes system
-
-
 ## Contributing
 
 The Qmgo project welcomes all contributors. We appreciate your help! 
@@ -342,6 +334,6 @@ The Qmgo project welcomes all contributors. We appreciate your help!
 
 - Join wechat group:
 
-![avatar](http://pgo8q04yu.bkt.clouddn.com/qmgo-4.png)
+![avatar](http://pgo8q04yu.bkt.clouddn.com/qmgo-5.png)
 
 
