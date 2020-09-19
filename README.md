@@ -96,7 +96,8 @@ var userInfo = UserInfo{
 Create index
 
 ```go
-cli.EnsureIndexes(ctx, []string{}, []string{"age", "name,weight"})
+cli.CreateOneIndex(context.Background(), options.IndexModel{Key: []string{"name"}, Unique: true})
+cli.CreateIndexes(context.Background(), []options.IndexModel{{Key: []string{"id2", "id3"}}})
 ```
 
 - Insert a document

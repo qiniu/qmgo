@@ -3,9 +3,6 @@ package qmgo
 import (
 	"context"
 	"fmt"
-	"reflect"
-	"strings"
-
 	"github.com/qiniu/qmgo/field"
 	"github.com/qiniu/qmgo/hook"
 	opts "github.com/qiniu/qmgo/options"
@@ -13,6 +10,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"
+	"reflect"
+	"strings"
 )
 
 // Collection is a handle to a MongoDB collection
@@ -294,7 +293,7 @@ func (c *Collection) Aggregate(ctx context.Context, pipeline interface{}) Aggreg
 // Example：indexes = []string{"idx1", "-idx2", "idx3,idx4"}
 // Three indexes will be created, index idx1 with ascending order, index idx2 with descending order, idex3 and idex4 are Compound ascending sort index
 // Reference: https://docs.mongodb.com/manual/reference/command/createIndexes/
-func (c *Collection) ensureIndex(ctx context.Context, indexes []string, isUnique bool) {
+func (c *Collection) ensureIndex(ctx context.Context, indexes []opts.IndexModel) error {
 	var indexModels []mongo.IndexModel
 
 	// 组建[]mongo.IndexModel
@@ -302,69 +301,96 @@ func (c *Collection) ensureIndex(ctx context.Context, indexes []string, isUnique
 		var model mongo.IndexModel
 		var keysDoc bsonx.Doc
 
-		colIndexArr := strings.Split(idx, ",")
-		for _, field := range colIndexArr {
+		for _, field := range idx.Key {
 			key, n := SplitSortField(field)
 
 			keysDoc = keysDoc.Append(key, bsonx.Int32(n))
 		}
-
+		iOptions := options.Index().SetUnique(idx.Unique).SetBackground(idx.Background).SetSparse(idx.Sparse)
+		if idx.ExpireAfterSeconds != nil {
+			iOptions.SetExpireAfterSeconds(*idx.ExpireAfterSeconds)
+		}
 		model = mongo.IndexModel{
 			Keys:    keysDoc,
-			Options: options.Index().SetUnique(isUnique),
+			Options: iOptions,
 		}
 
 		indexModels = append(indexModels, model)
 	}
 
 	if len(indexModels) == 0 {
+		return nil
+	}
+
+	res, err := c.collection.Indexes().CreateMany(ctx, indexModels)
+	if err != nil || len(res) == 0 {
+		fmt.Println("<MongoDB.C>: ", c.collection.Name(), " Index: ", indexes, " error: ", err, "res: ", res)
+		return err
+	}
+	return nil
+}
+
+// EnsureIndexes Deprecated,
+// Recommend to use CreateIndexes / CreateOneIndex for more function)
+// EnsureIndexes creates unique and non-unique indexes in collection
+// the combination of indexes is different from CreateIndexes:
+// if uniques/indexes is []string{"name"}, means create index "name"
+// if uniques/indexes is []string{"name,-age","uid"} means create Compound indexes: name and -age, then create one index: uid
+func (c *Collection) EnsureIndexes(ctx context.Context, uniques []string, indexes []string) (err error) {
+	uniqueModel, indexesModel := []opts.IndexModel{}, []opts.IndexModel{}
+	for _, v := range uniques {
+		vv := strings.Split(v, ",")
+		model := opts.IndexModel{Key: vv, Unique: true}
+		uniqueModel = append(uniqueModel, model)
+	}
+	if err = c.CreateIndexes(ctx, uniqueModel); err != nil {
 		return
 	}
 
-	var err error
-	var res []string
-	res, err = c.collection.Indexes().CreateMany(ctx, indexModels)
-
-	if err != nil || len(res) == 0 {
-		s := fmt.Sprint("<MongoDB.C>: ", c.collection.Name(), " Index: ", indexes, " error: ", err, "res: ", res)
-		panic(s)
+	for _, v := range indexes {
+		vv := strings.Split(v, ",")
+		model := opts.IndexModel{Key: vv}
+		indexesModel = append(uniqueModel, model)
+	}
+	if err = c.CreateIndexes(ctx, indexesModel); err != nil {
+		return
 	}
 	return
 }
 
-// EnsureIndexes creates unique and non-unique indexes in collection
-func (c *Collection) EnsureIndexes(ctx context.Context, uniques []string, indexes []string) {
-	// 创建唯一索引
-	if len(uniques) != 0 {
-		c.ensureIndex(ctx, uniques, true)
-	}
-
+// CreateIndexes creates multiple indexes in collection
+// If the Key in opts.IndexModel is []string{"name"}, means create index: name
+// If the Key in opts.IndexModel is []string{"name","-age"} means create Compound indexes: name and -age
+func (c *Collection) CreateIndexes(ctx context.Context, indexes []opts.IndexModel) (err error) {
 	// 创建普通索引
-	if len(indexes) != 0 {
-		c.ensureIndex(ctx, indexes, false)
-	}
-
+	err = c.ensureIndex(ctx, indexes)
 	return
 }
 
-// DropIndexes drop indexes in collection, indexes that be dropped should be in line with inputting indexes
-func (c *Collection) DropIndexes(ctx context.Context, indexes []string) error {
+// CreateIndex creates one index
+// If the Key in opts.IndexModel is []string{"name"}, means create index name
+// If the Key in opts.IndexModel is []string{"name","-age"} means drop Compound indexes: name and -age
+func (c *Collection) CreateOneIndex(ctx context.Context, indexes opts.IndexModel) error {
+	// 创建普通索引
+	return c.ensureIndex(ctx, []opts.IndexModel{indexes})
 
-	var err error
-	for _, index := range indexes {
-		_, err = c.collection.Indexes().DropOne(ctx, generateDroppedIndex(index))
-		if err != nil {
-			return err
-		}
+}
+
+// DropIndex drop indexes in collection, indexes that be dropped should be in line with inputting indexes
+// The indexes is []string{"name"} means drop index: name
+// The indexes is []string{"name","-age"} means drop Compound indexes: name and -age
+func (c *Collection) DropIndex(ctx context.Context, indexes []string) error {
+	_, err := c.collection.Indexes().DropOne(ctx, generateDroppedIndex(indexes))
+	if err != nil {
+		return err
 	}
 	return err
 }
 
-// generate indexes that store in mongo which may consist more than one index(like "index1,index2" is stored as "index1_1_index2_1")
-func generateDroppedIndex(index string) string {
+// generate indexes that store in mongo which may consist more than one index(like []string{"index1","index2"} is stored as "index1_1_index2_1")
+func generateDroppedIndex(index []string) string {
 	var res string
-	s := strings.Split(index, ",")
-	for _, e := range s {
+	for _, e := range index {
 		key, sort := SplitSortField(e)
 		n := key + "_" + fmt.Sprint(sort)
 		if len(res) == 0 {
