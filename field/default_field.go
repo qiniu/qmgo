@@ -2,6 +2,7 @@ package field
 
 import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"reflect"
 	"time"
 )
 
@@ -27,10 +28,14 @@ func (df *DefaultField) DefaultUpdateAt() {
 
 // DefaultCreateAt changes the default createAt field
 func (df *DefaultField) DefaultCreateAt() {
-	df.CreateAt = time.Now().Local()
+	if reflect.DeepEqual(df.CreateAt, nilTime) {
+		df.CreateAt = time.Now().Local()
+	}
 }
 
 // DefaultCreateAt changes the default _id field
 func (df *DefaultField) DefaultId() {
-	df.Id = primitive.NewObjectID()
+	if df.Id.IsZero() {
+		df.Id = primitive.NewObjectID()
+	}
 }

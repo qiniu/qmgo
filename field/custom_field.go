@@ -55,7 +55,7 @@ func (c CustomFields) CustomCreateTime(doc interface{}) {
 		return
 	}
 	fieldName := c.createAt
-	setTime(doc, fieldName)
+	setTime(doc, fieldName, false)
 	return
 }
 
@@ -65,7 +65,7 @@ func (c CustomFields) CustomUpdateTime(doc interface{}) {
 		return
 	}
 	fieldName := c.updateAt
-	setTime(doc, fieldName)
+	setTime(doc, fieldName, true)
 	return
 }
 
@@ -80,7 +80,8 @@ func (c CustomFields) CustomId(doc interface{}) {
 }
 
 // setTime changes the custom time fields
-func setTime(doc interface{}, fieldName string) {
+// The overWrite defines if change value when the filed has valid value
+func setTime(doc interface{}, fieldName string, overWrite bool) {
 	if reflect.Ptr != reflect.TypeOf(doc).Kind() {
 		fmt.Println("not a point type")
 		return
@@ -91,9 +92,17 @@ func setTime(doc interface{}, fieldName string) {
 		tt := time.Now()
 		switch a := ca.Interface().(type) {
 		case time.Time:
-			ca.Set(reflect.ValueOf(tt))
+			if reflect.DeepEqual(ca.Interface().(time.Time), nilTime) {
+				ca.Set(reflect.ValueOf(tt))
+			} else if overWrite {
+				ca.Set(reflect.ValueOf(tt))
+			}
 		case int64:
-			ca.SetInt(tt.Unix())
+			if ca.Interface().(int64) == 0 {
+				ca.SetInt(tt.Unix())
+			} else if overWrite {
+				ca.SetInt(tt.Unix())
+			}
 		default:
 			fmt.Println("unsupported type to setTime", a)
 		}
@@ -111,9 +120,13 @@ func setId(doc interface{}, fieldName string) {
 	if ca.CanSet() {
 		switch a := ca.Interface().(type) {
 		case primitive.ObjectID:
-			ca.Set(reflect.ValueOf(primitive.NewObjectID()))
+			if ca.Interface().(primitive.ObjectID).IsZero() {
+				ca.Set(reflect.ValueOf(primitive.NewObjectID()))
+			}
 		case string:
-			ca.SetString(primitive.NewObjectID().String())
+			if ca.String() == "" {
+				ca.SetString(primitive.NewObjectID().String())
+			}
 		default:
 			fmt.Println("unsupported type to setId", a)
 		}
