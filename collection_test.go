@@ -532,7 +532,7 @@ func TestSliceInsert(t *testing.T) {
 	ast.Nil(dis)
 }
 
-func TestCollection_UpdateWithDocument(t *testing.T) {
+func TestCollection_ReplaceOne(t *testing.T) {
 	ast := require.New(t)
 	cli := initClient("test")
 	defer cli.Close(context.Background())
@@ -545,7 +545,7 @@ func TestCollection_UpdateWithDocument(t *testing.T) {
 	ast.NoError(err)
 	ui.Id = id
 	ui.Age = 27
-	err = cli.UpdateWithDocument(context.Background(), bson.M{"_id": id}, &ui)
+	err = cli.ReplaceOne(context.Background(), bson.M{"_id": id}, &ui)
 	ast.NoError(err)
 
 	findUi := UserInfo{}
@@ -553,4 +553,9 @@ func TestCollection_UpdateWithDocument(t *testing.T) {
 	ast.NoError(err)
 	ast.Equal(ui.Age, findUi.Age)
 
+	err = cli.ReplaceOne(context.Background(), bson.M{"_id": "notexist"}, &ui)
+	ast.Equal(ErrNoSuchDocuments, err)
+
+	err = cli.ReplaceOne(context.Background(), bson.M{"_id": "notexist"}, nil)
+	ast.Error(err)
 }

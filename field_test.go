@@ -107,7 +107,7 @@ func TestUpdateDoc(t *testing.T) {
 
 	ast.NoError(err)
 	ui.Id = findUi.Id
-	err = cli.UpdateWithDocument(context.Background(), bson.M{"_id": findUi.Id}, &ui)
+	err = cli.ReplaceOne(context.Background(), bson.M{"_id": findUi.Id}, &ui)
 	ast.NoError(err)
 	err = cli.Find(context.Background(), bson.M{"name": "Lucas"}).One(&findUi)
 	ast.NotEqual(int64(0), findUi.UpdateTimeAt)
