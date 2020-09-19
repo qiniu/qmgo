@@ -288,7 +288,7 @@ _, err := cli.InsertOne(context.Background(), u)
     // CreateTimeAt、UpdateTimeAt and MyId 会自动更新并插入DB 
   
     // 假设Id和ui已经初始化
-  	err = cli.UpdateWithDocument(context.Background(), bson.M{"_id": Id}, &ui)
+  	err = cli.ReplaceOne(context.Background(), bson.M{"_id": Id}, &ui)
     // UpdateTimeAt 会被自动更新
     ```
   

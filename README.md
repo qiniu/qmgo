@@ -281,7 +281,7 @@ _, err := cli.InsertOne(context.Background(), u)
     // CreateTimeAt、UpdateTimeAt and MyId will be generated automatically 
   
     // suppose Id and ui is ready
-  	err = cli.UpdateWithDocument(context.Background(), bson.M{"_id": Id}, &ui)
+  	err = cli.ReplaceOne(context.Background(), bson.M{"_id": Id}, &ui)
     // UpdateTimeAt will update
     ```
 

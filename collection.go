@@ -182,10 +182,10 @@ func (c *Collection) UpdateAll(ctx context.Context, filter interface{}, update i
 	return
 }
 
-// UpdateWithDocument executes an update command to update at most one document in the collection.
+// ReplaceOne executes an update command to update at most one document in the collection.
 // If UpdateHook in opts is set, hook works on it, otherwise hook try the doc as hook
 // Expect type of the doc is the define of user's document
-func (c *Collection) UpdateWithDocument(ctx context.Context, filter interface{}, doc interface{}, opts ...opts.UpdateOptions) (err error) {
+func (c *Collection) ReplaceOne(ctx context.Context, filter interface{}, doc interface{}, opts ...opts.UpdateOptions) (err error) {
 	h := doc
 	if len(opts) > 0 && opts[0].UpdateHook != nil {
 		h = opts[0].UpdateHook
@@ -196,7 +196,7 @@ func (c *Collection) UpdateWithDocument(ctx context.Context, filter interface{},
 	if err = field.Do(doc, field.BeforeUpdate); err != nil {
 		return
 	}
-	res, err := c.collection.UpdateOne(ctx, filter, bson.M{"$set": doc})
+	res, err := c.collection.ReplaceOne(ctx, filter, doc)
 	if res != nil && res.MatchedCount == 0 {
 		err = ErrNoSuchDocuments
 	}
