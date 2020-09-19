@@ -330,7 +330,7 @@ func (c *Collection) ensureIndex(ctx context.Context, indexes []opts.IndexModel)
 	return nil
 }
 
-// EnsureIndexes Deprecated,
+// EnsureIndexes Deprecated
 // Recommend to use CreateIndexes / CreateOneIndex for more function)
 // EnsureIndexes creates unique and non-unique indexes in collection
 // the combination of indexes is different from CreateIndexes:
