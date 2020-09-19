@@ -2,23 +2,32 @@ package field
 
 import (
 	"reflect"
+	"time"
 )
+
+var nilTime time.Time
 
 type FieldType string
 
 const (
 	BeforeInsert FieldType = "beforeInsert"
 	BeforeUpdate FieldType = "beforeUpdate"
+	BeforeUpsert FieldType = "beforeUpsert"
 )
 
 // filedHandler defines the relations between field type and handler
 var fieldHandler = map[FieldType]func(doc interface{}) error{
 	BeforeInsert: beforeInsert,
 	BeforeUpdate: beforeUpdate,
+	BeforeUpsert: beforeUpsert,
 }
 
 // Do call the specific method to handle field based on fType
 func Do(doc interface{}, fType FieldType) error {
+	to := reflect.TypeOf(doc)
+	if to == nil {
+		return nil
+	}
 	switch reflect.TypeOf(doc).Kind() {
 	case reflect.Slice:
 		return sliceHandle(doc, fType)
@@ -57,30 +66,51 @@ func sliceHandle(docs interface{}, fType FieldType) error {
 }
 
 // beforeInsert handles field before insert
+// If value of field createAt is valid in doc, upsert doesn't change it
+// If value of field id is valid in doc, upsert doesn't change it
+// Change the value of field updateAt anyway
 func beforeInsert(doc interface{}) error {
 	if ih, ok := doc.(DefaultFieldHook); ok {
+		ih.DefaultId()
 		ih.DefaultCreateAt()
 		ih.DefaultUpdateAt()
-		ih.DefaultId()
 	}
 	if ih, ok := doc.(CustomFieldsHook); ok {
 		fields := ih.CustomFields()
+		fields.(*CustomFields).CustomId(doc)
 		fields.(*CustomFields).CustomCreateTime(doc)
 		fields.(*CustomFields).CustomUpdateTime(doc)
-		fields.(*CustomFields).CustomId(doc)
 	}
-
 	return nil
 }
 
 // beforeUpdate handles field before update
-func beforeUpdate(hook interface{}) error {
-	if ih, ok := hook.(DefaultFieldHook); ok {
+func beforeUpdate(doc interface{}) error {
+	if ih, ok := doc.(DefaultFieldHook); ok {
 		ih.DefaultUpdateAt()
 	}
-	if ih, ok := hook.(CustomFieldsHook); ok {
+	if ih, ok := doc.(CustomFieldsHook); ok {
 		fields := ih.CustomFields()
-		fields.(*CustomFields).CustomUpdateTime(hook)
+		fields.(*CustomFields).CustomUpdateTime(doc)
+	}
+	return nil
+}
+
+// beforeUpsert handles field before upsert
+// If value of field createAt is valid in doc, upsert doesn't change it
+// If value of field id is valid in doc, upsert doesn't change it
+// Change the value of field updateAt anyway
+func beforeUpsert(doc interface{}) error {
+	if ih, ok := doc.(DefaultFieldHook); ok {
+		ih.DefaultId()
+		ih.DefaultCreateAt()
+		ih.DefaultUpdateAt()
+	}
+	if ih, ok := doc.(CustomFieldsHook); ok {
+		fields := ih.CustomFields()
+		fields.(*CustomFields).CustomId(doc)
+		fields.(*CustomFields).CustomCreateTime(doc)
+		fields.(*CustomFields).CustomUpdateTime(doc)
 	}
 	return nil
 }

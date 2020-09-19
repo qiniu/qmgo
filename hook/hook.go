@@ -15,6 +15,8 @@ const (
 	AfterQuery   HookType = "afterQuery"
 	BeforeRemove HookType = "beforeRemove"
 	AfterRemove  HookType = "afterRemove"
+	BeforeUpsert HookType = "beforeUpsert"
+	AfterUpsert  HookType = "afterUpsert"
 )
 
 // hookHandler defines the relations between hook type and handler
@@ -27,11 +29,17 @@ var hookHandler = map[HookType]func(hook interface{}) error{
 	AfterQuery:   afterQuery,
 	BeforeRemove: beforeRemove,
 	AfterRemove:  afterRemove,
+	BeforeUpsert: beforeUpsert,
+	AfterUpsert:  afterUpsert,
 }
 
 // Do call the specific method to handle hook based on hType
 func Do(hook interface{}, hType HookType) error {
-	switch reflect.TypeOf(hook).Kind() {
+	to := reflect.TypeOf(hook)
+	if to == nil {
+		return nil
+	}
+	switch to.Kind() {
 	case reflect.Slice:
 		return sliceHandle(hook, hType)
 	case reflect.Ptr:
@@ -153,6 +161,28 @@ func beforeRemove(hook interface{}) error {
 func afterRemove(hook interface{}) error {
 	if ih, ok := hook.(RemoveHook); ok {
 		return ih.AfterRemove()
+	}
+	return nil
+}
+
+// UpsertHook defines the upsert hook interface
+type UpsertHook interface {
+	BeforeUpsert() error
+	AfterUpsert() error
+}
+
+// beforeUpsert calls custom BeforeUpsert
+func beforeUpsert(hook interface{}) error {
+	if ih, ok := hook.(UpsertHook); ok {
+		return ih.BeforeUpsert()
+	}
+	return nil
+}
+
+// afterUpsert calls custom AfterUpsert
+func afterUpsert(hook interface{}) error {
+	if ih, ok := hook.(UpsertHook); ok {
+		return ih.AfterUpsert()
 	}
 	return nil
 }

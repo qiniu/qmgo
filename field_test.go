@@ -2,13 +2,14 @@ package qmgo
 
 import (
 	"context"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/qiniu/qmgo/field"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type UserField struct {
@@ -111,5 +112,46 @@ func TestUpdateDoc(t *testing.T) {
 	err = cli.Find(context.Background(), bson.M{"name": "Lucas"}).One(&findUi)
 	ast.NotEqual(int64(0), findUi.UpdateTimeAt)
 	ast.NotEqual(time.Time{}, findUi.UpdateAt)
+
+}
+
+func TestUpsertField(t *testing.T) {
+	ast := require.New(t)
+	cli := initClient("test")
+	ctx := context.Background()
+	defer cli.Close(ctx)
+	defer cli.DropCollection(ctx)
+
+	u := &UserField{Name: "Lucas", Age: 7}
+	id := primitive.NewObjectID()
+	u.Id = id
+	id_1 := primitive.NewObjectID()
+	u.MyId = id_1.String()
+	_, err := cli.InsertOne(context.Background(), u)
+	ast.NoError(err)
+
+	time.Sleep(2 * time.Second)
+	u.Age = 17
+	tBefore3s := time.Now().Add(-3 * time.Second).Local()
+	u.CreateAt = tBefore3s
+	u.UpdateAt = tBefore3s
+	u.CreateTimeAt = tBefore3s
+	u.UpdateTimeAt = tBefore3s.Unix()
+	result, err := cli.Upsert(ctx, bson.M{"_id": id}, u)
+	ast.NoError(err)
+	fmt.Println(result)
+
+	ui := UserField{}
+	err = cli.Find(ctx, bson.M{"_id": id}).One(&ui)
+
+	ast.NoError(err)
+	ast.Equal(u.Age, ui.Age)
+	ast.Equal(id, ui.Id)
+	ast.Equal(id_1.String(), ui.MyId)
+	fmt.Println(tBefore3s.Unix(), ui.CreateAt.Unix())
+	ast.Equal(tBefore3s.Unix(), ui.CreateAt.Unix())
+	ast.Equal(tBefore3s.Unix(), ui.CreateTimeAt.Unix())
+	ast.NotEqual(tBefore3s.Unix(), ui.UpdateAt.Unix())
+	ast.NotEqual(tBefore3s.Unix(), ui.UpdateTimeAt)
 
 }

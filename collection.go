@@ -106,12 +106,30 @@ func interfaceToSliceInterface(docs interface{}) []interface{} {
 }
 
 // Upsert updates one documents if filter match, inserts one document if filter is not match
+// The replacement parameter must be a document that will be used to replace the selected document. It cannot be nil
+// and cannot contain any update operators
 // Reference: https://docs.mongodb.com/manual/reference/operator/update/
-func (c *Collection) Upsert(ctx context.Context, filter interface{}, replacement interface{}) (result *UpdateResult, err error) {
-	opts := options.Replace().SetUpsert(true)
-	res, err := c.collection.ReplaceOne(ctx, filter, replacement, opts)
+func (c *Collection) Upsert(ctx context.Context, filter interface{}, replacement interface{}, opts ...opts.UpsertOptions) (result *UpdateResult, err error) {
+	h := replacement
+	if len(opts) > 0 && opts[0].UpsertHook != nil {
+		h = opts[0].UpsertHook
+	}
+	if err = hook.Do(h, hook.BeforeUpsert); err != nil {
+		return
+	}
+	if err = field.Do(replacement, field.BeforeUpsert); err != nil {
+		return
+	}
+	officialOpts := options.Replace().SetUpsert(true)
+	res, err := c.collection.ReplaceOne(ctx, filter, replacement, officialOpts)
 	if res != nil {
 		result = translateUpdateResult(res)
+	}
+	if err != nil {
+		return
+	}
+	if err = hook.Do(h, hook.AfterUpsert); err != nil {
+		return
 	}
 	return
 }

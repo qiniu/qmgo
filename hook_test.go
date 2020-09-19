@@ -16,22 +16,32 @@ type UserHook struct {
 	Name string `bson:"name"`
 	Age  int    `bson:"age"`
 
-	beforeUpdate int
-	afterUpdate  int
+	beforeCount int
+	afterCount  int
+}
+
+func (u *UserHook) BeforeUpsert() error {
+	u.beforeCount++
+	return nil
+}
+
+func (u *UserHook) AfterUpsert() error {
+	u.afterCount++
+	return nil
 }
 
 func (u *UserHook) BeforeUpdate() error {
-	u.beforeUpdate++
+	u.beforeCount++
 	return nil
 }
 
 func (u *UserHook) AfterUpdate() error {
-	u.afterUpdate++
+	u.afterCount++
 	return nil
 }
 
 func (u *UserHook) BeforeInsert() error {
-	if u.Name == "jz" || u.Name == "xm" {
+	if u.Name == "Lucas" || u.Name == "xm" {
 		u.Age = 17
 	}
 	return nil
@@ -67,13 +77,13 @@ func TestInsertHook(t *testing.T) {
 	defer cli.DropCollection(ctx)
 
 	afterInsertCount = 0
-	u := &UserHook{Name: "jz", Age: 7}
+	u := &UserHook{Name: "Lucas", Age: 7}
 	_, err := cli.InsertOne(context.Background(), u, options.InsertOneOptions{
 		InsertHook: u,
 	})
 	ast.NoError(err)
 
-	uc := bson.M{"name": "jz"}
+	uc := bson.M{"name": "Lucas"}
 	ur := &UserHook{}
 	uk := &MyQueryHook{}
 	err = cli.Find(ctx, uc, options.FindOptions{
@@ -96,7 +106,7 @@ func TestInsertManyHook(t *testing.T) {
 	defer cli.DropCollection(ctx)
 
 	afterInsertCount = 0
-	u1 := &UserHook{Name: "jz", Age: 7}
+	u1 := &UserHook{Name: "Lucas", Age: 7}
 	u2 := &UserHook{Name: "xm", Age: 7}
 	us := []*UserHook{u1, u2}
 	_, err := cli.InsertMany(ctx, us, options.InsertManyOptions{
@@ -104,7 +114,7 @@ func TestInsertManyHook(t *testing.T) {
 	})
 	ast.NoError(err)
 
-	uc := bson.M{"name": "jz"}
+	uc := bson.M{"name": "Lucas"}
 	ur := []UserHook{}
 	qh := &MyQueryHook{}
 	err = cli.Find(ctx, uc, options.FindOptions{
@@ -156,15 +166,15 @@ func TestUpdateHook(t *testing.T) {
 
 	err = cli.UpdateWithDocument(ctx, bson.M{"name": "Lucas"}, &u)
 	ast.NoError(err)
-	ast.Equal(1, u.beforeUpdate)
-	ast.Equal(1, u.afterUpdate)
+	ast.Equal(1, u.beforeCount)
+	ast.Equal(1, u.afterCount)
 
 	err = cli.UpdateWithDocument(ctx, bson.M{"name": "Lucas"}, &u, options.UpdateOptions{
 		UpdateHook: &u,
 	})
 	ast.NoError(err)
-	ast.Equal(2, u.beforeUpdate)
-	ast.Equal(2, u.afterUpdate)
+	ast.Equal(2, u.beforeCount)
+	ast.Equal(2, u.afterCount)
 
 	cli.UpdateAll(ctx, bson.M{"name": "Lucas"}, bson.M{operator.Set: bson.M{"age": 27}}, options.UpdateOptions{
 		UpdateHook: uh,
@@ -196,7 +206,7 @@ func TestRemoveHook(t *testing.T) {
 	defer cli.Close(ctx)
 	defer cli.DropCollection(ctx)
 
-	u := []*UserHook{&UserHook{Name: "jz", Age: 7}, &UserHook{Name: "xm", Age: 7},
+	u := []*UserHook{&UserHook{Name: "Lucas", Age: 7}, &UserHook{Name: "xm", Age: 7},
 		&UserHook{Name: "wxy", Age: 7}, &UserHook{Name: "zp", Age: 7}}
 	rlt, err := cli.InsertMany(context.Background(), u)
 	ast.NoError(err)
@@ -227,15 +237,57 @@ func TestRemoveHook(t *testing.T) {
 
 }
 
+func TestUpsertHook(t *testing.T) {
+	ast := require.New(t)
+	cli := initClient("test")
+	ctx := context.Background()
+	defer cli.Close(ctx)
+	defer cli.DropCollection(ctx)
+
+	afterInsertCount = 0
+	u := &UserHook{Name: "Lucas", Age: 7}
+	_, err := cli.InsertOne(context.Background(), u, options.InsertOneOptions{
+		InsertHook: u,
+	})
+	ast.NoError(err)
+
+	u.Age = 17
+	_, err = cli.Upsert(context.Background(), bson.M{"name": "Lucas"}, u)
+	ast.NoError(err)
+
+	ast.Equal(1, u.beforeCount)
+	ast.Equal(1, u.afterCount)
+}
+
 type MyErrorHook struct {
-	beforeQCount int
-	afterQCount  int
-	beforeRCount int
-	afterRCount  int
-	beforeUCount int
-	afterUCount  int
-	beforeICount int
-	afterICount  int
+	beforeQCount  int
+	afterQCount   int
+	beforeRCount  int
+	afterRCount   int
+	beforeUCount  int
+	afterUCount   int
+	beforeICount  int
+	afterICount   int
+	beforeUsCount int
+	afterUsCount  int
+}
+
+func (m *MyErrorHook) BeforeUpsert() error {
+	if m.beforeUsCount == 0 {
+		m.beforeUsCount++
+		return errors.New("error")
+	}
+	m.beforeUsCount++
+	return nil
+}
+
+func (m *MyErrorHook) AfterUpsert() error {
+	if m.afterUsCount == 0 {
+		m.afterUsCount++
+		return errors.New("error")
+	}
+	m.afterUsCount++
+	return nil
 }
 
 func (m *MyErrorHook) BeforeRemove() error {
@@ -303,7 +355,7 @@ func TestHookErr(t *testing.T) {
 	defer cli.Close(ctx)
 	defer cli.DropCollection(ctx)
 
-	u := &UserHook{Name: "jz", Age: 7}
+	u := &UserHook{Name: "Lucas", Age: 7}
 	myHook := &MyErrorHook{}
 	_, err := cli.InsertOne(context.Background(), u, options.InsertOneOptions{
 		InsertHook: myHook,
@@ -319,14 +371,14 @@ func TestHookErr(t *testing.T) {
 	ast.Equal(2, myHook.beforeICount)
 	ast.Equal(1, myHook.afterICount)
 
-	err = cli.UpdateOne(ctx, bson.M{"name": "jz"}, bson.M{operator.Set: bson.M{"age": 27}}, options.UpdateOptions{
+	err = cli.UpdateOne(ctx, bson.M{"name": "Lucas"}, bson.M{operator.Set: bson.M{"age": 27}}, options.UpdateOptions{
 		UpdateHook: myHook,
 	})
 	ast.Error(err)
 	ast.Equal(1, myHook.beforeUCount)
 	ast.Equal(0, myHook.afterUCount)
 
-	err = cli.UpdateOne(ctx, bson.M{"name": "jz"}, bson.M{operator.Set: bson.M{"age": 27}}, options.UpdateOptions{
+	err = cli.UpdateOne(ctx, bson.M{"name": "Lucas"}, bson.M{operator.Set: bson.M{"age": 27}}, options.UpdateOptions{
 		UpdateHook: myHook,
 	})
 	ast.Error(err)
@@ -360,5 +412,19 @@ func TestHookErr(t *testing.T) {
 	ast.Error(err)
 	ast.Equal(2, myHook.beforeRCount)
 	ast.Equal(1, myHook.afterRCount)
+
+	_, err = cli.Upsert(ctx, bson.M{"name": "Lucas"}, u, options.UpsertOptions{
+		UpsertHook: myHook,
+	})
+	ast.Error(err)
+	ast.Equal(1, myHook.beforeUsCount)
+	ast.Equal(0, myHook.afterUsCount)
+
+	_, err = cli.Upsert(ctx, bson.M{"name": "Lucas"}, u, options.UpsertOptions{
+		UpsertHook: myHook,
+	})
+	ast.Error(err)
+	ast.Equal(2, myHook.beforeUsCount)
+	ast.Equal(1, myHook.afterUsCount)
 
 }
