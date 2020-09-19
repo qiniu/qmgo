@@ -92,7 +92,8 @@ var userInfo = UserInfo{
 创建索引
 
 ```go
-cli.EnsureIndexes(ctx, []string{}, []string{"age", "name,weight"})
+cli.CreateOneIndex(context.Background(), options.IndexModel{Key: []string{"name"}, Unique: true})
+cli.CreateIndexes(context.Background(), []options.IndexModel{{Key: []string{"id2", "id3"}}})
 ```
 
 - 插入一个文档

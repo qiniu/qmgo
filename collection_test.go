@@ -2,11 +2,13 @@ package qmgo
 
 import (
 	"context"
+	"github.com/qiniu/qmgo/options"
+	"testing"
+
 	"github.com/qiniu/qmgo/operator"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"testing"
 )
 
 func TestCollection_EnsureIndex(t *testing.T) {
@@ -15,13 +17,13 @@ func TestCollection_EnsureIndex(t *testing.T) {
 	defer cli.Close(context.Background())
 	defer cli.DropCollection(context.Background())
 
-	cli.ensureIndex(context.Background(), nil, false)
-	cli.ensureIndex(context.Background(), []string{"id1"}, true)
-	cli.ensureIndex(context.Background(), []string{"id2,id3"}, false)
-	cli.ensureIndex(context.Background(), []string{"id4,-id5"}, false)
+	cli.ensureIndex(context.Background(), nil)
+	cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"id1"}, Unique: true}})
+	cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"id2", "id3"}}})
+	cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"id4", "-id5"}}})
 
-	// same index，panic
-	ast.Panics(func() { cli.ensureIndex(context.Background(), []string{"id1"}, false) })
+	// same index，error
+	ast.Error(cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"id1"}}}))
 
 	// check if unique indexs is working
 	var err error
@@ -47,8 +49,35 @@ func TestCollection_EnsureIndexes(t *testing.T) {
 	common := []string{"id2,id3", "id4,-id5"}
 	cli.EnsureIndexes(context.Background(), unique, common)
 
-	// same index，panic
-	ast.Panics(func() { cli.EnsureIndexes(context.Background(), nil, unique) })
+	// same index，error
+	ast.Error(cli.EnsureIndexes(context.Background(), nil, unique))
+
+	// check if unique indexs is working
+	var err error
+	doc := bson.M{
+		"id1": 1,
+	}
+
+	_, err = cli.InsertOne(context.Background(), doc)
+	ast.NoError(err)
+	_, err = cli.InsertOne(context.Background(), doc)
+	ast.Equal(true, IsDup(err))
+}
+
+func TestCollection_CreateIndexes(t *testing.T) {
+	ast := require.New(t)
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
+
+	var expireS int32 = 100
+	unique := []string{"id1"}
+	ast.NoError(cli.CreateOneIndex(context.Background(), options.IndexModel{Key: unique, Unique: true, ExpireAfterSeconds: &expireS}))
+
+	ast.NoError(cli.CreateIndexes(context.Background(), []options.IndexModel{{Key: []string{"id2", "id3"}},
+		{Key: []string{"id4", "-id5"}}}))
+	// same index，error
+	ast.Error(cli.CreateOneIndex(context.Background(), options.IndexModel{Key: unique}))
 
 	// check if unique indexs is working
 	var err error
@@ -68,36 +97,36 @@ func TestCollection_DropIndex(t *testing.T) {
 	cli := initClient("test")
 	defer cli.DropCollection(context.Background())
 
-	cli.ensureIndex(context.Background(), []string{"index1"}, true)
+	cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"index1"}, Unique: true}})
 
-	// same index，panic
-	ast.Panics(func() { cli.ensureIndex(context.Background(), []string{"index1"}, false) })
+	// same index，error
+	ast.Error(cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"index1"}}}))
 
-	err := cli.DropIndexes(context.Background(), []string{"index1"})
+	err := cli.DropIndex(context.Background(), []string{"index1"})
 	ast.NoError(err)
-	ast.NotPanics(func() { cli.ensureIndex(context.Background(), []string{"index1"}, false) })
+	ast.NoError(cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"index1"}}}))
 
-	cli.ensureIndex(context.Background(), []string{"-index1"}, true)
-	// same index，panic
-	ast.Panics(func() { cli.ensureIndex(context.Background(), []string{"-index1"}, false) })
+	cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"-index1"}, Unique: true}})
+	// same index，error
+	ast.Error(cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"-index1"}}}))
 
-	err = cli.DropIndexes(context.Background(), []string{"-index1"})
+	err = cli.DropIndex(context.Background(), []string{"-index1"})
 	ast.NoError(err)
-	ast.NotPanics(func() { cli.ensureIndex(context.Background(), []string{"-index1"}, false) })
+	ast.NoError(cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"-index1"}}}))
 
-	err = cli.DropIndexes(context.Background(), []string{""})
+	err = cli.DropIndex(context.Background(), []string{""})
 	ast.Error(err)
 
-	err = cli.DropIndexes(context.Background(), []string{"index2"})
+	err = cli.DropIndex(context.Background(), []string{"index2"})
 	ast.Error(err)
 
-	cli.ensureIndex(context.Background(), []string{"index2,-index1"}, true)
-	ast.Panics(func() { cli.ensureIndex(context.Background(), []string{"index2,-index1"}, false) })
-	err = cli.DropIndexes(context.Background(), []string{"index2,-index1"})
+	cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"index2", "-index1"}, Unique: true}})
+	ast.Error(cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"index2", "-index1"}}}))
+	err = cli.DropIndex(context.Background(), []string{"index2", "-index1"})
 	ast.NoError(err)
-	ast.NotPanics(func() { cli.ensureIndex(context.Background(), []string{"index2,-index1"}, false) })
+	ast.NoError(cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"index2", "-index1"}}}))
 
-	err = cli.DropIndexes(context.Background(), []string{"-"})
+	err = cli.DropIndex(context.Background(), []string{"-"})
 	ast.Error(err)
 }
 
