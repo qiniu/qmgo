@@ -56,8 +56,8 @@ client, err := qmgo.NewClient(ctx, &qmgo.Config{Uri: "mongodb://localhost:27017"
 db := client.Database("class")
 coll := db.Collection("user")
 ```
-If your connection points to a fixed database and collection, we recommend using the following more convenient way to initialize the connection. 
-All operations are based on `cli` and no longer need to care about the database and collection.
+If your connection points to a fixed database and collection, recommend using the following way to initialize the connection.
+All operations can be based on `cli`:
 
 ```go
 cli, err := qmgo.Open(ctx, &qmgo.Config{Uri: "mongodb://localhost:27017", Database: "class", Coll: "user"})
@@ -65,7 +65,7 @@ cli, err := qmgo.Open(ctx, &qmgo.Config{Uri: "mongodb://localhost:27017", Databa
 
 ***The following examples will be based on `cli`, if you use the first way for initialization, replace `cli` with `client`、`db` or `coll`***
 
-After the initialization is successful, please `defer` to close the connection
+Make sure to defer a call to Disconnect after instantiating your client:
 
 ```go
 defer func() {
