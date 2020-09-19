@@ -3,13 +3,13 @@ package qmgo
 import (
 	"context"
 	"fmt"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"testing"
 	"time"
 
 	"github.com/qiniu/qmgo/field"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type UserField struct {
