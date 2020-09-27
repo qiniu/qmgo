@@ -41,6 +41,8 @@ var (
 	ErrNotSupportedPassword = errors.New("password not supported")
 	// ErrNotValidSliceToInsert return if insert argument is not valid slice
 	ErrNotValidSliceToInsert = errors.New("must be valid slice to insert")
+	// ErrReplacementContainUpdateOperators return if replacement document contain update operators
+	ErrReplacementContainUpdateOperators = errors.New("replacement document cannot contain keys beginning with '$'")
 )
 
 // IsErrNoDocuments check if err is no documents, both mongo-go-driver error and qmgo custom error

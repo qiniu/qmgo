@@ -20,6 +20,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+
+	"github.com/qiniu/qmgo/operator"
 )
 
 type QueryTestItem struct {
@@ -562,4 +565,137 @@ func TestQuery_Cursor(t *testing.T) {
 
 	cursor = cli.Find(context.Background(), filter3).Cursor()
 	ast.Error(cursor.Err())
+}
+
+func TestQuery_Apply(t *testing.T) {
+	ast := require.New(t)
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
+	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
+
+	id1 := primitive.NewObjectID()
+	id2 := primitive.NewObjectID()
+	id3 := primitive.NewObjectID()
+	docs := []interface{}{
+		bson.M{"_id": id1, "name": "Alice", "age": 18},
+		bson.M{"_id": id2, "name": "Alice", "age": 19},
+		bson.M{"_id": id3, "name": "Lucas", "age": 20},
+	}
+	_, _ = cli.InsertMany(context.Background(), docs)
+
+	var err error
+	res1 := QueryTestItem{}
+	filter1 := bson.M{
+		"name": "Tom",
+	}
+	change1 := Change{
+	}
+
+	err = cli.Find(context.Background(), filter1).Apply(change1, &res1)
+	ast.EqualError(err, mongo.ErrNilDocument.Error())
+
+	change1.Update = bson.M{
+		operator.Set: bson.M{
+			"name": "Tom",
+			"age":  18,
+		},
+	}
+	err = cli.Find(context.Background(), filter1).Apply(change1, &res1)
+	ast.EqualError(err, mongo.ErrNoDocuments.Error())
+
+	change1.ReturnNew = true
+	err = cli.Find(context.Background(), filter1).Apply(change1, &res1)
+	ast.EqualError(err, mongo.ErrNoDocuments.Error())
+
+	change1.Upsert = true
+	err = cli.Find(context.Background(), filter1).Apply(change1, &res1)
+	ast.NoError(err)
+	ast.Equal( "Tom", res1.Name)
+	ast.Equal(18, res1.Age)
+
+	res2 := QueryTestItem{}
+	filter2 := bson.M{
+		"name": "Alice",
+	}
+	change2 := Change{
+		ReturnNew: true,
+		Update:  bson.M{
+			operator.Set: bson.M{
+				"name": "Alice",
+				"age":  22,
+			},
+		},
+	}
+	projection2 := bson.M{
+		"age": 1,
+	}
+	err = cli.Find(context.Background(), filter2).Sort("age").Select(projection2).Apply(change2, &res2)
+	ast.NoError(err)
+	ast.Equal("", res2.Name)
+	ast.Equal(22, res2.Age)
+
+	res3 := QueryTestItem{}
+	filter3 := bson.M{
+		"name": "Bob",
+	}
+	change3 := Change{
+		Remove: true,
+	}
+	err = cli.Find(context.Background(), filter3).Apply(change3, &res3)
+	ast.EqualError(err, mongo.ErrNoDocuments.Error())
+
+	res3 = QueryTestItem{}
+	filter3 = bson.M{
+		"name": "Alice",
+	}
+	projection3 := bson.M{
+		"age": 1,
+	}
+	err = cli.Find(context.Background(), filter3).Sort("age").Select(projection3).Apply(change3, &res3)
+	ast.NoError(err)
+	ast.Equal("", res3.Name)
+	ast.Equal(19, res3.Age)
+
+	res4 := QueryTestItem{}
+	filter4 := bson.M{
+		"name": "Bob",
+	}
+	change4 := Change{
+		Replace: true,
+		Update:  bson.M{
+			operator.Set: bson.M{
+				"name": "Bob",
+				"age":  23,
+			},
+		},
+	}
+	err = cli.Find(context.Background(), filter4).Apply(change4, &res4)
+	ast.EqualError(err, ErrReplacementContainUpdateOperators.Error())
+
+	change4.Update = bson.M{"name": "Bob", "age": 23}
+	err = cli.Find(context.Background(), filter4).Apply(change4, &res4)
+	ast.EqualError(err, mongo.ErrNoDocuments.Error())
+
+	change4.Upsert = true
+	change4.ReturnNew = true
+	err = cli.Find(context.Background(), filter4).Apply(change4, &res4)
+	ast.NoError(err)
+	ast.Equal("Bob", res4.Name)
+	ast.Equal(23, res4.Age)
+
+	change4 = Change{
+		Replace: true,
+		Update: bson.M{"name": "Bob", "age": 25},
+		Upsert: true,
+		ReturnNew: false,
+	}
+	projection4 := bson.M{
+		"age": 1,
+		"name": 1,
+	}
+	err = cli.Find(context.Background(), filter4).Sort("age").Select(projection4).Apply(change4, &res4)
+	ast.NoError(err)
+	ast.Equal("Bob", res4.Name)
+	ast.Equal(23, res4.Age)
 }
