@@ -341,7 +341,12 @@ func (q *Query) findOneAndReplace(change Change, result interface{}) error {
 		opts.SetReturnDocument(options.After)
 	}
 
-	return q.collection.FindOneAndReplace(q.ctx, q.filter, change.Update, opts).Decode(result)
+	err := q.collection.FindOneAndReplace(q.ctx, q.filter, change.Update, opts).Decode(result)
+	if change.Upsert && !change.ReturnNew && err == mongo.ErrNoDocuments {
+		return nil
+	}
+
+	return err
 }
 
 // findOneAndUpdate
@@ -361,5 +366,10 @@ func (q *Query) findOneAndUpdate(change Change, result interface{}) error {
 		opts.SetReturnDocument(options.After)
 	}
 
-	return q.collection.FindOneAndUpdate(q.ctx, q.filter, change.Update, opts).Decode(result)
+	err := q.collection.FindOneAndUpdate(q.ctx, q.filter, change.Update, opts).Decode(result)
+	if change.Upsert && !change.ReturnNew && err == mongo.ErrNoDocuments {
+		return nil
+	}
+
+	return err
 }
