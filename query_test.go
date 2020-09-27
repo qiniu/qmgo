@@ -608,11 +608,25 @@ func TestQuery_Apply(t *testing.T) {
 	err = cli.Find(context.Background(), filter1).Apply(change1, &res1)
 	ast.EqualError(err, mongo.ErrNoDocuments.Error())
 
+	change1.ReturnNew = false
+	change1.Upsert = true
+	err = cli.Find(context.Background(), filter1).Apply(change1, &res1)
+	ast.NoError(err)
+	ast.Equal( "", res1.Name)
+	ast.Equal(0, res1.Age)
+
+	change1.Update = bson.M{
+		operator.Set: bson.M{
+			"name": "Tom",
+			"age":  19,
+		},
+	}
+	change1.ReturnNew = true
 	change1.Upsert = true
 	err = cli.Find(context.Background(), filter1).Apply(change1, &res1)
 	ast.NoError(err)
 	ast.Equal( "Tom", res1.Name)
-	ast.Equal(18, res1.Age)
+	ast.Equal(19, res1.Age)
 
 	res2 := QueryTestItem{}
 	filter2 := bson.M{
@@ -677,6 +691,10 @@ func TestQuery_Apply(t *testing.T) {
 	err = cli.Find(context.Background(), filter4).Apply(change4, &res4)
 	ast.EqualError(err, mongo.ErrNoDocuments.Error())
 
+	change4.ReturnNew = true
+	err = cli.Find(context.Background(), filter4).Apply(change4, &res4)
+	ast.EqualError(err, mongo.ErrNoDocuments.Error())
+
 	change4.Upsert = true
 	change4.ReturnNew = true
 	err = cli.Find(context.Background(), filter4).Apply(change4, &res4)
@@ -698,4 +716,20 @@ func TestQuery_Apply(t *testing.T) {
 	ast.NoError(err)
 	ast.Equal("Bob", res4.Name)
 	ast.Equal(23, res4.Age)
+
+
+	res4 = QueryTestItem{}
+	filter4 = bson.M{
+		"name": "James",
+	}
+	change4 = Change{
+		Replace: true,
+		Update: bson.M{"name": "James", "age": 26},
+		Upsert: true,
+		ReturnNew: false,
+	}
+	err = cli.Find(context.Background(), filter4).Apply(change4, &res4)
+	ast.NoError(err)
+	ast.Equal("", res4.Name)
+	ast.Equal(0, res4.Age)
 }
