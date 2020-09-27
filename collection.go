@@ -16,15 +16,17 @@ package qmgo
 import (
 	"context"
 	"fmt"
-	"github.com/qiniu/qmgo/field"
-	"github.com/qiniu/qmgo/hook"
-	opts "github.com/qiniu/qmgo/options"
+	"reflect"
+	"strings"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"
-	"reflect"
-	"strings"
+
+	"github.com/qiniu/qmgo/field"
+	"github.com/qiniu/qmgo/hook"
+	opts "github.com/qiniu/qmgo/options"
 )
 
 // Collection is a handle to a MongoDB collection
@@ -309,7 +311,6 @@ func (c *Collection) Aggregate(ctx context.Context, pipeline interface{}) Aggreg
 func (c *Collection) ensureIndex(ctx context.Context, indexes []opts.IndexModel) error {
 	var indexModels []mongo.IndexModel
 
-	// 组建[]mongo.IndexModel
 	for _, idx := range indexes {
 		var model mongo.IndexModel
 		var keysDoc bsonx.Doc
@@ -375,17 +376,15 @@ func (c *Collection) EnsureIndexes(ctx context.Context, uniques []string, indexe
 // If the Key in opts.IndexModel is []string{"name"}, means create index: name
 // If the Key in opts.IndexModel is []string{"name","-age"} means create Compound indexes: name and -age
 func (c *Collection) CreateIndexes(ctx context.Context, indexes []opts.IndexModel) (err error) {
-	// 创建普通索引
 	err = c.ensureIndex(ctx, indexes)
 	return
 }
 
 // CreateIndex creates one index
 // If the Key in opts.IndexModel is []string{"name"}, means create index name
-// If the Key in opts.IndexModel is []string{"name","-age"} means drop Compound indexes: name and -age
-func (c *Collection) CreateOneIndex(ctx context.Context, indexes opts.IndexModel) error {
-	// 创建普通索引
-	return c.ensureIndex(ctx, []opts.IndexModel{indexes})
+// If the Key in opts.IndexModel is []string{"name","-age"} means create Compound index: name and -age
+func (c *Collection) CreateOneIndex(ctx context.Context, index opts.IndexModel) error {
+	return c.ensureIndex(ctx, []opts.IndexModel{index})
 
 }
 

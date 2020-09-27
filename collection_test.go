@@ -15,13 +15,14 @@ package qmgo
 
 import (
 	"context"
-	"github.com/qiniu/qmgo/options"
 	"testing"
 
-	"github.com/qiniu/qmgo/operator"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+
+	"github.com/qiniu/qmgo/operator"
+	"github.com/qiniu/qmgo/options"
 )
 
 func TestCollection_EnsureIndex(t *testing.T) {

@@ -18,11 +18,12 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/qiniu/qmgo/hook"
-	qOpts "github.com/qiniu/qmgo/options"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"github.com/qiniu/qmgo/hook"
+	qOpts "github.com/qiniu/qmgo/options"
 )
 
 // Query struct definition
@@ -273,4 +274,92 @@ func (q *Query) Cursor() CursorI {
 		cursor: cur,
 		err:    err,
 	}
+}
+
+// Apply runs the findAndModify command, which allows updating, replacing
+// or removing a document matching a query and atomically returning either the old
+// version (the default) or the new version of the document (when ReturnNew is true)
+//
+// The Sort and Select query methods affect the result of Apply. In case
+// multiple documents match the query, Sort enables selecting which document to
+// act upon by ordering it first. Select enables retrieving only a selection
+// of fields of the new or old document.
+//
+// When Change.Replace is true, it means replace at most one document in the collection
+// and the update parameter must be a document and cannot contain any update operators;
+// if no objects are found and Change.Upsert is false, it will returns ErrNoDocuments.
+// When Change.Remove is true, it means delete at most one document in the collection
+// and returns the document as it appeared before deletion; if no objects are found,
+// it will returns ErrNoDocuments.
+// When both Change.Replace and Change.Remove are false，it means update at most one document
+// in the collection and the update parameter must be a document containing update operators;
+// if no objects are found and Change.Upsert is false, it will returns ErrNoDocuments.
+//
+// reference: https://docs.mongodb.com/manual/reference/command/findAndModify/
+func (q *Query) Apply(change Change, result interface{}) error {
+	var err error
+
+	if change.Remove {
+		err = q.findOneAndDelete(change, result)
+	} else if change.Replace {
+		err = q.findOneAndReplace(change, result)
+	} else {
+		err = q.findOneAndUpdate(change, result)
+	}
+
+	return err
+}
+
+// findOneAndDelete
+// reference: https://docs.mongodb.com/manual/reference/method/db.collection.findOneAndDelete/
+func (q *Query) findOneAndDelete(change Change, result interface{}) error {
+	opts := options.FindOneAndDelete()
+	if q.sort != nil {
+		opts.SetSort(q.sort)
+	}
+	if q.project != nil {
+		opts.SetProjection(q.project)
+	}
+
+	return q.collection.FindOneAndDelete(q.ctx, q.filter, opts).Decode(result)
+}
+
+// findOneAndReplace
+// reference: https://docs.mongodb.com/manual/reference/method/db.collection.findOneAndReplace/
+func (q *Query) findOneAndReplace(change Change, result interface{}) error {
+	opts := options.FindOneAndReplace()
+	if q.sort != nil {
+		opts.SetSort(q.sort)
+	}
+	if q.project != nil {
+		opts.SetProjection(q.project)
+	}
+	if change.Upsert {
+		opts.SetUpsert(change.Upsert)
+	}
+	if change.ReturnNew {
+		opts.SetReturnDocument(options.After)
+	}
+
+	return q.collection.FindOneAndReplace(q.ctx, q.filter, change.Update, opts).Decode(result)
+}
+
+// findOneAndUpdate
+// reference: https://docs.mongodb.com/manual/reference/method/db.collection.findOneAndUpdate/
+func (q *Query) findOneAndUpdate(change Change, result interface{}) error {
+	opts := options.FindOneAndUpdate()
+	if q.sort != nil {
+		opts.SetSort(q.sort)
+	}
+	if q.project != nil {
+		opts.SetProjection(q.project)
+	}
+	if change.Upsert {
+		opts.SetUpsert(change.Upsert)
+	}
+	if change.ReturnNew {
+		opts.SetReturnDocument(options.After)
+	}
+
+	return q.collection.FindOneAndUpdate(q.ctx, q.filter, change.Update, opts).Decode(result)
 }
