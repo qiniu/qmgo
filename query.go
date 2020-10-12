@@ -212,20 +212,10 @@ func (q *Query) Distinct(key string, result interface{}) error {
 		return ErrQueryNotSlicePointer
 	}
 
-	sliceVal := resultVal.Elem()
-	if sliceVal.Kind() == reflect.Interface {
-		sliceVal = sliceVal.Elem()
-	}
-	if sliceVal.Kind() != reflect.Slice {
+	resultElmVal := resultVal.Elem()
+	if resultElmVal.Kind() != reflect.Interface && resultElmVal.Kind() != reflect.Slice {
 		return ErrQueryNotSliceType
 	}
-
-	if !resultVal.Elem().CanSet() {
-		return ErrQueryResultValCanNotChange
-	}
-
-	sliceVal = sliceVal.Slice(0, 0)
-	elementType := sliceVal.Type().Elem()
 
 	opt := options.Distinct()
 	res, err := q.collection.Distinct(q.ctx, key, q.filter, opt)
@@ -233,18 +223,19 @@ func (q *Query) Distinct(key string, result interface{}) error {
 		return err
 	}
 
-	for _, v := range res {
-		vValue := reflect.ValueOf(v)
-		vType := vValue.Type()
-
-		if vType != elementType {
-			fmt.Printf("mongo type: %s, result type: %s\n", vType.Name(), elementType.Name())
-			return ErrQueryResultTypeInconsistent
-		}
-		sliceVal = reflect.Append(sliceVal, vValue)
+	valueType, valueBytes, err_ := bson.MarshalValue(res)
+	if err_ != nil {
+		fmt.Printf("bson.MarshalValue err: %+v\n", err_)
+		return err_
 	}
 
-	resultVal.Elem().Set(sliceVal.Slice(0, len(res)))
+	rawValue := bson.RawValue{Type: valueType, Value: valueBytes}
+	err = rawValue.Unmarshal(result)
+	if err != nil {
+		fmt.Printf("rawValue.Unmarshal err: %+v\n", err)
+		return ErrQueryResultTypeInconsistent
+	}
+
 	return nil
 }
 
