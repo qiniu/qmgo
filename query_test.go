@@ -15,7 +15,9 @@ package qmgo
 
 import (
 	"context"
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
@@ -380,11 +382,15 @@ func TestQuery_Distinct(t *testing.T) {
 	id2 := primitive.NewObjectID()
 	id3 := primitive.NewObjectID()
 	id4 := primitive.NewObjectID()
+	id5 := primitive.NewObjectID()
+	id6 := primitive.NewObjectID()
 	docs := []interface{}{
 		bson.M{"_id": id1, "name": "Alice", "age": 18},
 		bson.M{"_id": id2, "name": "Alice", "age": 19},
 		bson.M{"_id": id3, "name": "Lucas", "age": 20},
 		bson.M{"_id": id4, "name": "Lucas", "age": 21},
+		bson.M{"_id": id5, "name": "Kitty", "age": 23, "detail": bson.M{"errInfo": "timeout", "extra": "i/o"}},
+		bson.M{"_id": id6, "name": "Kitty", "age": "23", "detail": bson.M{"errInfo": "timeout", "extra": "i/o"}},
 	}
 	_, _ = cli.InsertMany(context.Background(), docs)
 
@@ -423,11 +429,11 @@ func TestQuery_Distinct(t *testing.T) {
 	err = cli.Find(context.Background(), filter2).Distinct("age", &res5)
 	ast.EqualError(err, ErrQueryResultTypeInconsistent.Error())
 
-	//var res6 []int32
-	//
-	//err = cli.Find(context.Background(), filter2).Distinct("", &res6)
-	//ast.NoError(err)
-	//ast.Equal(0, len(res6))
+	var res6 []int32
+
+	err = cli.Find(context.Background(), filter2).Distinct("", &res6)
+	ast.NoError(err)
+	ast.Equal(0, len(res6))
 
 	var res7 []int32
 	filter3 := 1
@@ -438,14 +444,54 @@ func TestQuery_Distinct(t *testing.T) {
 
 	var res8 interface{}
 
-	res8 = []int32{}
+	res8 = []string{}
 	err = cli.Find(context.Background(), filter2).Distinct("age", &res8)
 	ast.NoError(err)
 	ast.NotNil(res8)
 
-	res9, ok := res8.([]int32)
+	res9, ok := res8.(primitive.A)
 	ast.Equal(true, ok)
 	ast.Len(res9, 2)
+
+	filter4 := bson.M{}
+	var res10 []int32
+	err = cli.Find(context.Background(), filter4).Distinct("detail", &res10)
+	ast.EqualError(err, ErrQueryResultTypeInconsistent.Error())
+
+	type tmpStruct struct {
+		ErrInfo string `bson:"errInfo"`
+		Extra string `bson:"extra"`
+	}
+	var res11 []tmpStruct
+	err = cli.Find(context.Background(), filter4).Distinct("detail", &res11)
+	ast.NoError(err)
+
+	type tmpErrStruct struct {
+		ErrInfo string `bson:"errInfo"`
+		Extra time.Time `bson:"extra"`
+	}
+	var res12 []tmpErrStruct
+	err = cli.Find(context.Background(), filter4).Distinct("detail", &res12)
+	ast.EqualError(err, ErrQueryResultTypeInconsistent.Error())
+
+	var res13 []int32
+	err = cli.Find(context.Background(), filter4).Distinct("age", &res13)
+	ast.EqualError(err, ErrQueryResultTypeInconsistent.Error())
+
+	var res14 []interface{}
+	err = cli.Find(context.Background(), filter4).Distinct("age", &res14)
+	ast.NoError(err)
+	ast.Len(res14, 6)
+	for _, v := range res14 {
+		switch v.(type) {
+		case int32:
+			fmt.Printf("int32 :%d\n", v)
+		case string:
+			fmt.Printf("string :%s\n", v)
+		default:
+			fmt.Printf("defalut err: %v %T\n", v, v)
+		}
+	}
 }
 
 func TestQuery_Select(t *testing.T) {
