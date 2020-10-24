@@ -277,6 +277,84 @@ func TestCollection_Upsert(t *testing.T) {
 	ast.Empty(res)
 }
 
+func TestCollection_UpsertId(t *testing.T) {
+	ast := require.New(t)
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
+	cli.EnsureIndexes(context.Background(), []string{"name"}, nil)
+
+	id1 := primitive.NewObjectID()
+	id2 := primitive.NewObjectID()
+	docs := []interface{}{
+		bson.D{{Key: "_id", Value: id1}, {Key: "name", Value: "Alice"}},
+		bson.D{{Key: "_id", Value: id2}, {Key: "name", Value: "Lucas"}},
+	}
+	_, _ = cli.InsertMany(context.Background(), docs)
+
+	var err error
+
+	// replace already exist
+	replacement1 := bson.M{
+		"name": "Alice1",
+		"age":  18,
+	}
+	res, err := cli.UpsertId(context.Background(), id1, replacement1)
+	ast.NoError(err)
+	ast.NotEmpty(res)
+	ast.Equal(int64(1), res.MatchedCount)
+	ast.Equal(int64(1), res.ModifiedCount)
+	ast.Equal(int64(0), res.UpsertedCount)
+	ast.Equal(nil, res.UpsertedID)
+
+	// not exist filter id
+	replacement2 := bson.M{
+		"name": "Lily",
+		"age":  20,
+	}
+	id3 := primitive.NewObjectID()
+	res, err = cli.UpsertId(context.Background(), id3, replacement2)
+	ast.NoError(err)
+	ast.NotEmpty(res)
+	ast.Equal(int64(0), res.MatchedCount)
+	ast.Equal(int64(0), res.ModifiedCount)
+	ast.Equal(int64(1), res.UpsertedCount)
+	ast.Equal(id3, res.UpsertedID) // id3 will insert into the inserted document
+
+	// filter with id different from id in document, error
+	id4 := primitive.NewObjectID()
+	replacement3 := bson.M{
+		"_id":  id4,
+		"name": "Joe",
+		"age":  20,
+	}
+	id5 := primitive.NewObjectID()
+	res, err = cli.UpsertId(context.Background(), id5, replacement3)
+	ast.Error(err)
+
+	// filter is nil
+	replacement4 := bson.M{
+		"name": "Geek",
+		"age":  21,
+	}
+	res, err = cli.UpsertId(context.Background(), nil, replacement4)
+	ast.NoError(err)
+	ast.NotEmpty(res)
+	ast.Equal(int64(0), res.MatchedCount)
+	ast.Equal(int64(0), res.ModifiedCount)
+	ast.Equal(int64(1), res.UpsertedCount)
+	ast.Nil(res.UpsertedID)
+
+	// replacement is nil or wrong BSON Document format
+	res, err = cli.UpsertId(context.Background(), id1, nil)
+	ast.Error(err)
+	ast.Empty(res)
+
+	res, err = cli.UpsertId(context.Background(), id1, 1)
+	ast.Error(err)
+	ast.Empty(res)
+}
+
 func TestCollection_Update(t *testing.T) {
 	ast := require.New(t)
 	cli := initClient("test")
@@ -338,6 +416,50 @@ func TestCollection_Update(t *testing.T) {
 	ast.Error(err)
 
 	err = cli.UpdateOne(context.Background(), filter4, 1)
+	ast.Error(err)
+}
+
+func TestCollection_UpdateId(t *testing.T) {
+	ast := require.New(t)
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
+	cli.EnsureIndexes(context.Background(), []string{"name"}, nil)
+
+	id1 := primitive.NewObjectID()
+	id2 := primitive.NewObjectID()
+	docs := []interface{}{
+		bson.D{{Key: "_id", Value: id1}, {Key: "name", Value: "Alice"}},
+		bson.D{{Key: "_id", Value: id2}, {Key: "name", Value: "Lucas"}},
+	}
+	_, _ = cli.InsertMany(context.Background(), docs)
+
+	var err error
+	// update already exist record
+	update1 := bson.M{
+		operator.Set: bson.M{
+			"name": "Alice1",
+			"age":  18,
+		},
+	}
+	err = cli.UpdateId(context.Background(), id1, update1)
+	ast.NoError(err)
+
+	// id is nil or not exist
+	update3 := bson.M{
+		"name": "Geek",
+		"age":  21,
+	}
+	err = cli.UpdateId(context.Background(), nil, update3)
+	ast.Error(err)
+
+	err = cli.UpdateId(context.Background(), 1, update3)
+	ast.Error(err)
+
+	err = cli.UpdateId(context.Background(), "not_exist_id", nil)
+	ast.Error(err)
+
+	err = cli.UpdateId(context.Background(), "not_exist_id", 1)
 	ast.Error(err)
 }
 

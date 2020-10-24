@@ -167,7 +167,7 @@ func TestUpdateHook(t *testing.T) {
 
 	u := UserHook{Name: "Lucas", Age: 7}
 	uh := &MyUpdateHook{}
-	_, err := cli.InsertOne(context.Background(), u)
+	res, err := cli.InsertOne(context.Background(), u)
 	ast.NoError(err)
 
 	err = cli.UpdateOne(ctx, bson.M{"name": "Lucas"}, bson.M{operator.Set: bson.M{"age": 27}}, options.UpdateOptions{
@@ -176,6 +176,13 @@ func TestUpdateHook(t *testing.T) {
 	ast.NoError(err)
 	ast.Equal(1, uh.beforeUpdateCount)
 	ast.Equal(1, uh.afterUpdateCount)
+
+	err = cli.UpdateId(ctx, res.InsertedID, bson.M{operator.Set: bson.M{"age": 27}}, options.UpdateOptions{
+		UpdateHook: uh,
+	})
+	ast.NoError(err)
+	ast.Equal(2, uh.beforeUpdateCount)
+	ast.Equal(2, uh.afterUpdateCount)
 
 	err = cli.ReplaceOne(ctx, bson.M{"name": "Lucas"}, &u)
 	ast.NoError(err)
@@ -193,8 +200,8 @@ func TestUpdateHook(t *testing.T) {
 		UpdateHook: uh,
 	})
 	ast.NoError(err)
-	ast.Equal(2, uh.beforeUpdateCount)
-	ast.Equal(2, uh.afterUpdateCount)
+	ast.Equal(3, uh.beforeUpdateCount)
+	ast.Equal(3, uh.afterUpdateCount)
 }
 
 type MyRemoveHook struct {
@@ -259,7 +266,7 @@ func TestUpsertHook(t *testing.T) {
 
 	afterInsertCount = 0
 	u := &UserHook{Name: "Lucas", Age: 7}
-	_, err := cli.InsertOne(context.Background(), u, options.InsertOneOptions{
+	res, err := cli.InsertOne(context.Background(), u, options.InsertOneOptions{
 		InsertHook: u,
 	})
 	ast.NoError(err)
@@ -270,6 +277,12 @@ func TestUpsertHook(t *testing.T) {
 
 	ast.Equal(1, u.beforeCount)
 	ast.Equal(1, u.afterCount)
+
+	_, err = cli.UpsertId(context.Background(), res.InsertedID, u)
+	ast.NoError(err)
+
+	ast.Equal(2, u.beforeCount)
+	ast.Equal(2, u.afterCount)
 }
 
 type MyErrorHook struct {
