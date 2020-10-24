@@ -31,6 +31,7 @@ type Query struct {
 	filter  interface{}
 	sort    interface{}
 	project interface{}
+	hint    interface{}
 	limit   *int64
 	skip    *int64
 
@@ -52,16 +53,9 @@ func (q *Query) Sort(fields ...string) QueryI {
 		}
 		sorts = append(sorts, bson.E{Key: key, Value: n})
 	}
-
-	return &Query{
-		ctx:        q.ctx,
-		collection: q.collection,
-		filter:     q.filter,
-		sort:       sorts,
-		project:    q.project,
-		limit:      q.limit,
-		skip:       q.skip,
-	}
+	newQ := q
+	newQ.sort = sorts
+	return newQ
 }
 
 // Select is used to determine which fields are displayed or not displayed in the returned results
@@ -69,28 +63,25 @@ func (q *Query) Sort(fields ...string) QueryI {
 // bson.M{"age": 0} means to display other fields except age
 // When _id is not displayed and is set to 0, it will be returned to display
 func (q *Query) Select(projection interface{}) QueryI {
-	return &Query{
-		ctx:        q.ctx,
-		collection: q.collection,
-		filter:     q.filter,
-		sort:       q.sort,
-		project:    projection,
-		limit:      q.limit,
-		skip:       q.skip,
-	}
+	newQ := q
+	newQ.project = projection
+	return newQ
 }
 
 // Skip skip n records
 func (q *Query) Skip(n int64) QueryI {
-	return &Query{
-		ctx:        q.ctx,
-		collection: q.collection,
-		filter:     q.filter,
-		sort:       q.sort,
-		project:    q.project,
-		limit:      q.limit,
-		skip:       &n,
-	}
+	newQ := q
+	newQ.skip = &n
+	return newQ
+}
+
+// Hint sets the value for the Hint field.
+// This should either be the index name as a string or the index specification
+// as a document. The default value is nil, which means that no hint will be sent.
+func (q *Query) Hint(hint interface{}) QueryI {
+	newQ := q
+	newQ.hint = hint
+	return newQ
 }
 
 // Limit limits the maximum number of documents found to n
@@ -98,15 +89,9 @@ func (q *Query) Skip(n int64) QueryI {
 // When the limit value is less than 0, the negative limit is similar to the positive limit, but the cursor is closed after returning a single batch result.
 // Reference https://docs.mongodb.com/manual/reference/method/cursor.limit/index.html
 func (q *Query) Limit(n int64) QueryI {
-	return &Query{
-		ctx:        q.ctx,
-		collection: q.collection,
-		filter:     q.filter,
-		sort:       q.sort,
-		project:    q.project,
-		limit:      &n,
-		skip:       q.skip,
-	}
+	newQ := q
+	newQ.limit = &n
+	return newQ
 }
 
 // One query a record that meets the filter conditions
@@ -127,6 +112,9 @@ func (q *Query) One(result interface{}) error {
 	}
 	if q.skip != nil {
 		opt.SetSkip(*q.skip)
+	}
+	if q.hint != nil {
+		opt.SetHint(q.hint)
 	}
 
 	err := q.collection.FindOne(q.ctx, q.filter, opt).Decode(result)
@@ -163,6 +151,9 @@ func (q *Query) All(result interface{}) error {
 	}
 	if q.skip != nil {
 		opt.SetSkip(*q.skip)
+	}
+	if q.hint != nil {
+		opt.SetHint(q.hint)
 	}
 
 	var err error

@@ -460,15 +460,15 @@ func TestQuery_Distinct(t *testing.T) {
 
 	type tmpStruct struct {
 		ErrInfo string `bson:"errInfo"`
-		Extra string `bson:"extra"`
+		Extra   string `bson:"extra"`
 	}
 	var res11 []tmpStruct
 	err = cli.Find(context.Background(), filter4).Distinct("detail", &res11)
 	ast.NoError(err)
 
 	type tmpErrStruct struct {
-		ErrInfo string `bson:"errInfo"`
-		Extra time.Time `bson:"extra"`
+		ErrInfo string    `bson:"errInfo"`
+		Extra   time.Time `bson:"extra"`
 	}
 	var res12 []tmpErrStruct
 	err = cli.Find(context.Background(), filter4).Distinct("detail", &res12)
@@ -613,6 +613,53 @@ func TestQuery_Cursor(t *testing.T) {
 	ast.Error(cursor.Err())
 }
 
+func TestQuery_Hint(t *testing.T) {
+	ast := require.New(t)
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
+	cli.EnsureIndexes(context.Background(), nil, []string{"name", "age"})
+
+	id1 := primitive.NewObjectID()
+	id2 := primitive.NewObjectID()
+	id3 := primitive.NewObjectID()
+	id4 := primitive.NewObjectID()
+	docs := []interface{}{
+		bson.M{"_id": id1, "name": "Alice", "age": 18},
+		bson.M{"_id": id2, "name": "Alice", "age": 19},
+		bson.M{"_id": id3, "name": "Lucas", "age": 20},
+		bson.M{"_id": id4, "name": "Lucas", "age": 21},
+	}
+	_, _ = cli.InsertMany(context.Background(), docs)
+
+	var err error
+	var res []QueryTestItem
+
+	filter1 := bson.M{
+		"name": "Alice",
+		"age":  18,
+	}
+
+	// index name as hint
+	err = cli.Find(context.Background(), filter1).Hint("age_1").All(&res)
+	ast.NoError(err)
+	ast.Equal(1, len(res))
+
+	// index name as hint
+	var resOne QueryTestItem
+	err = cli.Find(context.Background(), filter1).Hint("name_1").One(&resOne)
+	ast.NoError(err)
+
+	// not index name as hint
+	err = cli.Find(context.Background(), filter1).Hint("age").All(&res)
+	ast.Error(err)
+
+	// nil hint
+	err = cli.Find(context.Background(), filter1).Hint(nil).All(&res)
+	ast.NoError(err)
+
+}
+
 func TestQuery_Apply(t *testing.T) {
 	ast := require.New(t)
 	cli := initClient("test")
@@ -635,8 +682,7 @@ func TestQuery_Apply(t *testing.T) {
 	filter1 := bson.M{
 		"name": "Tom",
 	}
-	change1 := Change{
-	}
+	change1 := Change{}
 
 	err = cli.Find(context.Background(), filter1).Apply(change1, &res1)
 	ast.EqualError(err, mongo.ErrNilDocument.Error())
@@ -658,7 +704,7 @@ func TestQuery_Apply(t *testing.T) {
 	change1.Upsert = true
 	err = cli.Find(context.Background(), filter1).Apply(change1, &res1)
 	ast.NoError(err)
-	ast.Equal( "", res1.Name)
+	ast.Equal("", res1.Name)
 	ast.Equal(0, res1.Age)
 
 	change1.Update = bson.M{
@@ -671,7 +717,7 @@ func TestQuery_Apply(t *testing.T) {
 	change1.Upsert = true
 	err = cli.Find(context.Background(), filter1).Apply(change1, &res1)
 	ast.NoError(err)
-	ast.Equal( "Tom", res1.Name)
+	ast.Equal("Tom", res1.Name)
 	ast.Equal(19, res1.Age)
 
 	res2 := QueryTestItem{}
@@ -680,7 +726,7 @@ func TestQuery_Apply(t *testing.T) {
 	}
 	change2 := Change{
 		ReturnNew: true,
-		Update:  bson.M{
+		Update: bson.M{
 			operator.Set: bson.M{
 				"name": "Alice",
 				"age":  22,
@@ -723,7 +769,7 @@ func TestQuery_Apply(t *testing.T) {
 	}
 	change4 := Change{
 		Replace: true,
-		Update:  bson.M{
+		Update: bson.M{
 			operator.Set: bson.M{
 				"name": "Bob",
 				"age":  23,
@@ -749,13 +795,13 @@ func TestQuery_Apply(t *testing.T) {
 	ast.Equal(23, res4.Age)
 
 	change4 = Change{
-		Replace: true,
-		Update: bson.M{"name": "Bob", "age": 25},
-		Upsert: true,
+		Replace:   true,
+		Update:    bson.M{"name": "Bob", "age": 25},
+		Upsert:    true,
 		ReturnNew: false,
 	}
 	projection4 := bson.M{
-		"age": 1,
+		"age":  1,
 		"name": 1,
 	}
 	err = cli.Find(context.Background(), filter4).Sort("age").Select(projection4).Apply(change4, &res4)
@@ -763,15 +809,14 @@ func TestQuery_Apply(t *testing.T) {
 	ast.Equal("Bob", res4.Name)
 	ast.Equal(23, res4.Age)
 
-
 	res4 = QueryTestItem{}
 	filter4 = bson.M{
 		"name": "James",
 	}
 	change4 = Change{
-		Replace: true,
-		Update: bson.M{"name": "James", "age": 26},
-		Upsert: true,
+		Replace:   true,
+		Update:    bson.M{"name": "James", "age": 26},
+		Upsert:    true,
 		ReturnNew: false,
 	}
 	err = cli.Find(context.Background(), filter4).Apply(change4, &res4)

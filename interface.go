@@ -31,7 +31,7 @@ package qmgo
 // Change holds fields for running a findAndModify command via the Query.Apply method.
 type Change struct {
 	Update    interface{} // update/replace document
-	Replace   bool 		  // Whether to replace the document rather than updating
+	Replace   bool        // Whether to replace the document rather than updating
 	Remove    bool        // Whether to remove the document found rather than updating
 	Upsert    bool        // Whether to insert in case the document isn't found, take effect when Remove is false
 	ReturnNew bool        // Should the modified document be returned rather than the old one, take effect when Remove is false
@@ -58,6 +58,7 @@ type QueryI interface {
 	Distinct(key string, result interface{}) error
 	Cursor() CursorI
 	Apply(change Change, result interface{}) error
+	Hint(hint interface{}) QueryI
 }
 
 // AggregateI define the interface of aggregate
