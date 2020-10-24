@@ -411,6 +411,11 @@ func TestHookErr(t *testing.T) {
 	ast.Equal(2, myHook.beforeUCount)
 	ast.Equal(1, myHook.afterUCount)
 
+	err = cli.UpdateId(ctx, bson.M{"name": "Lucas"}, bson.M{operator.Set: bson.M{"age": 27}}, options.UpdateOptions{
+		UpdateHook: myHook,
+	})
+	ast.Error(err)
+
 	err = cli.Find(ctx, bson.M{"age": 27}, options.FindOptions{
 		QueryHook: myHook,
 	}).One(u)
@@ -452,5 +457,11 @@ func TestHookErr(t *testing.T) {
 	ast.Error(err)
 	ast.Equal(2, myHook.beforeUsCount)
 	ast.Equal(1, myHook.afterUsCount)
+
+	myUpsertHook := &MyErrorHook{}
+	_, err = cli.UpsertId(ctx, bson.M{"name": "Lucas"}, u, options.UpsertOptions{
+		UpsertHook: myUpsertHook,
+	})
+	ast.Error(err)
 
 }
