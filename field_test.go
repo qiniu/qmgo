@@ -191,7 +191,7 @@ func TestFieldUpsertId(t *testing.T) {
 	u.UpdateAt = tBefore3s
 	u.CreateTimeAt = tBefore3s
 	u.UpdateTimeAt = tBefore3s.Unix()
-	result, err := cli.UpsertId(ctx, id, u)
+	_, err = cli.UpsertId(ctx, id, u)
 	ast.NoError(err)
 
 	ui := UserField{}
