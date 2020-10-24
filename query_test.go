@@ -645,6 +645,11 @@ func TestQuery_Hint(t *testing.T) {
 	ast.NoError(err)
 	ast.Equal(1, len(res))
 
+	// index name as hint
+	var resOne QueryTestItem
+	err = cli.Find(context.Background(), filter1).Hint("name_1").One(&resOne)
+	ast.NoError(err)
+
 	// not index name as hint
 	err = cli.Find(context.Background(), filter1).Hint("age").All(&res)
 	ast.Error(err)
