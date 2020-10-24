@@ -363,7 +363,6 @@ func (c *Collection) Aggregate(ctx context.Context, pipeline interface{}) Aggreg
 // Reference: https://docs.mongodb.com/manual/reference/command/createIndexes/
 func (c *Collection) ensureIndex(ctx context.Context, indexes []opts.IndexModel) error {
 	var indexModels []mongo.IndexModel
-	fmt.Println(indexes)
 	for _, idx := range indexes {
 		var model mongo.IndexModel
 		var keysDoc bsonx.Doc
