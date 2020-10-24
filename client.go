@@ -157,7 +157,8 @@ func client(ctx context.Context, conf *Config, o ...*options.ClientOptions) (cli
 		fmt.Println(err)
 		return
 	}
-	pCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	// half of default connect timeout
+	pCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 	if err = client.Ping(pCtx, readpref.Primary()); err != nil {
 		fmt.Println(err)

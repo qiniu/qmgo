@@ -119,7 +119,7 @@ func interfaceToSliceInterface(docs interface{}) []interface{} {
 	return sDocs
 }
 
-// Upsert updates one documents if filter match, inserts one document if filter is not match
+// Upsert updates one documents if filter match, inserts one document if filter is not match, Error when the filter is invalid
 // The replacement parameter must be a document that will be used to replace the selected document. It cannot be nil
 // and cannot contain any update operators
 // Reference: https://docs.mongodb.com/manual/reference/operator/update/
@@ -148,6 +148,35 @@ func (c *Collection) Upsert(ctx context.Context, filter interface{}, replacement
 	return
 }
 
+// UpsertId updates one documents if id match, inserts one document if id is not match and the id will inject into the document
+// The replacement parameter must be a document that will be used to replace the selected document. It cannot be nil
+// and cannot contain any update operators
+// Reference: https://docs.mongodb.com/manual/reference/operator/update/
+func (c *Collection) UpsertId(ctx context.Context, id interface{}, replacement interface{}, opts ...opts.UpsertOptions) (result *UpdateResult, err error) {
+	h := replacement
+	if len(opts) > 0 && opts[0].UpsertHook != nil {
+		h = opts[0].UpsertHook
+	}
+	if err = hook.Do(h, hook.BeforeUpsert); err != nil {
+		return
+	}
+	if err = field.Do(replacement, field.BeforeUpsert); err != nil {
+		return
+	}
+	officialOpts := options.Replace().SetUpsert(true)
+	res, err := c.collection.ReplaceOne(ctx, bson.M{"_id": id}, replacement, officialOpts)
+	if res != nil {
+		result = translateUpdateResult(res)
+	}
+	if err != nil {
+		return
+	}
+	if err = hook.Do(h, hook.AfterUpsert); err != nil {
+		return
+	}
+	return
+}
+
 // UpdateOne executes an update command to update at most one document in the collection.
 // Reference: https://docs.mongodb.com/manual/reference/operator/update/
 func (c *Collection) UpdateOne(ctx context.Context, filter interface{}, update interface{}, opts ...opts.UpdateOptions) (err error) {
@@ -158,6 +187,30 @@ func (c *Collection) UpdateOne(ctx context.Context, filter interface{}, update i
 	}
 
 	res, err := c.collection.UpdateOne(ctx, filter, update)
+	if res != nil && res.MatchedCount == 0 {
+		err = ErrNoSuchDocuments
+	}
+	if err != nil {
+		return err
+	}
+	if len(opts) > 0 && opts[0].UpdateHook != nil {
+		if err = hook.Do(opts[0].UpdateHook, hook.AfterUpdate); err != nil {
+			return
+		}
+	}
+	return err
+}
+
+// UpdateId executes an update command to update at most one document in the collection.
+// Reference: https://docs.mongodb.com/manual/reference/operator/update/
+func (c *Collection) UpdateId(ctx context.Context, id interface{}, update interface{}, opts ...opts.UpdateOptions) (err error) {
+	if len(opts) > 0 && opts[0].UpdateHook != nil {
+		if err = hook.Do(opts[0].UpdateHook, hook.BeforeUpdate); err != nil {
+			return
+		}
+	}
+
+	res, err := c.collection.UpdateOne(ctx, bson.M{"_id": id}, update)
 	if res != nil && res.MatchedCount == 0 {
 		err = ErrNoSuchDocuments
 	}

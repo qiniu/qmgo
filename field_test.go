@@ -40,7 +40,7 @@ func (u *UserField) CustomFields() field.CustomFieldsBuilder {
 	return field.NewCustom().SetCreateAt("CreateTimeAt").SetUpdateAt("UpdateTimeAt").SetId("MyId")
 }
 
-func TestInsertField(t *testing.T) {
+func TestFieldInsert(t *testing.T) {
 	ast := require.New(t)
 	cli := initClient("test")
 	ctx := context.Background()
@@ -99,7 +99,7 @@ func TestFieldInsertMany(t *testing.T) {
 	ast.NotEqual(int64(0), ur[0].UpdateTimeAt)
 }
 
-func TestUpdateDoc(t *testing.T) {
+func TestFieldUpdate(t *testing.T) {
 	ast := require.New(t)
 	cli := initClient("test")
 	defer cli.Close(context.Background())
@@ -128,7 +128,7 @@ func TestUpdateDoc(t *testing.T) {
 
 }
 
-func TestUpsertField(t *testing.T) {
+func TestFieldUpsert(t *testing.T) {
 	ast := require.New(t)
 	cli := initClient("test")
 	ctx := context.Background()
@@ -167,4 +167,63 @@ func TestUpsertField(t *testing.T) {
 	ast.NotEqual(tBefore3s.Unix(), ui.UpdateAt.Unix())
 	ast.NotEqual(tBefore3s.Unix(), ui.UpdateTimeAt)
 
+}
+
+func TestFieldUpsertId(t *testing.T) {
+	ast := require.New(t)
+	cli := initClient("test")
+	ctx := context.Background()
+	defer cli.Close(ctx)
+	defer cli.DropCollection(ctx)
+
+	u := &UserField{Name: "Lucas", Age: 7}
+	id := primitive.NewObjectID()
+	u.Id = id
+	id_1 := primitive.NewObjectID()
+	u.MyId = id_1.String()
+	_, err := cli.InsertOne(context.Background(), u)
+	ast.NoError(err)
+
+	time.Sleep(2 * time.Second)
+	u.Age = 17
+	tBefore3s := time.Now().Add(-3 * time.Second).Local()
+	u.CreateAt = tBefore3s
+	u.UpdateAt = tBefore3s
+	u.CreateTimeAt = tBefore3s
+	u.UpdateTimeAt = tBefore3s.Unix()
+	_, err = cli.UpsertId(ctx, id, u)
+	ast.NoError(err)
+
+	ui := UserField{}
+	err = cli.Find(ctx, bson.M{"_id": id}).One(&ui)
+
+	ast.NoError(err)
+	ast.Equal(u.Age, ui.Age)
+	ast.Equal(id, ui.Id)
+	ast.Equal(id_1.String(), ui.MyId)
+	ast.Equal(tBefore3s.Unix(), ui.CreateAt.Unix())
+	ast.Equal(tBefore3s.Unix(), ui.CreateTimeAt.Unix())
+	ast.NotEqual(tBefore3s.Unix(), ui.UpdateAt.Unix())
+	ast.NotEqual(tBefore3s.Unix(), ui.UpdateTimeAt)
+}
+
+func TestFieldUpdateId(t *testing.T) {
+	ast := require.New(t)
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
+	cli.EnsureIndexes(context.Background(), []string{"name"}, nil)
+
+	ui := &UserField{Name: "Lucas", Age: 17}
+	res, err := cli.InsertOne(context.Background(), ui)
+	ast.NoError(err)
+
+	err = cli.UpdateId(context.Background(), res.InsertedID, bson.M{"$set": bson.M{"updateTimeAt": 0, "updateAt": time.Time{}}})
+	ast.NoError(err)
+
+	findUi := UserField{}
+	err = cli.Find(context.Background(), bson.M{"name": "Lucas"}).One(&findUi)
+	ast.NoError(err)
+	ast.Equal(int64(0), findUi.UpdateTimeAt)
+	ast.Equal(time.Time{}, findUi.UpdateAt)
 }
