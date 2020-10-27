@@ -11,7 +11,7 @@ English | [简体中文](README_ZH.md)
 
 `Qmgo` is a `MongoDB` `driver` for `Go` . It is based on [MongoDB official driver](https://github.com/mongodb/mongo-go-driver), but easier to use like [mgo](https://github.com/go-mgo/mgo) (such as the chain call). 
 
-- `Qmgo` can allow user to use the new features of `MongoDB` in a more elegant way.
+- `Qmgo` allow user to use the new features of `MongoDB` in a more elegant way.
 
 - `Qmgo` is the first choice for migrating from `mgo` to the new `MongoDB driver` with minimal code changes.
 
