@@ -189,7 +189,7 @@ func TestUpdateHook(t *testing.T) {
 	ast.Equal(1, u.beforeCount)
 	ast.Equal(1, u.afterCount)
 
-	err = cli.ReplaceOne(ctx, bson.M{"name": "Lucas"}, &u, options.UpdateOptions{
+	err = cli.ReplaceOne(ctx, bson.M{"name": "Lucas"}, &u, options.ReplaceOptions{
 		UpdateHook: &u,
 	})
 	ast.NoError(err)
