@@ -17,12 +17,12 @@ import (
 	"context"
 	"testing"
 
+	"github.com/qiniu/qmgo/operator"
+	"github.com/qiniu/qmgo/options"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-
-	"github.com/qiniu/qmgo/operator"
-	"github.com/qiniu/qmgo/options"
+	officialOpts "go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func TestCollection_EnsureIndex(t *testing.T) {
@@ -157,7 +157,9 @@ func TestCollection_Insert(t *testing.T) {
 	var err error
 	doc := bson.M{"_id": primitive.NewObjectID(), "name": "Alice"}
 
-	res, err := cli.InsertOne(context.Background(), doc)
+	opts := options.InsertOneOptions{}
+	opts.InsertOneOptions = officialOpts.InsertOne().SetBypassDocumentValidation(true)
+	res, err := cli.InsertOne(context.Background(), doc, opts)
 	ast.NoError(err)
 	ast.NotEmpty(res)
 	ast.Equal(doc["_id"], res.InsertedID)
@@ -191,7 +193,9 @@ func TestCollection_InsertMany(t *testing.T) {
 		{Name: "Alice"},
 		{Name: "Lucas"},
 	}
-	res, err = cli.InsertMany(context.Background(), docs2)
+	opts := options.InsertManyOptions{}
+	opts.InsertManyOptions = officialOpts.InsertMany().SetBypassDocumentValidation(true)
+	res, err = cli.InsertMany(context.Background(), docs2, opts)
 	ast.Equal(true, IsDup(err))
 	ast.Equal(0, len(res.InsertedIDs))
 
@@ -227,7 +231,9 @@ func TestCollection_Upsert(t *testing.T) {
 		"name": "Alice1",
 		"age":  18,
 	}
-	res, err := cli.Upsert(context.Background(), filter1, replacement1)
+	opts := options.UpsertOptions{}
+	opts.ReplaceOptions = officialOpts.Replace()
+	res, err := cli.Upsert(context.Background(), filter1, replacement1, opts)
 	ast.NoError(err)
 	ast.NotEmpty(res)
 	ast.Equal(int64(1), res.MatchedCount)
@@ -313,7 +319,9 @@ func TestCollection_UpsertId(t *testing.T) {
 		"age":  20,
 	}
 	id3 := primitive.NewObjectID()
-	res, err = cli.UpsertId(context.Background(), id3, replacement2)
+	opts := options.UpsertOptions{}
+	opts.ReplaceOptions = officialOpts.Replace()
+	res, err = cli.UpsertId(context.Background(), id3, replacement2, opts)
 	ast.NoError(err)
 	ast.NotEmpty(res)
 	ast.Equal(int64(0), res.MatchedCount)
@@ -381,7 +389,9 @@ func TestCollection_Update(t *testing.T) {
 			"age":  18,
 		},
 	}
-	err = cli.UpdateOne(context.Background(), filter1, update1)
+	opts := options.UpdateOptions{}
+	opts.UpdateOptions = officialOpts.Update().SetHint("name_1")
+	err = cli.UpdateOne(context.Background(), filter1, update1, opts)
 	ast.NoError(err)
 
 	// error when not exist
@@ -442,7 +452,9 @@ func TestCollection_UpdateId(t *testing.T) {
 			"age":  18,
 		},
 	}
-	err = cli.UpdateId(context.Background(), id1, update1)
+	opts := options.UpdateOptions{}
+	opts.UpdateOptions = officialOpts.Update().SetHint("name_1")
+	err = cli.UpdateId(context.Background(), id1, update1, opts)
 	ast.NoError(err)
 
 	// id is nil or not exist
@@ -490,7 +502,9 @@ func TestCollection_UpdateAll(t *testing.T) {
 			"age": 33,
 		},
 	}
-	res, err := cli.UpdateAll(context.Background(), filter1, update1)
+	opts := options.UpdateOptions{}
+	opts.UpdateOptions = officialOpts.Update().SetHint("name_1")
+	res, err := cli.UpdateAll(context.Background(), filter1, update1, opts)
 	ast.NoError(err)
 	ast.NotEmpty(res)
 	ast.Equal(int64(2), res.MatchedCount)
@@ -572,7 +586,9 @@ func TestCollection_Remove(t *testing.T) {
 	filter1 := bson.M{
 		"name": "Alice",
 	}
-	err = cli.Remove(context.Background(), filter1)
+	opts := options.RemoveOptions{}
+	opts.DeleteOptions = officialOpts.Delete().SetHint("name_1")
+	err = cli.Remove(context.Background(), filter1, opts)
 	ast.NoError(err)
 
 	cnt, err := cli.Find(context.Background(), filter1).Count()
@@ -607,7 +623,7 @@ func TestCollection_Remove(t *testing.T) {
 	ast.Error(err)
 }
 
-func TestCollection_DeleteAll(t *testing.T) {
+func TestCollection_RemoveAll(t *testing.T) {
 	ast := require.New(t)
 	cli := initClient("test")
 	defer cli.Close(context.Background())
@@ -631,7 +647,9 @@ func TestCollection_DeleteAll(t *testing.T) {
 	filter1 := bson.M{
 		"name": "Alice",
 	}
-	res, err := cli.RemoveAll(context.Background(), filter1)
+	opts := options.RemoveOptions{}
+	opts.DeleteOptions = officialOpts.Delete().SetHint("name_1")
+	res, err := cli.RemoveAll(context.Background(), filter1, opts)
 	ast.NoError(err)
 	ast.NotNil(res)
 	ast.Equal(int64(2), res.DeletedCount)
@@ -718,7 +736,9 @@ func TestCollection_ReplaceOne(t *testing.T) {
 	ast.NoError(err)
 	ast.Equal(ui.Age, findUi.Age)
 
-	err = cli.ReplaceOne(context.Background(), bson.M{"_id": "notexist"}, &ui)
+	opts := options.ReplaceOptions{}
+	opts.ReplaceOptions = officialOpts.Replace()
+	err = cli.ReplaceOne(context.Background(), bson.M{"_id": "notexist"}, &ui, opts)
 	ast.Equal(ErrNoSuchDocuments, err)
 
 	err = cli.ReplaceOne(context.Background(), bson.M{"_id": "notexist"}, nil)

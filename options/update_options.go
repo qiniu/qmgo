@@ -13,6 +13,24 @@
 
 package options
 
+import "go.mongodb.org/mongo-driver/mongo/options"
+
 type UpdateOptions struct {
 	UpdateHook interface{}
+	*options.UpdateOptions
+}
+
+func UpdateOption(opts UpdateOptions, options *options.UpdateOptions) {
+	if opts.Hint != nil {
+		options.SetHint(opts.Hint)
+	}
+	if opts.BypassDocumentValidation != nil {
+		options.SetBypassDocumentValidation(*opts.BypassDocumentValidation)
+	}
+	if opts.Collation != nil {
+		options.SetCollation(opts.Collation)
+	}
+	if opts.ArrayFilters != nil {
+		options.SetArrayFilters(*opts.ArrayFilters)
+	}
 }
