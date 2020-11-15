@@ -390,7 +390,7 @@ func TestCollection_Update(t *testing.T) {
 		},
 	}
 	opts := options.UpdateOptions{}
-	opts.UpdateOptions = officialOpts.Update().SetHint("name_1")
+	opts.UpdateOptions = officialOpts.Update().SetHint(bson.M{"name": 1})
 	err = cli.UpdateOne(context.Background(), filter1, update1, opts)
 	ast.NoError(err)
 
@@ -453,7 +453,7 @@ func TestCollection_UpdateId(t *testing.T) {
 		},
 	}
 	opts := options.UpdateOptions{}
-	opts.UpdateOptions = officialOpts.Update().SetHint("name_1")
+	opts.UpdateOptions = officialOpts.Update().SetHint(bson.M{"name": 1})
 	err = cli.UpdateId(context.Background(), id1, update1, opts)
 	ast.NoError(err)
 
@@ -503,7 +503,7 @@ func TestCollection_UpdateAll(t *testing.T) {
 		},
 	}
 	opts := options.UpdateOptions{}
-	opts.UpdateOptions = officialOpts.Update().SetHint("name_1")
+	opts.UpdateOptions = officialOpts.Update().SetHint(bson.M{"name": 1})
 	res, err := cli.UpdateAll(context.Background(), filter1, update1, opts)
 	ast.NoError(err)
 	ast.NotEmpty(res)
@@ -587,7 +587,7 @@ func TestCollection_Remove(t *testing.T) {
 		"name": "Alice",
 	}
 	opts := options.RemoveOptions{}
-	opts.DeleteOptions = officialOpts.Delete().SetHint("name_1")
+	opts.DeleteOptions = officialOpts.Delete().SetHint(bson.M{"name": 1})
 	err = cli.Remove(context.Background(), filter1, opts)
 	ast.NoError(err)
 
@@ -648,7 +648,7 @@ func TestCollection_RemoveAll(t *testing.T) {
 		"name": "Alice",
 	}
 	opts := options.RemoveOptions{}
-	opts.DeleteOptions = officialOpts.Delete().SetHint("name_1")
+	opts.DeleteOptions = officialOpts.Delete().SetHint(bson.M{"name": 1})
 	res, err := cli.RemoveAll(context.Background(), filter1, opts)
 	ast.NoError(err)
 	ast.NotNil(res)
