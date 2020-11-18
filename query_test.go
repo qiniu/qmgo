@@ -369,6 +369,12 @@ func TestQuery_Sort(t *testing.T) {
 	ast.Panics(func() {
 		cli.Find(context.Background(), filter1).Sort("").All(&res)
 	})
+
+	// fields is empty, does not panic or error (#128)
+	err = cli.Find(context.Background(), bson.M{}).Sort().All(&res)
+	ast.NoError(err)
+	ast.Equal(4, len(res))
+
 }
 
 func TestQuery_Distinct(t *testing.T) {

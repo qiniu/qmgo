@@ -45,6 +45,12 @@ type Query struct {
 // When multiple sort fields are passed in at the same time, they are arranged in the order in which the fields are passed in.
 // For example, {"age", "-name"}, first sort by age in ascending order, then sort by name in descending order
 func (q *Query) Sort(fields ...string) QueryI {
+	if len(fields) == 0 {
+		// A nil bson.D will not correctly serialize, but this case is no-op
+		// so an early return will do.
+		return q
+	}
+
 	var sorts bson.D
 	for _, field := range fields {
 		key, n := SplitSortField(field)
