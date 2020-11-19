@@ -55,5 +55,5 @@ func IsErrNoDocuments(err error) bool {
 
 // IsDup check if err is mongo E11000 (duplicate err)。
 func IsDup(err error) bool {
-	return strings.Contains(err.Error(), "E11000")
+	return err != nil && strings.Contains(err.Error(), "E11000")
 }

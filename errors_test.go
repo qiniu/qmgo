@@ -29,6 +29,7 @@ func TestIsErrNoDocuments(t *testing.T) {
 
 func TestIsDup(t *testing.T) {
 	ast := require.New(t)
+	ast.False(IsDup(nil))
 	ast.False(IsDup(errors.New("invaliderror")))
 	ast.True(IsDup(errors.New("E11000")))
 }
