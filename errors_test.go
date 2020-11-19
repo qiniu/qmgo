@@ -26,3 +26,10 @@ func TestIsErrNoDocuments(t *testing.T) {
 	ast.True(IsErrNoDocuments(ErrNoSuchDocuments))
 	ast.True(IsErrNoDocuments(mongo.ErrNoDocuments))
 }
+
+func TestIsDup(t *testing.T) {
+	ast := require.New(t)
+
+	ast.Equal(false, IsDup(errors.New("invaliderror")))
+	ast.Equal(true, IsDup(errors.New("E11000")))
+}

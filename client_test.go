@@ -15,7 +15,6 @@ package qmgo
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"testing"
 
@@ -109,13 +108,6 @@ func TestQmgoClient(t *testing.T) {
 
 	cli, err = Open(context.Background(), &cfg)
 	ast.Error(err)
-}
-
-func TestIsDup(t *testing.T) {
-	ast := require.New(t)
-
-	ast.Equal(false, IsDup(errors.New("invaliderror")))
-	ast.Equal(true, IsDup(errors.New("E11000")))
 }
 
 func TestClient(t *testing.T) {
