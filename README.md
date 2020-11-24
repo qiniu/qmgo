@@ -323,7 +323,7 @@ coll.Find(bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 ```
 
 ## `Qmgo` vs `mgo`
-[Differences between qmgo and mgo](https://github.com/qiniu/qmgo/wiki/Known-differences-between-Qmgo-and-Mgo)
+[Differences between qmgo and mgo](https://github.com/qiniu/qmgo/wiki/Differences-between-Qmgo-and-Mgo)
  
 ## Contributing
 
