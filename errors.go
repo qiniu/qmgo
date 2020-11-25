@@ -30,7 +30,7 @@ var (
 	// ErrQueryResultValCanNotChange return if the value of result can not be changed
 	ErrQueryResultValCanNotChange = errors.New("the value of result can not be changed")
 	// ErrNoSuchDocuments return if no document found
-	ErrNoSuchDocuments = errors.New(mongo.ErrNoDocuments.Error())
+	ErrNoSuchDocuments = mongo.ErrNoDocuments
 	// ErrTransactionRetry return if transaction need to retry
 	ErrTransactionRetry = errors.New("retry transaction")
 	// ErrTransactionNotSupported return if transaction not supported
@@ -46,8 +46,9 @@ var (
 )
 
 // IsErrNoDocuments check if err is no documents, both mongo-go-driver error and qmgo custom error
+// Deprecated, simply call if err == ErrNoSuchDocuments or if err == mongo.ErrNoDocuments
 func IsErrNoDocuments(err error) bool {
-	if err == mongo.ErrNoDocuments || err == ErrNoSuchDocuments {
+	if err == ErrNoSuchDocuments {
 		return true
 	}
 	return false
