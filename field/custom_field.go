@@ -138,7 +138,7 @@ func setId(doc interface{}, fieldName string) {
 			}
 		case string:
 			if ca.String() == "" {
-				ca.SetString(primitive.NewObjectID().String())
+				ca.SetString(primitive.NewObjectID().Hex())
 			}
 		default:
 			fmt.Println("unsupported type to setId", a)
