@@ -135,6 +135,8 @@ func interfaceToSliceInterface(docs interface{}) []interface{} {
 // The replacement parameter must be a document that will be used to replace the selected document. It cannot be nil
 // and cannot contain any update operators
 // Reference: https://docs.mongodb.com/manual/reference/operator/update/
+// If replacement has "_id" field and the document is exist, please initial it with existing id(even with Qmgo default field feature).
+// Otherwise "the (immutable) field '_id' altered" error happens.
 func (c *Collection) Upsert(ctx context.Context, filter interface{}, replacement interface{}, opts ...opts.UpsertOptions) (result *UpdateResult, err error) {
 	h := replacement
 	officialOpts := options.Replace().SetUpsert(true)
