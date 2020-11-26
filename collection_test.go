@@ -17,12 +17,13 @@ import (
 	"context"
 	"testing"
 
-	"github.com/qiniu/qmgo/operator"
-	"github.com/qiniu/qmgo/options"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	officialOpts "go.mongodb.org/mongo-driver/mongo/options"
+
+	"github.com/qiniu/qmgo/operator"
+	"github.com/qiniu/qmgo/options"
 )
 
 func TestCollection_EnsureIndex(t *testing.T) {
@@ -103,6 +104,24 @@ func TestCollection_CreateIndexes(t *testing.T) {
 	ast.NoError(err)
 	_, err = cli.InsertOne(context.Background(), doc)
 	ast.Equal(true, IsDup(err))
+}
+
+func TestCollection_DropAllIndexes(t *testing.T) {
+	ast := require.New(t)
+
+	cli := initClient("test")
+	defer cli.DropCollection(context.Background())
+
+	var err error
+	err = cli.DropAllIndexes(context.Background())
+	ast.Error(err)
+
+	unique := []string{"id1"}
+	common := []string{"id2,id3", "id4,-id5"}
+	cli.EnsureIndexes(context.Background(), unique, common)
+
+	err = cli.DropAllIndexes(context.Background())
+	ast.NoError(err)
 }
 
 func TestCollection_DropIndex(t *testing.T) {

@@ -505,12 +505,19 @@ func (c *Collection) CreateIndexes(ctx context.Context, indexes []opts.IndexMode
 	return
 }
 
-// CreateIndex creates one index
+// CreateOneIndex creates one index
 // If the Key in opts.IndexModel is []string{"name"}, means create index name
 // If the Key in opts.IndexModel is []string{"name","-age"} means create Compound index: name and -age
 func (c *Collection) CreateOneIndex(ctx context.Context, index opts.IndexModel) error {
 	return c.ensureIndex(ctx, []opts.IndexModel{index})
 
+}
+
+// DropAllIndexes drop all indexes on the collection except the index on the _id field
+// if there is only _id field index on the collection, the function call will report an error
+func (c *Collection) DropAllIndexes(ctx context.Context) (err error) {
+	_, err = c.collection.Indexes().DropAll(ctx)
+	return err
 }
 
 // DropIndex drop indexes in collection, indexes that be dropped should be in line with inputting indexes
