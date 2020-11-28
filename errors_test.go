@@ -14,31 +14,22 @@
 package qmgo
 
 import (
-	"context"
+	"errors"
+	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/mongo"
+	"testing"
 )
 
-// Database is a handle to a MongoDB database
-type Database struct {
-	database *mongo.Database
+func TestIsErrNoDocuments(t *testing.T) {
+	ast := require.New(t)
+	ast.False(IsErrNoDocuments(errors.New("dont match")))
+	ast.True(IsErrNoDocuments(ErrNoSuchDocuments))
+	ast.True(IsErrNoDocuments(mongo.ErrNoDocuments))
 }
 
-// Collection gets collection from database
-func (d *Database) Collection(name string) *Collection {
-	var cp *mongo.Collection
-	cp = d.database.Collection(name)
-
-	return &Collection{
-		collection: cp,
-	}
-}
-
-// GetDatabaseName returns the name of database
-func (d *Database) GetDatabaseName() string {
-	return d.database.Name()
-}
-
-// DropDatabase drops database
-func (d *Database) DropDatabase(ctx context.Context) error {
-	return d.database.Drop(ctx)
+func TestIsDup(t *testing.T) {
+	ast := require.New(t)
+	ast.False(IsDup(nil))
+	ast.False(IsDup(errors.New("invaliderror")))
+	ast.True(IsDup(errors.New("E11000")))
 }

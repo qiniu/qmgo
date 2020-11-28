@@ -1,3 +1,16 @@
+/*
+ Copyright 2020 The Qmgo Authors.
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+     http://www.apache.org/licenses/LICENSE-2.0
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
+
 package qmgo
 
 import (
@@ -8,17 +21,23 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"github.com/qiniu/qmgo/hook"
+	qOpts "github.com/qiniu/qmgo/options"
 )
 
 // Query struct definition
 type Query struct {
+	filter  interface{}
+	sort    interface{}
+	project interface{}
+	hint    interface{}
+	limit   *int64
+	skip    *int64
+
 	ctx        context.Context
 	collection *mongo.Collection
-	filter     interface{}
-	sort       interface{}
-	project    interface{}
-	limit      *int64
-	skip       *int64
+	opts       []qOpts.FindOptions
 }
 
 // Sort is Used to set the sorting rules for the returned results
@@ -26,6 +45,12 @@ type Query struct {
 // When multiple sort fields are passed in at the same time, they are arranged in the order in which the fields are passed in.
 // For example, {"age", "-name"}, first sort by age in ascending order, then sort by name in descending order
 func (q *Query) Sort(fields ...string) QueryI {
+	if len(fields) == 0 {
+		// A nil bson.D will not correctly serialize, but this case is no-op
+		// so an early return will do.
+		return q
+	}
+
 	var sorts bson.D
 	for _, field := range fields {
 		key, n := SplitSortField(field)
@@ -34,16 +59,9 @@ func (q *Query) Sort(fields ...string) QueryI {
 		}
 		sorts = append(sorts, bson.E{Key: key, Value: n})
 	}
-
-	return &Query{
-		ctx:        q.ctx,
-		collection: q.collection,
-		filter:     q.filter,
-		sort:       sorts,
-		project:    q.project,
-		limit:      q.limit,
-		skip:       q.skip,
-	}
+	newQ := q
+	newQ.sort = sorts
+	return newQ
 }
 
 // Select is used to determine which fields are displayed or not displayed in the returned results
@@ -51,28 +69,25 @@ func (q *Query) Sort(fields ...string) QueryI {
 // bson.M{"age": 0} means to display other fields except age
 // When _id is not displayed and is set to 0, it will be returned to display
 func (q *Query) Select(projection interface{}) QueryI {
-	return &Query{
-		ctx:        q.ctx,
-		collection: q.collection,
-		filter:     q.filter,
-		sort:       q.sort,
-		project:    projection,
-		limit:      q.limit,
-		skip:       q.skip,
-	}
+	newQ := q
+	newQ.project = projection
+	return newQ
 }
 
 // Skip skip n records
 func (q *Query) Skip(n int64) QueryI {
-	return &Query{
-		ctx:        q.ctx,
-		collection: q.collection,
-		filter:     q.filter,
-		sort:       q.sort,
-		project:    q.project,
-		limit:      q.limit,
-		skip:       &n,
-	}
+	newQ := q
+	newQ.skip = &n
+	return newQ
+}
+
+// Hint sets the value for the Hint field.
+// This should either be the index name as a string or the index specification
+// as a document. The default value is nil, which means that no hint will be sent.
+func (q *Query) Hint(hint interface{}) QueryI {
+	newQ := q
+	newQ.hint = hint
+	return newQ
 }
 
 // Limit limits the maximum number of documents found to n
@@ -80,20 +95,19 @@ func (q *Query) Skip(n int64) QueryI {
 // When the limit value is less than 0, the negative limit is similar to the positive limit, but the cursor is closed after returning a single batch result.
 // Reference https://docs.mongodb.com/manual/reference/method/cursor.limit/index.html
 func (q *Query) Limit(n int64) QueryI {
-	return &Query{
-		ctx:        q.ctx,
-		collection: q.collection,
-		filter:     q.filter,
-		sort:       q.sort,
-		project:    q.project,
-		limit:      &n,
-		skip:       q.skip,
-	}
+	newQ := q
+	newQ.limit = &n
+	return newQ
 }
 
 // One query a record that meets the filter conditions
 // If the search fails, an error will be returned
 func (q *Query) One(result interface{}) error {
+	if len(q.opts) > 0 {
+		if err := hook.Do(q.opts[0].QueryHook, hook.BeforeQuery); err != nil {
+			return err
+		}
+	}
 	opt := options.FindOne()
 
 	if q.sort != nil {
@@ -105,18 +119,31 @@ func (q *Query) One(result interface{}) error {
 	if q.skip != nil {
 		opt.SetSkip(*q.skip)
 	}
+	if q.hint != nil {
+		opt.SetHint(q.hint)
+	}
 
 	err := q.collection.FindOne(q.ctx, q.filter, opt).Decode(result)
 
 	if err != nil {
 		return err
 	}
-	return err
+	if len(q.opts) > 0 {
+		if err := hook.Do(q.opts[0].QueryHook, hook.AfterQuery); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // All query multiple records that meet the filter conditions
 // The static type of result must be a slice pointer
 func (q *Query) All(result interface{}) error {
+	if len(q.opts) > 0 {
+		if err := hook.Do(q.opts[0].QueryHook, hook.BeforeQuery); err != nil {
+			return err
+		}
+	}
 	opt := options.Find()
 
 	if q.sort != nil {
@@ -131,6 +158,9 @@ func (q *Query) All(result interface{}) error {
 	if q.skip != nil {
 		opt.SetSkip(*q.skip)
 	}
+	if q.hint != nil {
+		opt.SetHint(q.hint)
+	}
 
 	var err error
 	var cursor *mongo.Cursor
@@ -142,7 +172,16 @@ func (q *Query) All(result interface{}) error {
 		cursor: cursor,
 		err:    err,
 	}
-	return c.All(result)
+	err = c.All(result)
+	if err != nil {
+		return err
+	}
+	if len(q.opts) > 0 {
+		if err := hook.Do(q.opts[0].QueryHook, hook.AfterQuery); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Count count the number of eligible entries
@@ -170,20 +209,10 @@ func (q *Query) Distinct(key string, result interface{}) error {
 		return ErrQueryNotSlicePointer
 	}
 
-	sliceVal := resultVal.Elem()
-	if sliceVal.Kind() == reflect.Interface {
-		sliceVal = sliceVal.Elem()
-	}
-	if sliceVal.Kind() != reflect.Slice {
+	resultElmVal := resultVal.Elem()
+	if resultElmVal.Kind() != reflect.Interface && resultElmVal.Kind() != reflect.Slice {
 		return ErrQueryNotSliceType
 	}
-
-	if !resultVal.Elem().CanSet() {
-		return ErrQueryResultValCanNotChange
-	}
-
-	sliceVal = sliceVal.Slice(0, 0)
-	elementType := sliceVal.Type().Elem()
 
 	opt := options.Distinct()
 	res, err := q.collection.Distinct(q.ctx, key, q.filter, opt)
@@ -191,18 +220,19 @@ func (q *Query) Distinct(key string, result interface{}) error {
 		return err
 	}
 
-	for _, v := range res {
-		vValue := reflect.ValueOf(v)
-		vType := vValue.Type()
-
-		if vType != elementType {
-			fmt.Printf("mongo type: %s, result type: %s\n", vType.Name(), elementType.Name())
-			return ErrQueryResultTypeInconsistent
-		}
-		sliceVal = reflect.Append(sliceVal, vValue)
+	valueType, valueBytes, err_ := bson.MarshalValue(res)
+	if err_ != nil {
+		fmt.Printf("bson.MarshalValue err: %+v\n", err_)
+		return err_
 	}
 
-	resultVal.Elem().Set(sliceVal.Slice(0, len(res)))
+	rawValue := bson.RawValue{Type: valueType, Value: valueBytes}
+	err = rawValue.Unmarshal(result)
+	if err != nil {
+		fmt.Printf("rawValue.Unmarshal err: %+v\n", err)
+		return ErrQueryResultTypeInconsistent
+	}
+
 	return nil
 }
 
@@ -232,4 +262,102 @@ func (q *Query) Cursor() CursorI {
 		cursor: cur,
 		err:    err,
 	}
+}
+
+// Apply runs the findAndModify command, which allows updating, replacing
+// or removing a document matching a query and atomically returning either the old
+// version (the default) or the new version of the document (when ReturnNew is true)
+//
+// The Sort and Select query methods affect the result of Apply. In case
+// multiple documents match the query, Sort enables selecting which document to
+// act upon by ordering it first. Select enables retrieving only a selection
+// of fields of the new or old document.
+//
+// When Change.Replace is true, it means replace at most one document in the collection
+// and the update parameter must be a document and cannot contain any update operators;
+// if no objects are found and Change.Upsert is false, it will returns ErrNoDocuments.
+// When Change.Remove is true, it means delete at most one document in the collection
+// and returns the document as it appeared before deletion; if no objects are found,
+// it will returns ErrNoDocuments.
+// When both Change.Replace and Change.Remove are false，it means update at most one document
+// in the collection and the update parameter must be a document containing update operators;
+// if no objects are found and Change.Upsert is false, it will returns ErrNoDocuments.
+//
+// reference: https://docs.mongodb.com/manual/reference/command/findAndModify/
+func (q *Query) Apply(change Change, result interface{}) error {
+	var err error
+
+	if change.Remove {
+		err = q.findOneAndDelete(change, result)
+	} else if change.Replace {
+		err = q.findOneAndReplace(change, result)
+	} else {
+		err = q.findOneAndUpdate(change, result)
+	}
+
+	return err
+}
+
+// findOneAndDelete
+// reference: https://docs.mongodb.com/manual/reference/method/db.collection.findOneAndDelete/
+func (q *Query) findOneAndDelete(change Change, result interface{}) error {
+	opts := options.FindOneAndDelete()
+	if q.sort != nil {
+		opts.SetSort(q.sort)
+	}
+	if q.project != nil {
+		opts.SetProjection(q.project)
+	}
+
+	return q.collection.FindOneAndDelete(q.ctx, q.filter, opts).Decode(result)
+}
+
+// findOneAndReplace
+// reference: https://docs.mongodb.com/manual/reference/method/db.collection.findOneAndReplace/
+func (q *Query) findOneAndReplace(change Change, result interface{}) error {
+	opts := options.FindOneAndReplace()
+	if q.sort != nil {
+		opts.SetSort(q.sort)
+	}
+	if q.project != nil {
+		opts.SetProjection(q.project)
+	}
+	if change.Upsert {
+		opts.SetUpsert(change.Upsert)
+	}
+	if change.ReturnNew {
+		opts.SetReturnDocument(options.After)
+	}
+
+	err := q.collection.FindOneAndReplace(q.ctx, q.filter, change.Update, opts).Decode(result)
+	if change.Upsert && !change.ReturnNew && err == mongo.ErrNoDocuments {
+		return nil
+	}
+
+	return err
+}
+
+// findOneAndUpdate
+// reference: https://docs.mongodb.com/manual/reference/method/db.collection.findOneAndUpdate/
+func (q *Query) findOneAndUpdate(change Change, result interface{}) error {
+	opts := options.FindOneAndUpdate()
+	if q.sort != nil {
+		opts.SetSort(q.sort)
+	}
+	if q.project != nil {
+		opts.SetProjection(q.project)
+	}
+	if change.Upsert {
+		opts.SetUpsert(change.Upsert)
+	}
+	if change.ReturnNew {
+		opts.SetReturnDocument(options.After)
+	}
+
+	err := q.collection.FindOneAndUpdate(q.ctx, q.filter, change.Update, opts).Decode(result)
+	if change.Upsert && !change.ReturnNew && err == mongo.ErrNoDocuments {
+		return nil
+	}
+
+	return err
 }

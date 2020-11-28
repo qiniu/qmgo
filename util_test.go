@@ -14,31 +14,33 @@
 package qmgo
 
 import (
-	"context"
-	"go.mongodb.org/mongo-driver/mongo"
+	"fmt"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
-// Database is a handle to a MongoDB database
-type Database struct {
-	database *mongo.Database
+func TestNow(t *testing.T) {
+	t1 := time.Unix(0, time.Now().UnixNano()/1e6*1e6)
+	t2 := Now()
+	fmt.Println(t1, t2)
 }
 
-// Collection gets collection from database
-func (d *Database) Collection(name string) *Collection {
-	var cp *mongo.Collection
-	cp = d.database.Collection(name)
-
-	return &Collection{
-		collection: cp,
-	}
+func TestNewObjectID(t *testing.T) {
+	objId := NewObjectID()
+	objId.Hex()
 }
 
-// GetDatabaseName returns the name of database
-func (d *Database) GetDatabaseName() string {
-	return d.database.Name()
-}
-
-// DropDatabase drops database
-func (d *Database) DropDatabase(ctx context.Context) error {
-	return d.database.Drop(ctx)
+func TestCompareVersions(t *testing.T) {
+	ast := require.New(t)
+	i, err := CompareVersions("4.4.0", "3.0")
+	ast.NoError(err)
+	ast.True(i > 0)
+	i, err = CompareVersions("3.0.1", "3.0")
+	ast.NoError(err)
+	ast.True(i == 0)
+	i, err = CompareVersions("3.1.5", "4.0")
+	ast.NoError(err)
+	ast.True(i < 0)
 }

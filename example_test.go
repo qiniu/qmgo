@@ -1,13 +1,29 @@
+/*
+ Copyright 2020 The Qmgo Authors.
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+     http://www.apache.org/licenses/LICENSE-2.0
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
+
 package qmgo
 
 import (
 	"context"
 	"errors"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"testing"
+
+	"github.com/qiniu/qmgo/operator"
 
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/event"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -18,32 +34,35 @@ const (
 )
 
 type UserInfo struct {
-	Name   string `bson:"name"`
-	Age    uint16 `bson:"age"`
-	Weight uint32 `bson:"weight"`
+	Id     primitive.ObjectID `bson:"_id"`
+	Name   string             `bson:"name"`
+	Age    uint16             `bson:"age"`
+	Weight uint32             `bson:"weight"`
 }
 
-var oneUserInfo = UserInfo{
+var userInfo = UserInfo{
+	Id:     NewObjectID(),
 	Name:   "xm",
 	Age:    7,
 	Weight: 40,
 }
 
-var batchUserInfo = []UserInfo{
-	{Name: "a1", Age: 6, Weight: 20},
-	{Name: "b2", Age: 6, Weight: 25},
-	{Name: "c3", Age: 6, Weight: 30},
-	{Name: "d4", Age: 6, Weight: 35},
-	{Name: "a1", Age: 7, Weight: 40},
-	{Name: "a1", Age: 8, Weight: 45},
+var userInfos = []UserInfo{
+	{Id: NewObjectID(), Name: "a1", Age: 6, Weight: 20},
+	{Id: NewObjectID(), Name: "b2", Age: 6, Weight: 25},
+	{Id: NewObjectID(), Name: "c3", Age: 6, Weight: 30},
+	{Id: NewObjectID(), Name: "d4", Age: 6, Weight: 35},
+	{Id: NewObjectID(), Name: "a1", Age: 7, Weight: 40},
+	{Id: NewObjectID(), Name: "a1", Age: 8, Weight: 45},
 }
-var batchUserInfoI = []interface{}{
-	UserInfo{Name: "a1", Age: 6, Weight: 20},
-	UserInfo{Name: "b2", Age: 6, Weight: 25},
-	UserInfo{Name: "c3", Age: 6, Weight: 30},
-	UserInfo{Name: "d4", Age: 6, Weight: 35},
-	UserInfo{Name: "a1", Age: 7, Weight: 40},
-	UserInfo{Name: "a1", Age: 8, Weight: 45},
+
+var poolMonitor = &event.PoolMonitor{
+	Event: func(evt *event.PoolEvent) {
+		switch evt.Type {
+		case event.GetSucceeded:
+		case event.ConnectionReturned:
+		}
+	},
 }
 
 func TestQmgo(t *testing.T) {
@@ -51,7 +70,8 @@ func TestQmgo(t *testing.T) {
 	ctx := context.Background()
 
 	// create connect
-	cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL})
+	opt := options.Client().SetAppName("example")
+	cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL}, opt)
 
 	ast.Nil(err)
 	defer func() {
@@ -63,17 +83,17 @@ func TestQmgo(t *testing.T) {
 
 	cli.EnsureIndexes(ctx, []string{}, []string{"age", "name,weight"})
 	// insert one document
-	_, err = cli.InsertOne(ctx, oneUserInfo)
+	_, err = cli.InsertOne(ctx, userInfo)
 	ast.Nil(err)
 
 	// find one document
 	one := UserInfo{}
-	err = cli.Find(ctx, bson.M{"name": oneUserInfo.Name}).One(&one)
+	err = cli.Find(ctx, bson.M{"name": userInfo.Name}).One(&one)
 	ast.Nil(err)
-	ast.Equal(oneUserInfo, one)
+	ast.Equal(userInfo, one)
 
 	// multiple insert
-	_, err = cli.Collection.InsertMany(ctx, batchUserInfoI)
+	_, err = cli.Collection.InsertMany(ctx, userInfos)
 	ast.Nil(err)
 
 	// find all 、sort and limit
@@ -86,8 +106,8 @@ func TestQmgo(t *testing.T) {
 	ast.Equal(int64(4), count)
 
 	// aggregate
-	matchStage := bson.D{{"$match", []bson.E{{"weight", bson.D{{"$gt", 30}}}}}}
-	groupStage := bson.D{{"$group", bson.D{{"_id", "$name"}, {"total", bson.D{{"$sum", "$age"}}}}}}
+	matchStage := bson.D{{operator.Match, []bson.E{{"weight", bson.D{{operator.Gt, 30}}}}}}
+	groupStage := bson.D{{operator.Group, bson.D{{"_id", "$name"}, {"total", bson.D{{operator.Sum, "$age"}}}}}}
 	var showsWithInfo []bson.M
 	err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(&showsWithInfo)
 	ast.Equal(3, len(showsWithInfo))
@@ -102,46 +122,24 @@ func TestQmgo(t *testing.T) {
 		}
 		ast.Error(errors.New("error"), "impossible")
 	}
-	//remove
+	// Update one
+	err = cli.UpdateOne(ctx, bson.M{"name": "d4"}, bson.M{"$set": bson.M{"age": 17}})
+	ast.NoError(err)
+	cli.Find(ctx, bson.M{"age": 17}).One(&one)
+	ast.Equal("d4", one.Name)
+	// UpdateAll
+	result, err := cli.UpdateAll(ctx, bson.M{"age": 6}, bson.M{"$set": bson.M{"age": 10}})
+	ast.NoError(err)
+	count, err = cli.Find(ctx, bson.M{"age": 10}).Count()
+	ast.NoError(err)
+	ast.Equal(result.ModifiedCount, count)
+	// select
+	one = UserInfo{}
+	err = cli.Find(ctx, bson.M{"age": 10}).Select(bson.M{"age": 1}).One(&one)
+	ast.NoError(err)
+	ast.Equal(10, int(one.Age))
+	ast.Equal("", one.Name)
+	// remove
 	err = cli.Remove(ctx, bson.M{"age": 7})
-	ast.Nil(err)
-}
-
-func TestOfficialMongoDriver(t *testing.T) {
-	ast := require.New(t)
-	ctx := context.Background()
-
-	// create connect
-	var opts *options.ClientOptions
-	opts = new(options.ClientOptions)
-	opts.ApplyURI(URI)
-	c, err := mongo.Connect(ctx, opts)
-	ast.Nil(err)
-	db := c.Database(DATABASE)
-	coll := db.Collection(COLL)
-	defer db.Drop(ctx)
-
-	// insert one document
-	_, err = coll.InsertOne(ctx, oneUserInfo)
-	ast.Nil(err)
-
-	// find one document
-	one := UserInfo{}
-	err = coll.FindOne(ctx, bson.M{"name": oneUserInfo.Name}).Decode(&one)
-	ast.Nil(err)
-
-	// batch insert
-	_, err = coll.InsertMany(ctx, batchUserInfoI)
-	ast.Nil(err)
-
-	// find all 、sort and limit
-	findOptions := options.Find()
-	findOptions.SetLimit(7)
-	var sorts bson.D
-	sorts = append(sorts, bson.E{Key: "weight", Value: 1})
-
-	findOptions.SetSort(sorts)
-
-	_, err = coll.Find(ctx, bson.M{"age": 6}, findOptions)
 	ast.Nil(err)
 }

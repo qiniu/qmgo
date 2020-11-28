@@ -1,12 +1,30 @@
+/*
+ Copyright 2020 The Qmgo Authors.
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+     http://www.apache.org/licenses/LICENSE-2.0
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
+
 package qmgo
 
 import (
 	"context"
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+
+	"github.com/qiniu/qmgo/operator"
 )
 
 type QueryTestItem struct {
@@ -21,11 +39,9 @@ type QueryTestItem2 struct {
 
 func TestQuery_One(t *testing.T) {
 	ast := require.New(t)
-
-	var cli *QmgoClient
-
-	cli = initClient("test")
-	cli.DropCollection(context.Background())
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
 	id1 := primitive.NewObjectID()
@@ -93,10 +109,9 @@ func TestQuery_One(t *testing.T) {
 
 func TestQuery_All(t *testing.T) {
 	ast := require.New(t)
-
-	var cli *QmgoClient
-	cli = initClient("test")
-	cli.DropCollection(context.Background())
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
 	id1 := primitive.NewObjectID()
@@ -164,11 +179,9 @@ func TestQuery_All(t *testing.T) {
 
 func TestQuery_Count(t *testing.T) {
 	ast := require.New(t)
-
-	var cli *QmgoClient
-
-	cli = initClient("test")
-	cli.DropCollection(context.Background())
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
 	id1 := primitive.NewObjectID()
@@ -215,12 +228,9 @@ func TestQuery_Count(t *testing.T) {
 
 func TestQuery_Skip(t *testing.T) {
 	ast := require.New(t)
-
-	var cli *QmgoClient
-
-	cli = initClient("test")
-
-	cli.DropCollection(context.Background())
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
 	id1 := primitive.NewObjectID()
@@ -263,12 +273,9 @@ func TestQuery_Skip(t *testing.T) {
 
 func TestQuery_Limit(t *testing.T) {
 	ast := require.New(t)
-
-	var cli *QmgoClient
-
-	cli = initClient("test")
-
-	cli.DropCollection(context.Background())
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
 	id1 := primitive.NewObjectID()
@@ -310,12 +317,9 @@ func TestQuery_Limit(t *testing.T) {
 
 func TestQuery_Sort(t *testing.T) {
 	ast := require.New(t)
-
-	var cli *QmgoClient
-
-	cli = initClient("test")
-
-	cli.DropCollection(context.Background())
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
 	id1 := primitive.NewObjectID()
@@ -365,27 +369,34 @@ func TestQuery_Sort(t *testing.T) {
 	ast.Panics(func() {
 		cli.Find(context.Background(), filter1).Sort("").All(&res)
 	})
+
+	// fields is empty, does not panic or error (#128)
+	err = cli.Find(context.Background(), bson.M{}).Sort().All(&res)
+	ast.NoError(err)
+	ast.Equal(4, len(res))
+
 }
 
 func TestQuery_Distinct(t *testing.T) {
 	ast := require.New(t)
-
-	var cli *QmgoClient
-
-	cli = initClient("test")
-
-	cli.DropCollection(context.Background())
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
 	id1 := primitive.NewObjectID()
 	id2 := primitive.NewObjectID()
 	id3 := primitive.NewObjectID()
 	id4 := primitive.NewObjectID()
+	id5 := primitive.NewObjectID()
+	id6 := primitive.NewObjectID()
 	docs := []interface{}{
 		bson.M{"_id": id1, "name": "Alice", "age": 18},
 		bson.M{"_id": id2, "name": "Alice", "age": 19},
 		bson.M{"_id": id3, "name": "Lucas", "age": 20},
 		bson.M{"_id": id4, "name": "Lucas", "age": 21},
+		bson.M{"_id": id5, "name": "Kitty", "age": 23, "detail": bson.M{"errInfo": "timeout", "extra": "i/o"}},
+		bson.M{"_id": id6, "name": "Kitty", "age": "23", "detail": bson.M{"errInfo": "timeout", "extra": "i/o"}},
 	}
 	_, _ = cli.InsertMany(context.Background(), docs)
 
@@ -439,24 +450,61 @@ func TestQuery_Distinct(t *testing.T) {
 
 	var res8 interface{}
 
-	res8 = []int32{}
+	res8 = []string{}
 	err = cli.Find(context.Background(), filter2).Distinct("age", &res8)
 	ast.NoError(err)
 	ast.NotNil(res8)
 
-	res9, ok := res8.([]int32)
+	res9, ok := res8.(primitive.A)
 	ast.Equal(true, ok)
 	ast.Len(res9, 2)
+
+	filter4 := bson.M{}
+	var res10 []int32
+	err = cli.Find(context.Background(), filter4).Distinct("detail", &res10)
+	ast.EqualError(err, ErrQueryResultTypeInconsistent.Error())
+
+	type tmpStruct struct {
+		ErrInfo string `bson:"errInfo"`
+		Extra   string `bson:"extra"`
+	}
+	var res11 []tmpStruct
+	err = cli.Find(context.Background(), filter4).Distinct("detail", &res11)
+	ast.NoError(err)
+
+	type tmpErrStruct struct {
+		ErrInfo string    `bson:"errInfo"`
+		Extra   time.Time `bson:"extra"`
+	}
+	var res12 []tmpErrStruct
+	err = cli.Find(context.Background(), filter4).Distinct("detail", &res12)
+	ast.EqualError(err, ErrQueryResultTypeInconsistent.Error())
+
+	var res13 []int32
+	err = cli.Find(context.Background(), filter4).Distinct("age", &res13)
+	ast.EqualError(err, ErrQueryResultTypeInconsistent.Error())
+
+	var res14 []interface{}
+	err = cli.Find(context.Background(), filter4).Distinct("age", &res14)
+	ast.NoError(err)
+	ast.Len(res14, 6)
+	for _, v := range res14 {
+		switch v.(type) {
+		case int32:
+			fmt.Printf("int32 :%d\n", v)
+		case string:
+			fmt.Printf("string :%s\n", v)
+		default:
+			fmt.Printf("defalut err: %v %T\n", v, v)
+		}
+	}
 }
 
 func TestQuery_Select(t *testing.T) {
 	ast := require.New(t)
-
-	var cli *QmgoClient
-
-	cli = initClient("test")
-
-	cli.DropCollection(context.Background())
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
 	id1 := primitive.NewObjectID()
@@ -515,12 +563,9 @@ func TestQuery_Select(t *testing.T) {
 
 func TestQuery_Cursor(t *testing.T) {
 	ast := require.New(t)
-
-	var cli *QmgoClient
-
-	cli = initClient("test")
-
-	cli.DropCollection(context.Background())
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
 	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
 
 	id1 := primitive.NewObjectID()
@@ -572,4 +617,216 @@ func TestQuery_Cursor(t *testing.T) {
 
 	cursor = cli.Find(context.Background(), filter3).Cursor()
 	ast.Error(cursor.Err())
+}
+
+func TestQuery_Hint(t *testing.T) {
+	ast := require.New(t)
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
+	cli.EnsureIndexes(context.Background(), nil, []string{"name", "age"})
+
+	id1 := primitive.NewObjectID()
+	id2 := primitive.NewObjectID()
+	id3 := primitive.NewObjectID()
+	id4 := primitive.NewObjectID()
+	docs := []interface{}{
+		bson.M{"_id": id1, "name": "Alice", "age": 18},
+		bson.M{"_id": id2, "name": "Alice", "age": 19},
+		bson.M{"_id": id3, "name": "Lucas", "age": 20},
+		bson.M{"_id": id4, "name": "Lucas", "age": 21},
+	}
+	_, _ = cli.InsertMany(context.Background(), docs)
+
+	var err error
+	var res []QueryTestItem
+
+	filter1 := bson.M{
+		"name": "Alice",
+		"age":  18,
+	}
+
+	// index name as hint
+	err = cli.Find(context.Background(), filter1).Hint("age_1").All(&res)
+	ast.NoError(err)
+	ast.Equal(1, len(res))
+
+	// index name as hint
+	var resOne QueryTestItem
+	err = cli.Find(context.Background(), filter1).Hint("name_1").One(&resOne)
+	ast.NoError(err)
+
+	// not index name as hint
+	err = cli.Find(context.Background(), filter1).Hint("age").All(&res)
+	ast.Error(err)
+
+	// nil hint
+	err = cli.Find(context.Background(), filter1).Hint(nil).All(&res)
+	ast.NoError(err)
+
+}
+
+func TestQuery_Apply(t *testing.T) {
+	ast := require.New(t)
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
+	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
+
+	id1 := primitive.NewObjectID()
+	id2 := primitive.NewObjectID()
+	id3 := primitive.NewObjectID()
+	docs := []interface{}{
+		bson.M{"_id": id1, "name": "Alice", "age": 18},
+		bson.M{"_id": id2, "name": "Alice", "age": 19},
+		bson.M{"_id": id3, "name": "Lucas", "age": 20},
+	}
+	_, _ = cli.InsertMany(context.Background(), docs)
+
+	var err error
+	res1 := QueryTestItem{}
+	filter1 := bson.M{
+		"name": "Tom",
+	}
+	change1 := Change{}
+
+	err = cli.Find(context.Background(), filter1).Apply(change1, &res1)
+	ast.EqualError(err, mongo.ErrNilDocument.Error())
+
+	change1.Update = bson.M{
+		operator.Set: bson.M{
+			"name": "Tom",
+			"age":  18,
+		},
+	}
+	err = cli.Find(context.Background(), filter1).Apply(change1, &res1)
+	ast.EqualError(err, mongo.ErrNoDocuments.Error())
+
+	change1.ReturnNew = true
+	err = cli.Find(context.Background(), filter1).Apply(change1, &res1)
+	ast.EqualError(err, mongo.ErrNoDocuments.Error())
+
+	change1.ReturnNew = false
+	change1.Upsert = true
+	err = cli.Find(context.Background(), filter1).Apply(change1, &res1)
+	ast.NoError(err)
+	ast.Equal("", res1.Name)
+	ast.Equal(0, res1.Age)
+
+	change1.Update = bson.M{
+		operator.Set: bson.M{
+			"name": "Tom",
+			"age":  19,
+		},
+	}
+	change1.ReturnNew = true
+	change1.Upsert = true
+	err = cli.Find(context.Background(), filter1).Apply(change1, &res1)
+	ast.NoError(err)
+	ast.Equal("Tom", res1.Name)
+	ast.Equal(19, res1.Age)
+
+	res2 := QueryTestItem{}
+	filter2 := bson.M{
+		"name": "Alice",
+	}
+	change2 := Change{
+		ReturnNew: true,
+		Update: bson.M{
+			operator.Set: bson.M{
+				"name": "Alice",
+				"age":  22,
+			},
+		},
+	}
+	projection2 := bson.M{
+		"age": 1,
+	}
+	err = cli.Find(context.Background(), filter2).Sort("age").Select(projection2).Apply(change2, &res2)
+	ast.NoError(err)
+	ast.Equal("", res2.Name)
+	ast.Equal(22, res2.Age)
+
+	res3 := QueryTestItem{}
+	filter3 := bson.M{
+		"name": "Bob",
+	}
+	change3 := Change{
+		Remove: true,
+	}
+	err = cli.Find(context.Background(), filter3).Apply(change3, &res3)
+	ast.EqualError(err, mongo.ErrNoDocuments.Error())
+
+	res3 = QueryTestItem{}
+	filter3 = bson.M{
+		"name": "Alice",
+	}
+	projection3 := bson.M{
+		"age": 1,
+	}
+	err = cli.Find(context.Background(), filter3).Sort("age").Select(projection3).Apply(change3, &res3)
+	ast.NoError(err)
+	ast.Equal("", res3.Name)
+	ast.Equal(19, res3.Age)
+
+	res4 := QueryTestItem{}
+	filter4 := bson.M{
+		"name": "Bob",
+	}
+	change4 := Change{
+		Replace: true,
+		Update: bson.M{
+			operator.Set: bson.M{
+				"name": "Bob",
+				"age":  23,
+			},
+		},
+	}
+	err = cli.Find(context.Background(), filter4).Apply(change4, &res4)
+	ast.EqualError(err, ErrReplacementContainUpdateOperators.Error())
+
+	change4.Update = bson.M{"name": "Bob", "age": 23}
+	err = cli.Find(context.Background(), filter4).Apply(change4, &res4)
+	ast.EqualError(err, mongo.ErrNoDocuments.Error())
+
+	change4.ReturnNew = true
+	err = cli.Find(context.Background(), filter4).Apply(change4, &res4)
+	ast.EqualError(err, mongo.ErrNoDocuments.Error())
+
+	change4.Upsert = true
+	change4.ReturnNew = true
+	err = cli.Find(context.Background(), filter4).Apply(change4, &res4)
+	ast.NoError(err)
+	ast.Equal("Bob", res4.Name)
+	ast.Equal(23, res4.Age)
+
+	change4 = Change{
+		Replace:   true,
+		Update:    bson.M{"name": "Bob", "age": 25},
+		Upsert:    true,
+		ReturnNew: false,
+	}
+	projection4 := bson.M{
+		"age":  1,
+		"name": 1,
+	}
+	err = cli.Find(context.Background(), filter4).Sort("age").Select(projection4).Apply(change4, &res4)
+	ast.NoError(err)
+	ast.Equal("Bob", res4.Name)
+	ast.Equal(23, res4.Age)
+
+	res4 = QueryTestItem{}
+	filter4 = bson.M{
+		"name": "James",
+	}
+	change4 = Change{
+		Replace:   true,
+		Update:    bson.M{"name": "James", "age": 26},
+		Upsert:    true,
+		ReturnNew: false,
+	}
+	err = cli.Find(context.Background(), filter4).Apply(change4, &res4)
+	ast.NoError(err)
+	ast.Equal("", res4.Name)
+	ast.Equal(0, res4.Age)
 }
