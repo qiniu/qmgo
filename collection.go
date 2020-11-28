@@ -21,12 +21,11 @@ import (
 
 	"github.com/qiniu/qmgo/middleware"
 	"github.com/qiniu/qmgo/operator"
+	opts "github.com/qiniu/qmgo/options"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"
-
-	opts "github.com/qiniu/qmgo/options"
 )
 
 // Collection is a handle to a MongoDB collection
@@ -144,7 +143,7 @@ func (c *Collection) Upsert(ctx context.Context, filter interface{}, replacement
 			h = opts[0].UpsertHook
 		}
 	}
-	if err = middleware.Do(h, operator.BeforeUpsert); err != nil {
+	if err = middleware.Do(replacement, operator.BeforeUpsert, h); err != nil {
 		return
 	}
 
@@ -156,7 +155,7 @@ func (c *Collection) Upsert(ctx context.Context, filter interface{}, replacement
 	if err != nil {
 		return
 	}
-	if err = middleware.Do(h, operator.AfterUpsert); err != nil {
+	if err = middleware.Do(replacement, operator.AfterUpsert, h); err != nil {
 		return
 	}
 	return
@@ -189,7 +188,7 @@ func (c *Collection) UpsertId(ctx context.Context, id interface{}, replacement i
 	if err != nil {
 		return
 	}
-	if err = middleware.Do(h, operator.AfterUpsert); err != nil {
+	if err = middleware.Do(replacement, operator.AfterUpsert, h); err != nil {
 		return
 	}
 	return
@@ -312,7 +311,7 @@ func (c *Collection) ReplaceOne(ctx context.Context, filter interface{}, doc int
 	if err != nil {
 		return err
 	}
-	if err = middleware.Do(h, operator.AfterUpdate); err != nil {
+	if err = middleware.Do(doc, operator.AfterUpdate, h); err != nil {
 		return
 	}
 

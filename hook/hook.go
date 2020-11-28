@@ -38,8 +38,8 @@ var hookHandler = map[operator.OpType]func(hook interface{}) error{
 //}
 
 // Do call the specific method to handle hook based on hType
+// If opts has valid value, use it instead of original hook
 func Do(hook interface{}, opType operator.OpType, opts ...interface{}) error {
-	// if opts has valid value, use it instead of original hook
 	if len(opts) > 0 {
 		hook = opts[0]
 	}
@@ -206,7 +206,7 @@ func afterUpsert(hook interface{}) error {
 	return nil
 }
 
-// do call check if opType is supported and call hookHanlder
+// do check if opType is supported and call hookHanlder
 func do(hook interface{}, opType operator.OpType) error {
 	if f, ok := hookHandler[opType]; !ok {
 		return nil

@@ -16,10 +16,11 @@ package hook
 import (
 	"errors"
 	"fmt"
+	"testing"
+
 	"github.com/qiniu/qmgo/operator"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 type User struct {
