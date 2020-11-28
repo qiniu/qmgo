@@ -438,7 +438,7 @@ func TestQuery_Distinct(t *testing.T) {
 	var res6 []int32
 
 	err = cli.Find(context.Background(), filter2).Distinct("", &res6)
-	ast.Error(err) // (Location40352) FieldPath cannot be constructed with empty string
+	ast.NoError(err)
 	ast.Equal(0, len(res6))
 
 	var res7 []int32
