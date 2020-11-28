@@ -16,6 +16,7 @@ package hook
 import (
 	"errors"
 	"fmt"
+	"github.com/qiniu/qmgo/operator"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -44,19 +45,19 @@ func TestInsertHook(t *testing.T) {
 	ast := require.New(t)
 
 	u := &User{Name: "Lucas", Age: 7}
-	err := Do(u, BeforeInsert)
+	err := Do(u, operator.BeforeInsert)
 	ast.NoError(err)
 	ast.Equal(17, u.Age)
 
-	err = Do(u, AfterInsert)
+	err = Do(u, operator.AfterInsert)
 	ast.NoError(err)
 	ast.True(u.AfterCalled)
 
 	u1, u2 := &User{Name: "Lucas", Age: 7}, &User{Name: "Alices", Age: 8}
 	us := []interface{}{u1, u2}
-	err = Do(us, BeforeInsert)
+	err = Do(us, operator.BeforeInsert)
 	ast.NoError(err)
-	err = Do(us, AfterInsert)
+	err = Do(us, operator.AfterInsert)
 	ast.NoError(err)
 	for _, v := range us {
 		vv := v.(*User)
@@ -70,7 +71,7 @@ func TestInsertHook(t *testing.T) {
 	}
 
 	u3 := User{Name: "Lucas", Age: 7}
-	err = Do(u3, BeforeInsert)
+	err = Do(u3, operator.BeforeInsert)
 	ast.NoError(err)
 }
 
@@ -89,19 +90,19 @@ func TestUpdateHook(t *testing.T) {
 	ast := require.New(t)
 
 	u := &User{Name: "Lucas", Age: 7}
-	err := Do(u, BeforeUpdate)
+	err := Do(u, operator.BeforeUpdate)
 	ast.NoError(err)
 	ast.Equal(17, u.Age)
 
-	err = Do(u, AfterUpdate)
+	err = Do(u, operator.AfterUpdate)
 	ast.NoError(err)
 	ast.True(u.AfterCalled)
 
 	u1, u2 := &User{Name: "Lucas", Age: 7}, &User{Name: "Alices", Age: 8}
 	us := []interface{}{u1, u2}
-	err = Do(us, BeforeUpdate)
+	err = Do(us, operator.BeforeUpdate)
 	ast.NoError(err)
-	err = Do(us, AfterUpdate)
+	err = Do(us, operator.AfterUpdate)
 	ast.NoError(err)
 	for _, v := range us {
 		vv := v.(*User)
@@ -133,19 +134,19 @@ func TestQueryHook(t *testing.T) {
 	ast := require.New(t)
 
 	u := &User{Name: "Lucas", Age: 7}
-	err := Do(u, BeforeQuery)
+	err := Do(u, operator.BeforeQuery)
 	ast.NoError(err)
 	ast.Equal(17, u.Age)
 
-	err = Do(u, AfterQuery)
+	err = Do(u, operator.AfterQuery)
 	ast.NoError(err)
 	ast.True(u.AfterCalled)
 
 	u1, u2 := &User{Name: "Lucas", Age: 7}, &User{Name: "Alices", Age: 8}
 	us := []interface{}{u1, u2}
-	err = Do(us, BeforeQuery)
+	err = Do(us, operator.BeforeQuery)
 	ast.NoError(err)
-	err = Do(us, AfterQuery)
+	err = Do(us, operator.AfterQuery)
 	ast.NoError(err)
 	for _, v := range us {
 		vv := v.(*User)
@@ -159,7 +160,7 @@ func TestQueryHook(t *testing.T) {
 	}
 
 	uss := []*User{&User{Name: "Lucas"}, &User{Name: "Alices"}}
-	Do(&uss, BeforeQuery)
+	Do(&uss, operator.BeforeQuery)
 
 }
 func (u *User) BeforeRemove() error {
@@ -178,19 +179,19 @@ func TestRemoveHook(t *testing.T) {
 	ast := require.New(t)
 
 	u := &User{Name: "Lucas", Age: 7}
-	err := Do(u, BeforeRemove)
+	err := Do(u, operator.BeforeRemove)
 	ast.NoError(err)
 	ast.Equal(17, u.Age)
 
-	err = Do(u, AfterRemove)
+	err = Do(u, operator.AfterRemove)
 	ast.NoError(err)
 	ast.True(u.AfterCalled)
 
 	u1, u2 := &User{Name: "Lucas", Age: 7}, &User{Name: "Alices", Age: 8}
 	us := []interface{}{u1, u2}
-	err = Do(us, BeforeRemove)
+	err = Do(us, operator.BeforeRemove)
 	ast.NoError(err)
-	err = Do(us, AfterRemove)
+	err = Do(us, operator.AfterRemove)
 	ast.NoError(err)
 	for _, v := range us {
 		vv := v.(*User)
@@ -220,19 +221,19 @@ func TestUpsertHook(t *testing.T) {
 	ast := require.New(t)
 
 	u := &User{Name: "Lucas", Age: 7}
-	err := Do(u, BeforeUpsert)
+	err := Do(u, operator.BeforeUpsert)
 	ast.NoError(err)
 	ast.Equal(17, u.Age)
 
-	err = Do(u, AfterUpsert)
+	err = Do(u, operator.AfterUpsert)
 	ast.NoError(err)
 	ast.True(u.AfterCalled)
 
 	u1, u2 := &User{Name: "Lucas", Age: 7}, &User{Name: "Alices", Age: 8}
 	us := []interface{}{u1, u2}
-	err = Do(us, BeforeUpsert)
+	err = Do(us, operator.BeforeUpsert)
 	ast.NoError(err)
-	err = Do(us, AfterUpsert)
+	err = Do(us, operator.AfterUpsert)
 	ast.NoError(err)
 	for _, v := range us {
 		vv := v.(*User)
@@ -246,7 +247,7 @@ func TestUpsertHook(t *testing.T) {
 	}
 
 	u3 := User{Name: "Lucas", Age: 7}
-	err = Do(u3, BeforeInsert)
+	err = Do(u3, operator.BeforeInsert)
 	ast.NoError(err)
 }
 
@@ -274,7 +275,7 @@ func TestSliceError(t *testing.T) {
 
 	u1.On("AfterInsert").Return(nil)
 	u2.On("AfterInsert").Return(errors.New("called"))
-	err := Do(us, AfterInsert)
+	err := Do(us, operator.AfterInsert)
 	ast.Equal("called", err.Error())
 
 }
@@ -291,18 +292,18 @@ func TestUserNoHook(t *testing.T) {
 	ast := require.New(t)
 
 	u := &UserNoHook{Name: "Lucas", Age: 7}
-	err := Do(u, BeforeInsert)
+	err := Do(u, operator.BeforeInsert)
 	ast.NoError(err)
 	ast.Equal(7, u.Age)
 
-	err = Do(u, AfterInsert)
+	err = Do(u, operator.AfterInsert)
 	ast.NoError(err)
 
 	u1, u2 := &UserNoHook{Name: "Lucas", Age: 7}, &UserNoHook{Name: "Alices", Age: 8}
 	us := []interface{}{u1, u2}
-	err = Do(us, BeforeInsert)
+	err = Do(us, operator.BeforeInsert)
 	ast.NoError(err)
-	err = Do(us, AfterInsert)
+	err = Do(us, operator.AfterInsert)
 	ast.NoError(err)
 	for _, v := range us {
 		vv := v.(*UserNoHook)
@@ -315,31 +316,31 @@ func TestUserNoHook(t *testing.T) {
 		ast.False(vv.AfterCalled)
 	}
 
-	err = Do(u, BeforeUpdate)
+	err = Do(u, operator.BeforeUpdate)
 	ast.NoError(err)
-	err = Do(u, AfterUpdate)
+	err = Do(u, operator.AfterUpdate)
 	ast.NoError(err)
-	err = Do(us, BeforeUpdate)
+	err = Do(us, operator.BeforeUpdate)
 	ast.NoError(err)
-	err = Do(us, AfterUpdate)
-	ast.NoError(err)
-
-	err = Do(u, BeforeQuery)
-	ast.NoError(err)
-	err = Do(u, AfterQuery)
-	ast.NoError(err)
-	err = Do(us, BeforeQuery)
-	ast.NoError(err)
-	err = Do(us, AfterQuery)
+	err = Do(us, operator.AfterUpdate)
 	ast.NoError(err)
 
-	err = Do(u, BeforeRemove)
+	err = Do(u, operator.BeforeQuery)
 	ast.NoError(err)
-	err = Do(u, AfterRemove)
+	err = Do(u, operator.AfterQuery)
 	ast.NoError(err)
-	err = Do(us, BeforeRemove)
+	err = Do(us, operator.BeforeQuery)
 	ast.NoError(err)
-	err = Do(us, AfterRemove)
+	err = Do(us, operator.AfterQuery)
+	ast.NoError(err)
+
+	err = Do(u, operator.BeforeRemove)
+	ast.NoError(err)
+	err = Do(u, operator.AfterRemove)
+	ast.NoError(err)
+	err = Do(us, operator.BeforeRemove)
+	ast.NoError(err)
+	err = Do(us, operator.AfterRemove)
 	ast.NoError(err)
 }
 
@@ -350,12 +351,12 @@ func TestSliceHook(t *testing.T) {
 	ast := require.New(t)
 
 	u := &User{Name: "Lucas"}
-	Do(u, BeforeQuery)
+	Do(u, operator.BeforeQuery)
 
 	uss := []*User{&User{Name: "Lucas"}, &User{Name: "Alices"}}
-	Do(uss, BeforeQuery)
+	Do(uss, operator.BeforeQuery)
 
-	Do(&uss, BeforeQuery)
+	Do(&uss, operator.BeforeQuery)
 
 	ast.Equal(5, sliceBeforeQueryCount)
 
@@ -364,7 +365,15 @@ func TestSliceHook(t *testing.T) {
 func TestNilError(t *testing.T) {
 	ast := require.New(t)
 
-	err := Do(nil, BeforeUpsert)
+	err := Do(nil, operator.BeforeUpsert)
 	ast.NoError(err)
 
+}
+
+func TestOpts(t *testing.T) {
+	ast := require.New(t)
+
+	u := &User{Name: "Lucas", Age: 7}
+	err := Do(nil, operator.BeforeInsert, u)
+	ast.NoError(err)
 }

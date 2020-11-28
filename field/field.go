@@ -16,41 +16,39 @@ package field
 import (
 	"reflect"
 	"time"
+
+	"github.com/qiniu/qmgo/operator"
 )
 
 var nilTime time.Time
 
-type FieldType string
-
-const (
-	BeforeInsert FieldType = "beforeInsert"
-	BeforeUpdate FieldType = "beforeUpdate"
-	BeforeUpsert FieldType = "beforeUpsert"
-)
-
 // filedHandler defines the relations between field type and handler
-var fieldHandler = map[FieldType]func(doc interface{}) error{
-	BeforeInsert: beforeInsert,
-	BeforeUpdate: beforeUpdate,
-	BeforeUpsert: beforeUpsert,
+var fieldHandler = map[operator.OpType]func(doc interface{}) error{
+	operator.BeforeInsert: beforeInsert,
+	operator.BeforeUpdate: beforeUpdate,
+	operator.BeforeUpsert: beforeUpsert,
 }
 
+//func init() {
+//	middleware.Register(Do)
+//}
+
 // Do call the specific method to handle field based on fType
-func Do(doc interface{}, fType FieldType) error {
+func Do(doc interface{}, opType operator.OpType, opts ...interface{}) error {
 	to := reflect.TypeOf(doc)
 	if to == nil {
 		return nil
 	}
 	switch reflect.TypeOf(doc).Kind() {
 	case reflect.Slice:
-		return sliceHandle(doc, fType)
+		return sliceHandle(doc, opType)
 	case reflect.Ptr:
 		v := reflect.ValueOf(doc).Elem()
 		switch v.Kind() {
 		case reflect.Slice:
-			return sliceHandle(v.Interface(), fType)
+			return sliceHandle(v.Interface(), opType)
 		default:
-			return fieldHandler[fType](doc)
+			return do(doc, opType)
 		}
 	}
 	//fmt.Println("not support type")
@@ -58,11 +56,11 @@ func Do(doc interface{}, fType FieldType) error {
 }
 
 // sliceHandle handles the slice docs
-func sliceHandle(docs interface{}, fType FieldType) error {
+func sliceHandle(docs interface{}, opType operator.OpType) error {
 	// []interface{}{UserType{}...}
 	if h, ok := docs.([]interface{}); ok {
 		for _, v := range h {
-			if err := fieldHandler[fType](v); err != nil {
+			if err := do(v, opType); err != nil {
 				return err
 			}
 		}
@@ -71,7 +69,7 @@ func sliceHandle(docs interface{}, fType FieldType) error {
 	// []UserType{}
 	s := reflect.ValueOf(docs)
 	for i := 0; i < s.Len(); i++ {
-		if err := fieldHandler[fType](s.Index(i).Interface()); err != nil {
+		if err := do(s.Index(i).Interface(), opType); err != nil {
 			return err
 		}
 	}
@@ -126,4 +124,13 @@ func beforeUpsert(doc interface{}) error {
 		fields.(*CustomFields).CustomUpdateTime(doc)
 	}
 	return nil
+}
+
+// do call check if opType is supported and call fieldHandler
+func do(doc interface{}, opType operator.OpType) error {
+	if f, ok := fieldHandler[opType]; !ok {
+		return nil
+	} else {
+		return f(doc)
+	}
 }

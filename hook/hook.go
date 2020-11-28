@@ -14,67 +14,63 @@
 package hook
 
 import (
+	"github.com/qiniu/qmgo/operator"
 	"reflect"
 )
 
-type HookType string
-
-const (
-	BeforeInsert HookType = "beforeInsert"
-	AfterInsert  HookType = "afterInsert"
-	BeforeUpdate HookType = "beforeUpdate"
-	AfterUpdate  HookType = "afterUpdate"
-	BeforeQuery  HookType = "beforeQuery"
-	AfterQuery   HookType = "afterQuery"
-	BeforeRemove HookType = "beforeRemove"
-	AfterRemove  HookType = "afterRemove"
-	BeforeUpsert HookType = "beforeUpsert"
-	AfterUpsert  HookType = "afterUpsert"
-)
-
 // hookHandler defines the relations between hook type and handler
-var hookHandler = map[HookType]func(hook interface{}) error{
-	BeforeInsert: beforeInsert,
-	AfterInsert:  afterInsert,
-	BeforeUpdate: beforeUpdate,
-	AfterUpdate:  afterUpdate,
-	BeforeQuery:  beforeQuery,
-	AfterQuery:   afterQuery,
-	BeforeRemove: beforeRemove,
-	AfterRemove:  afterRemove,
-	BeforeUpsert: beforeUpsert,
-	AfterUpsert:  afterUpsert,
+var hookHandler = map[operator.OpType]func(hook interface{}) error{
+	operator.BeforeInsert: beforeInsert,
+	operator.AfterInsert:  afterInsert,
+	operator.BeforeUpdate: beforeUpdate,
+	operator.AfterUpdate:  afterUpdate,
+	operator.BeforeQuery:  beforeQuery,
+	operator.AfterQuery:   afterQuery,
+	operator.BeforeRemove: beforeRemove,
+	operator.AfterRemove:  afterRemove,
+	operator.BeforeUpsert: beforeUpsert,
+	operator.AfterUpsert:  afterUpsert,
 }
 
+//
+//func init() {
+//	middleware.Register(Do)
+//}
+
 // Do call the specific method to handle hook based on hType
-func Do(hook interface{}, hType HookType) error {
+func Do(hook interface{}, opType operator.OpType, opts ...interface{}) error {
+	// if opts has valid value, use it instead of original hook
+	if len(opts) > 0 {
+		hook = opts[0]
+	}
+
 	to := reflect.TypeOf(hook)
 	if to == nil {
 		return nil
 	}
 	switch to.Kind() {
 	case reflect.Slice:
-		return sliceHandle(hook, hType)
+		return sliceHandle(hook, opType)
 	case reflect.Ptr:
 		v := reflect.ValueOf(hook).Elem()
 		switch v.Kind() {
 		case reflect.Slice:
-			return sliceHandle(v.Interface(), hType)
+			return sliceHandle(v.Interface(), opType)
 		default:
-			return hookHandler[hType](hook)
+			return do(hook, opType)
 		}
 	default:
-		return hookHandler[hType](hook)
+		return do(hook, opType)
 	}
 	return nil
 }
 
 // sliceHandle handles the slice hooks
-func sliceHandle(hook interface{}, hType HookType) error {
+func sliceHandle(hook interface{}, opType operator.OpType) error {
 	// []interface{}{UserType{}...}
 	if h, ok := hook.([]interface{}); ok {
 		for _, v := range h {
-			if err := hookHandler[hType](v); err != nil {
+			if err := do(v, opType); err != nil {
 				return err
 			}
 		}
@@ -83,7 +79,7 @@ func sliceHandle(hook interface{}, hType HookType) error {
 	// []UserType{}
 	s := reflect.ValueOf(hook)
 	for i := 0; i < s.Len(); i++ {
-		if err := hookHandler[hType](s.Index(i).Interface()); err != nil {
+		if err := do(s.Index(i).Interface(), opType); err != nil {
 			return err
 		}
 	}
@@ -208,4 +204,13 @@ func afterUpsert(hook interface{}) error {
 		return ih.AfterUpsert()
 	}
 	return nil
+}
+
+// do call check if opType is supported and call hookHanlder
+func do(hook interface{}, opType operator.OpType) error {
+	if f, ok := hookHandler[opType]; !ok {
+		return nil
+	} else {
+		return f(hook)
+	}
 }

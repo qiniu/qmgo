@@ -16,13 +16,14 @@ package qmgo
 import (
 	"context"
 	"fmt"
+	"github.com/qiniu/qmgo/middleware"
+	"github.com/qiniu/qmgo/operator"
 	"reflect"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"github.com/qiniu/qmgo/hook"
 	qOpts "github.com/qiniu/qmgo/options"
 )
 
@@ -92,7 +93,7 @@ func (q *Query) Hint(hint interface{}) QueryI {
 
 // Limit limits the maximum number of documents found to n
 // The default value is 0, and 0  means no limit, and all matching results are returned
-// When the limit value is less than 0, the negative limit is similar to the positive limit, but the cursor is closed after returning a single batch result.
+// When the limit value is less than 0, the negative limit is similar to the positive limit, but the cursor is closed operator.After returning a single batch result.
 // Reference https://docs.mongodb.com/manual/reference/method/cursor.limit/index.html
 func (q *Query) Limit(n int64) QueryI {
 	newQ := q
@@ -104,7 +105,7 @@ func (q *Query) Limit(n int64) QueryI {
 // If the search fails, an error will be returned
 func (q *Query) One(result interface{}) error {
 	if len(q.opts) > 0 {
-		if err := hook.Do(q.opts[0].QueryHook, hook.BeforeQuery); err != nil {
+		if err := middleware.Do(q.opts[0].QueryHook, operator.BeforeQuery); err != nil {
 			return err
 		}
 	}
@@ -129,7 +130,7 @@ func (q *Query) One(result interface{}) error {
 		return err
 	}
 	if len(q.opts) > 0 {
-		if err := hook.Do(q.opts[0].QueryHook, hook.AfterQuery); err != nil {
+		if err := middleware.Do(q.opts[0].QueryHook, operator.AfterQuery); err != nil {
 			return err
 		}
 	}
@@ -140,7 +141,7 @@ func (q *Query) One(result interface{}) error {
 // The static type of result must be a slice pointer
 func (q *Query) All(result interface{}) error {
 	if len(q.opts) > 0 {
-		if err := hook.Do(q.opts[0].QueryHook, hook.BeforeQuery); err != nil {
+		if err := middleware.Do(q.opts[0].QueryHook, operator.BeforeQuery); err != nil {
 			return err
 		}
 	}
@@ -177,7 +178,7 @@ func (q *Query) All(result interface{}) error {
 		return err
 	}
 	if len(q.opts) > 0 {
-		if err := hook.Do(q.opts[0].QueryHook, hook.AfterQuery); err != nil {
+		if err := middleware.Do(q.opts[0].QueryHook, operator.AfterQuery); err != nil {
 			return err
 		}
 	}
@@ -237,7 +238,7 @@ func (q *Query) Distinct(key string, result interface{}) error {
 }
 
 // Cursor gets a Cursor object, which can be used to traverse the query result set
-// After obtaining the CursorI object, you should actively call the Close interface to close the cursor
+// operator.After obtaining the CursorI object, you should actively call the Close interface to close the cursor
 func (q *Query) Cursor() CursorI {
 	opt := options.Find()
 
@@ -277,7 +278,7 @@ func (q *Query) Cursor() CursorI {
 // and the update parameter must be a document and cannot contain any update operators;
 // if no objects are found and Change.Upsert is false, it will returns ErrNoDocuments.
 // When Change.Remove is true, it means delete at most one document in the collection
-// and returns the document as it appeared before deletion; if no objects are found,
+// and returns the document as it appeared operator.Before deletion; if no objects are found,
 // it will returns ErrNoDocuments.
 // When both Change.Replace and Change.Remove are false，it means update at most one document
 // in the collection and the update parameter must be a document containing update operators;
