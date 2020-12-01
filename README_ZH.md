@@ -20,7 +20,7 @@
 - 自动化更新的默认和定制fields
 - 预定义操作符
 - 聚合`Aggregate`、索引操作、`cursor`
-- 创建链接时支持配置: 连接池、pool Monitor、Auth、ReadPreference
+- 创建链接和增删改查时支持所有官方的options
 
 ## 安装
 
