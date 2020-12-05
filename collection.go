@@ -19,14 +19,13 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/qiniu/qmgo/middleware"
+	"github.com/qiniu/qmgo/operator"
+	opts "github.com/qiniu/qmgo/options"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"
-
-	"github.com/qiniu/qmgo/field"
-	"github.com/qiniu/qmgo/hook"
-	opts "github.com/qiniu/qmgo/options"
 )
 
 // Collection is a handle to a MongoDB collection
@@ -58,10 +57,7 @@ func (c *Collection) InsertOne(ctx context.Context, doc interface{}, opts ...opt
 			h = opts[0].InsertHook
 		}
 	}
-	if err = hook.Do(h, hook.BeforeInsert); err != nil {
-		return
-	}
-	if err = field.Do(doc, field.BeforeInsert); err != nil {
+	if err = middleware.Do(doc, operator.BeforeInsert, h); err != nil {
 		return
 	}
 	res, err := c.collection.InsertOne(ctx, doc, insertOneOpts)
@@ -71,7 +67,7 @@ func (c *Collection) InsertOne(ctx context.Context, doc interface{}, opts ...opt
 	if err != nil {
 		return
 	}
-	if err = hook.Do(h, hook.AfterInsert); err != nil {
+	if err = middleware.Do(doc, operator.AfterInsert, h); err != nil {
 		return
 	}
 	return
@@ -91,10 +87,7 @@ func (c *Collection) InsertMany(ctx context.Context, docs interface{}, opts ...o
 			h = opts[0].InsertHook
 		}
 	}
-	if err = hook.Do(h, hook.BeforeInsert); err != nil {
-		return
-	}
-	if err = field.Do(docs, field.BeforeInsert); err != nil {
+	if err = middleware.Do(docs, operator.BeforeInsert, h); err != nil {
 		return
 	}
 	sDocs := interfaceToSliceInterface(docs)
@@ -109,7 +102,7 @@ func (c *Collection) InsertMany(ctx context.Context, docs interface{}, opts ...o
 	if err != nil {
 		return
 	}
-	if err = hook.Do(h, hook.AfterInsert); err != nil {
+	if err = middleware.Do(docs, operator.AfterInsert, h); err != nil {
 		return
 	}
 	return
@@ -150,10 +143,7 @@ func (c *Collection) Upsert(ctx context.Context, filter interface{}, replacement
 			h = opts[0].UpsertHook
 		}
 	}
-	if err = hook.Do(h, hook.BeforeUpsert); err != nil {
-		return
-	}
-	if err = field.Do(replacement, field.BeforeUpsert); err != nil {
+	if err = middleware.Do(replacement, operator.BeforeUpsert, h); err != nil {
 		return
 	}
 
@@ -165,7 +155,7 @@ func (c *Collection) Upsert(ctx context.Context, filter interface{}, replacement
 	if err != nil {
 		return
 	}
-	if err = hook.Do(h, hook.AfterUpsert); err != nil {
+	if err = middleware.Do(replacement, operator.AfterUpsert, h); err != nil {
 		return
 	}
 	return
@@ -188,10 +178,7 @@ func (c *Collection) UpsertId(ctx context.Context, id interface{}, replacement i
 			h = opts[0].UpsertHook
 		}
 	}
-	if err = hook.Do(h, hook.BeforeUpsert); err != nil {
-		return
-	}
-	if err = field.Do(replacement, field.BeforeUpsert); err != nil {
+	if err = middleware.Do(replacement, operator.BeforeUpsert, h); err != nil {
 		return
 	}
 	res, err := c.collection.ReplaceOne(ctx, bson.M{"_id": id}, replacement, officialOpts)
@@ -201,7 +188,7 @@ func (c *Collection) UpsertId(ctx context.Context, id interface{}, replacement i
 	if err != nil {
 		return
 	}
-	if err = hook.Do(h, hook.AfterUpsert); err != nil {
+	if err = middleware.Do(replacement, operator.AfterUpsert, h); err != nil {
 		return
 	}
 	return
@@ -217,7 +204,7 @@ func (c *Collection) UpdateOne(ctx context.Context, filter interface{}, update i
 			updateOpts = opts[0].UpdateOptions
 		}
 		if opts[0].UpdateHook != nil {
-			if err = hook.Do(opts[0].UpdateHook, hook.BeforeUpdate); err != nil {
+			if err = middleware.Do(opts[0].UpdateHook, operator.BeforeUpdate); err != nil {
 				return
 			}
 		}
@@ -231,7 +218,7 @@ func (c *Collection) UpdateOne(ctx context.Context, filter interface{}, update i
 		return err
 	}
 	if len(opts) > 0 && opts[0].UpdateHook != nil {
-		if err = hook.Do(opts[0].UpdateHook, hook.AfterUpdate); err != nil {
+		if err = middleware.Do(opts[0].UpdateHook, operator.AfterUpdate); err != nil {
 			return
 		}
 	}
@@ -248,7 +235,7 @@ func (c *Collection) UpdateId(ctx context.Context, id interface{}, update interf
 			updateOpts = opts[0].UpdateOptions
 		}
 		if opts[0].UpdateHook != nil {
-			if err = hook.Do(opts[0].UpdateHook, hook.BeforeUpdate); err != nil {
+			if err = middleware.Do(opts[0].UpdateHook, operator.BeforeUpdate); err != nil {
 				return
 			}
 		}
@@ -262,7 +249,7 @@ func (c *Collection) UpdateId(ctx context.Context, id interface{}, update interf
 		return err
 	}
 	if len(opts) > 0 && opts[0].UpdateHook != nil {
-		if err = hook.Do(opts[0].UpdateHook, hook.AfterUpdate); err != nil {
+		if err = middleware.Do(opts[0].UpdateHook, operator.AfterUpdate); err != nil {
 			return
 		}
 	}
@@ -279,7 +266,7 @@ func (c *Collection) UpdateAll(ctx context.Context, filter interface{}, update i
 			updateOpts = opts[0].UpdateOptions
 		}
 		if opts[0].UpdateHook != nil {
-			if err = hook.Do(opts[0].UpdateHook, hook.BeforeUpdate); err != nil {
+			if err = middleware.Do(opts[0].UpdateHook, operator.BeforeUpdate); err != nil {
 				return
 			}
 		}
@@ -292,7 +279,7 @@ func (c *Collection) UpdateAll(ctx context.Context, filter interface{}, update i
 		return
 	}
 	if len(opts) > 0 && opts[0].UpdateHook != nil {
-		if err = hook.Do(opts[0].UpdateHook, hook.AfterUpdate); err != nil {
+		if err = middleware.Do(opts[0].UpdateHook, operator.AfterUpdate); err != nil {
 			return
 		}
 	}
@@ -314,10 +301,7 @@ func (c *Collection) ReplaceOne(ctx context.Context, filter interface{}, doc int
 			h = opts[0].UpdateHook
 		}
 	}
-	if err = hook.Do(h, hook.BeforeUpdate); err != nil {
-		return
-	}
-	if err = field.Do(doc, field.BeforeUpdate); err != nil {
+	if err = middleware.Do(doc, operator.BeforeUpdate, h); err != nil {
 		return
 	}
 	res, err := c.collection.ReplaceOne(ctx, filter, doc, replaceOpts)
@@ -327,7 +311,7 @@ func (c *Collection) ReplaceOne(ctx context.Context, filter interface{}, doc int
 	if err != nil {
 		return err
 	}
-	if err = hook.Do(h, hook.AfterUpdate); err != nil {
+	if err = middleware.Do(doc, operator.AfterUpdate, h); err != nil {
 		return
 	}
 
@@ -344,7 +328,7 @@ func (c *Collection) Remove(ctx context.Context, filter interface{}, opts ...opt
 			deleteOptions = opts[0].DeleteOptions
 		}
 		if opts[0].RemoveHook != nil {
-			if err = hook.Do(opts[0].RemoveHook, hook.BeforeRemove); err != nil {
+			if err = middleware.Do(opts[0].RemoveHook, operator.BeforeRemove); err != nil {
 				return err
 			}
 		}
@@ -357,7 +341,7 @@ func (c *Collection) Remove(ctx context.Context, filter interface{}, opts ...opt
 		return err
 	}
 	if len(opts) > 0 && opts[0].RemoveHook != nil {
-		if err = hook.Do(opts[0].RemoveHook, hook.AfterRemove); err != nil {
+		if err = middleware.Do(opts[0].RemoveHook, operator.AfterRemove); err != nil {
 			return err
 		}
 	}
@@ -372,7 +356,7 @@ func (c *Collection) RemoveId(ctx context.Context, id interface{}, opts ...opts.
 			deleteOptions = opts[0].DeleteOptions
 		}
 		if opts[0].RemoveHook != nil {
-			if err = hook.Do(opts[0].RemoveHook, hook.BeforeRemove); err != nil {
+			if err = middleware.Do(opts[0].RemoveHook, operator.BeforeRemove); err != nil {
 				return err
 			}
 		}
@@ -386,7 +370,7 @@ func (c *Collection) RemoveId(ctx context.Context, id interface{}, opts ...opts.
 	}
 
 	if len(opts) > 0 && opts[0].RemoveHook != nil {
-		if err = hook.Do(opts[0].RemoveHook, hook.AfterRemove); err != nil {
+		if err = middleware.Do(opts[0].RemoveHook, operator.AfterRemove); err != nil {
 			return err
 		}
 	}
@@ -403,7 +387,7 @@ func (c *Collection) RemoveAll(ctx context.Context, filter interface{}, opts ...
 			deleteOptions = opts[0].DeleteOptions
 		}
 		if opts[0].RemoveHook != nil {
-			if err = hook.Do(opts[0].RemoveHook, hook.BeforeRemove); err != nil {
+			if err = middleware.Do(opts[0].RemoveHook, operator.BeforeRemove); err != nil {
 				return
 			}
 		}
@@ -416,7 +400,7 @@ func (c *Collection) RemoveAll(ctx context.Context, filter interface{}, opts ...
 		return
 	}
 	if len(opts) > 0 && opts[0].RemoveHook != nil {
-		if err = hook.Do(opts[0].RemoveHook, hook.AfterRemove); err != nil {
+		if err = middleware.Do(opts[0].RemoveHook, operator.AfterRemove); err != nil {
 			return
 		}
 	}

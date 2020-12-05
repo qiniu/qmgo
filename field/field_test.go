@@ -14,10 +14,11 @@
 package field
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 
+	"github.com/qiniu/qmgo/operator"
+	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -39,7 +40,7 @@ func TestBeforeInsert(t *testing.T) {
 	ast := require.New(t)
 
 	u := &User{Name: "Lucas", Age: 7}
-	err := Do(u, BeforeInsert)
+	err := Do(u, operator.BeforeInsert)
 	ast.NoError(err)
 	// default fields
 	ast.NotEqual(time.Time{}, u.CreateAt)
@@ -52,7 +53,7 @@ func TestBeforeInsert(t *testing.T) {
 
 	u1, u2 := &User{Name: "Lucas", Age: 7}, &User{Name: "Alice", Age: 8}
 	us := []*User{u1, u2}
-	err = Do(us, BeforeInsert)
+	err = Do(us, operator.BeforeInsert)
 	ast.NoError(err)
 
 	for _, v := range us {
@@ -62,7 +63,7 @@ func TestBeforeInsert(t *testing.T) {
 	}
 
 	u3 := User{Name: "Lucas", Age: 7}
-	err = Do(u3, BeforeInsert)
+	err = Do(u3, operator.BeforeInsert)
 	ast.NoError(err)
 
 	// insert with valid value
@@ -76,7 +77,7 @@ func TestBeforeInsert(t *testing.T) {
 	u.CreateTimeAt = tBefore3s
 	u.UpdateTimeAt = tBefore3s.Unix()
 
-	err = Do(u, BeforeUpsert)
+	err = Do(u, operator.BeforeUpsert)
 	ast.NoError(err)
 
 	ast.Equal(tBefore3s, u.CreateAt)
@@ -92,7 +93,7 @@ func TestBeforeUpdate(t *testing.T) {
 	ast := require.New(t)
 
 	u := &User{Name: "Lucas", Age: 7}
-	err := Do(u, BeforeUpdate)
+	err := Do(u, operator.BeforeUpdate)
 	ast.NoError(err)
 	// default field
 	ast.NotEqual(time.Time{}, u.UpdateAt)
@@ -102,7 +103,7 @@ func TestBeforeUpdate(t *testing.T) {
 
 	u1, u2 := &User{Name: "Lucas", Age: 7}, &User{Name: "Alice", Age: 8}
 	us := []*User{u1, u2}
-	err = Do(us, BeforeUpdate)
+	err = Do(us, operator.BeforeUpdate)
 	ast.NoError(err)
 	for _, v := range us {
 		// default field
@@ -113,7 +114,7 @@ func TestBeforeUpdate(t *testing.T) {
 	}
 
 	us1 := []interface{}{u1, u2}
-	err = Do(us1, BeforeUpdate)
+	err = Do(us1, operator.BeforeUpdate)
 	ast.NoError(err)
 	for _, v := range us {
 		// default field
@@ -144,7 +145,7 @@ func TestBeforeUpsert(t *testing.T) {
 
 	// with empty fileds
 	u := &User{Name: "Lucas", Age: 7}
-	err := Do(u, BeforeUpsert)
+	err := Do(u, operator.BeforeUpsert)
 	ast.NoError(err)
 	// default fields
 	ast.NotEqual(time.Time{}, u.CreateAt)
@@ -157,7 +158,7 @@ func TestBeforeUpsert(t *testing.T) {
 
 	u1, u2 := &User{Name: "Lucas", Age: 7}, &User{Name: "Alice", Age: 8}
 	us := []*User{u1, u2}
-	err = Do(us, BeforeUpsert)
+	err = Do(us, operator.BeforeUpsert)
 	ast.NoError(err)
 
 	for _, v := range us {
@@ -169,7 +170,7 @@ func TestBeforeUpsert(t *testing.T) {
 	}
 
 	u3 := User{Name: "Lucas", Age: 7}
-	err = Do(u3, BeforeUpsert)
+	err = Do(u3, operator.BeforeUpsert)
 	ast.NoError(err)
 
 	// upsert with valid value
@@ -183,7 +184,7 @@ func TestBeforeUpsert(t *testing.T) {
 	u.CreateTimeAt = tBefore3s
 	u.UpdateTimeAt = tBefore3s.Unix()
 
-	err = Do(u, BeforeUpsert)
+	err = Do(u, operator.BeforeUpsert)
 	ast.NoError(err)
 
 	ast.Equal(tBefore3s, u.CreateAt)
@@ -202,7 +203,7 @@ func TestBeforeUpsertUserFiled(t *testing.T) {
 
 	// with empty fileds
 	u := &UserField{Name: "Lucas", Age: 7}
-	err := Do(u, BeforeUpsert)
+	err := Do(u, operator.BeforeUpsert)
 	ast.NoError(err)
 	// default fields
 	ast.NotEqual(time.Time{}, u.CreateAt)
@@ -215,7 +216,7 @@ func TestBeforeUpsertUserFiled(t *testing.T) {
 
 	u1, u2 := &UserField{Name: "Lucas", Age: 7}, &UserField{Name: "Alice", Age: 8}
 	us := []*UserField{u1, u2}
-	err = Do(us, BeforeUpsert)
+	err = Do(us, operator.BeforeUpsert)
 	ast.NoError(err)
 
 	for _, v := range us {
@@ -227,7 +228,7 @@ func TestBeforeUpsertUserFiled(t *testing.T) {
 	}
 
 	u3 := User{Name: "Lucas", Age: 7}
-	err = Do(u3, BeforeUpsert)
+	err = Do(u3, operator.BeforeUpsert)
 	ast.NoError(err)
 
 	// upsert with valid value
@@ -241,7 +242,7 @@ func TestBeforeUpsertUserFiled(t *testing.T) {
 	u.CreateTimeAt = tBefore3s.Unix()
 	u.UpdateTimeAt = tBefore3s
 
-	err = Do(u, BeforeUpsert)
+	err = Do(u, operator.BeforeUpsert)
 	ast.NoError(err)
 
 	ast.Equal(tBefore3s, u.CreateAt)
@@ -257,7 +258,7 @@ func TestBeforeUpsertUserFiled(t *testing.T) {
 func TestNilError(t *testing.T) {
 	ast := require.New(t)
 
-	err := Do(nil, BeforeUpsert)
+	err := Do(nil, operator.BeforeUpsert)
 	ast.NoError(err)
 
 }

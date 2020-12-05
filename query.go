@@ -18,12 +18,12 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/qiniu/qmgo/middleware"
+	"github.com/qiniu/qmgo/operator"
+	qOpts "github.com/qiniu/qmgo/options"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-
-	"github.com/qiniu/qmgo/hook"
-	qOpts "github.com/qiniu/qmgo/options"
 )
 
 // Query struct definition
@@ -104,7 +104,7 @@ func (q *Query) Limit(n int64) QueryI {
 // If the search fails, an error will be returned
 func (q *Query) One(result interface{}) error {
 	if len(q.opts) > 0 {
-		if err := hook.Do(q.opts[0].QueryHook, hook.BeforeQuery); err != nil {
+		if err := middleware.Do(q.opts[0].QueryHook, operator.BeforeQuery); err != nil {
 			return err
 		}
 	}
@@ -129,7 +129,7 @@ func (q *Query) One(result interface{}) error {
 		return err
 	}
 	if len(q.opts) > 0 {
-		if err := hook.Do(q.opts[0].QueryHook, hook.AfterQuery); err != nil {
+		if err := middleware.Do(q.opts[0].QueryHook, operator.AfterQuery); err != nil {
 			return err
 		}
 	}
@@ -140,7 +140,7 @@ func (q *Query) One(result interface{}) error {
 // The static type of result must be a slice pointer
 func (q *Query) All(result interface{}) error {
 	if len(q.opts) > 0 {
-		if err := hook.Do(q.opts[0].QueryHook, hook.BeforeQuery); err != nil {
+		if err := middleware.Do(q.opts[0].QueryHook, operator.BeforeQuery); err != nil {
 			return err
 		}
 	}
@@ -177,7 +177,7 @@ func (q *Query) All(result interface{}) error {
 		return err
 	}
 	if len(q.opts) > 0 {
-		if err := hook.Do(q.opts[0].QueryHook, hook.AfterQuery); err != nil {
+		if err := middleware.Do(q.opts[0].QueryHook, operator.AfterQuery); err != nil {
 			return err
 		}
 	}
