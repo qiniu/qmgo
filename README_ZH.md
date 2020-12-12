@@ -2,7 +2,7 @@
 
 `Qmgo` 是一款`Go`语言的`MongoDB` `driver`，它基于[MongoDB 官方 driver](https://github.com/mongodb/mongo-go-driver) 开发实现，同时使用更易用的接口设计，比如参考[mgo](https://github.com/go-mgo/mgo) （比如`mgo`的链式调用）。
 
-- `Qmgo`能让用户以更优雅的姿势使用`MongoDB`的新特性。
+- `Qmgo`让您以更优雅的姿势使用`MongoDB`的新特性。
 
 - `Qmgo`是从`mgo`迁移到新`MongoDB driver`的第一选择，对代码的改动影响最小。
 
@@ -345,4 +345,4 @@ coll.Find(bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 
 - 加入 微信群:
 
-![avatar](http://pgo8q04yu.bkt.clouddn.com/qmgo-16.png)
+![avatar](http://pgo8q04yu.bkt.clouddn.com/qmgo-17.png)

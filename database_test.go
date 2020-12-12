@@ -15,9 +15,13 @@ package qmgo
 
 import (
 	"context"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"testing"
 
+	opts "github.com/qiniu/qmgo/options"
 	"github.com/stretchr/testify/require"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func TestDatabase(t *testing.T) {
@@ -50,4 +54,15 @@ func TestDatabase(t *testing.T) {
 	cli.Collection(collName).DropCollection(context.Background())
 	cli.DropDatabase(context.Background())
 
+}
+
+func TestRunCommand(t *testing.T) {
+	ast := require.New(t)
+
+	cli := initClient("test")
+
+	opts := opts.RunCommandOptions{RunCmdOptions: options.RunCmd().SetReadPreference(readpref.Primary())}
+	res := cli.RunCommand(context.Background(), bson.D{
+		{"ping", 1}}, opts)
+	ast.NoError(res.Err())
 }
