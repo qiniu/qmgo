@@ -45,13 +45,17 @@ func TestValidator(t *testing.T) {
 		Age:            45,
 		Email:          "1234@gmail.com",
 		FavouriteColor: "#000",
-		Addresses:      []*Address{address},
+		Addresses:      []*Address{address, address},
 	}
 	ast.NoError(Do(user, operator.BeforeInsert))
 	ast.NoError(Do(user, operator.BeforeUpsert))
 
 	users := []*User{user, user, user}
 	ast.NoError(Do(users, operator.BeforeInsert))
+
+	userss := [][]*User{[]*User{user, user, user}, []*User{user, user}}
+	ast.NoError(Do(userss, operator.BeforeInsert))
+
 	// check failure
 	user.Age = 150
 	ast.Error(Do(user, operator.BeforeInsert))
