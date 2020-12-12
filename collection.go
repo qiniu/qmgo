@@ -301,7 +301,7 @@ func (c *Collection) ReplaceOne(ctx context.Context, filter interface{}, doc int
 			h = opts[0].UpdateHook
 		}
 	}
-	if err = middleware.Do(doc, operator.BeforeUpdate, h); err != nil {
+	if err = middleware.Do(doc, operator.BeforeReplace, h); err != nil {
 		return
 	}
 	res, err := c.collection.ReplaceOne(ctx, filter, doc, replaceOpts)
@@ -311,7 +311,7 @@ func (c *Collection) ReplaceOne(ctx context.Context, filter interface{}, doc int
 	if err != nil {
 		return err
 	}
-	if err = middleware.Do(doc, operator.AfterUpdate, h); err != nil {
+	if err = middleware.Do(doc, operator.AfterReplace, h); err != nil {
 		return
 	}
 

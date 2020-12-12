@@ -24,9 +24,10 @@ var nilTime time.Time
 
 // filedHandler defines the relations between field type and handler
 var fieldHandler = map[operator.OpType]func(doc interface{}) error{
-	operator.BeforeInsert: beforeInsert,
-	operator.BeforeUpdate: beforeUpdate,
-	operator.BeforeUpsert: beforeUpsert,
+	operator.BeforeInsert:  beforeInsert,
+	operator.BeforeUpdate:  beforeUpdate,
+	operator.BeforeReplace: beforeUpdate,
+	operator.BeforeUpsert:  beforeUpsert,
 }
 
 //func init() {
