@@ -55,9 +55,6 @@ func TestValidator(t *testing.T) {
 	users := []*User{user, user, user}
 	ast.NoError(Do(users, operator.BeforeInsert))
 
-	userss := [][]*User{[]*User{user, user, user}, []*User{user, user}}
-	ast.NoError(Do(userss, operator.BeforeInsert))
-
 	// check failure
 	user.Age = 150
 	ast.Error(Do(user, operator.BeforeInsert))
@@ -72,12 +69,16 @@ func TestValidator(t *testing.T) {
 	users = []*User{user, user, user}
 	ast.Error(Do(users, operator.BeforeInsert))
 
+	useris := []interface{}{user, user, user}
+	ast.Error(Do(useris, operator.BeforeInsert))
+
 	user.Addresses[0].City = "shanghai"
 	users = []*User{user, user, user}
 	ast.NoError(Do(users, operator.BeforeInsert))
 
 	us := []User{*user, *user, *user}
 	ast.NoError(Do(us, operator.BeforeInsert))
+	ast.NoError(Do(&us, operator.BeforeInsert))
 
 	// all bson type
 	mdoc := []interface{}{bson.M{"name": "", "age": 12}, bson.M{"name": "", "age": 12}}
@@ -92,4 +93,5 @@ func TestValidator(t *testing.T) {
 	// nil ptr
 	user = nil
 	ast.NoError(Do(user, operator.BeforeInsert))
+	ast.NoError(Do(nil, operator.BeforeInsert))
 }
