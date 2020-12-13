@@ -51,31 +51,19 @@ func sliceHandle(docs interface{}, opType operator.OpType) error {
 	// []interface{}{UserType{}...}
 	if h, ok := docs.([]interface{}); ok {
 		for _, v := range h {
-			//if reflect.TypeOf(v).Kind() == reflect.Slice {
-			//	if err := Do(v, opType); err != nil {
-			//		return err
-			//	}
-			//} else {
 			if err := do(v); err != nil {
 				return err
 			}
-			//}
 		}
 		return nil
 	}
 	// []UserType{}
 	s := reflect.ValueOf(docs)
 	for i := 0; i < s.Len(); i++ {
-		//if s.Index(i).Kind() == reflect.Slice {
-		//	if err := Do(s.Index(i).Interface(), opType); err != nil {
-		//		return err
-		//	}
-		//} else {
 		if err := do(s.Index(i).Interface()); err != nil {
 
 			return err
 		}
-		//}
 	}
 	return nil
 }
