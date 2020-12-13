@@ -305,7 +305,6 @@ go get github.com/qiniu/qmgo
     所以`Qmgo`支持所有[go-playground/validator 的struct验证规则](https://github.com/go-playground/validator#usage-and-documentation)，比如：
     
     ```go
-    // User contains user information
     type User struct {
         FirstName string            `bson:"fname"`
         LastName  string            `bson:"lname"`

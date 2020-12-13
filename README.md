@@ -303,7 +303,6 @@ Or
     So Qmgo support [all validations on structs in go-playground/validator](https://github.com/go-playground/validator#usage-and-documentation), such as:
     
     ```go
-    // User contains user information
     type User struct {
         FirstName string            `bson:"fname"`
         LastName  string            `bson:"lname"`
