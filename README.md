@@ -335,7 +335,7 @@ Or
     ```
     [Example](middleware/middleware_test.go)
     
-    The `hook`、`automatically fields` and `validation tags` in Qmgo runs with **plugin**.
+    The `hook`、`automatically fields` and `validation tags` in Qmgo run on **plugin**.
     
 ## `Qmgo` vs `go.mongodb.org/mongo-driver`
 
