@@ -302,7 +302,7 @@ go get github.com/qiniu/qmgo
     
     功能基于[go-playground/validator](https://github.com/go-playground/validator)实现。
     
-    所以`Qmgo`支持所有[go-playground/validator 的验证规则](https://github.com/go-playground/validator#usage-and-documentation)，比如：
+    所以`Qmgo`支持所有[go-playground/validator 的struct验证规则](https://github.com/go-playground/validator#usage-and-documentation)，比如：
     
     ```go
     type User struct {

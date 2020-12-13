@@ -300,7 +300,7 @@ Or
 
     Qmgo Validation tags is Based on [go-playground/validator](https://github.com/go-playground/validator).
     
-    So Qmgo support [all features in go-playground/validator](https://github.com/go-playground/validator#usage-and-documentation), such as:
+    So Qmgo support [all validations on structs in go-playground/validator](https://github.com/go-playground/validator#usage-and-documentation), such as:
     
     ```go
     type User struct {
