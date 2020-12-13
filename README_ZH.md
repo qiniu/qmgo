@@ -21,6 +21,7 @@
 - 预定义操作符
 - 聚合`Aggregate`、索引操作、`cursor`
 - `validator tags` 基于tag的字段验证
+- 可自定义插件化编程
 - 创建链接和增删改查时支持所有官方的options
 
 ## 安装
@@ -298,12 +299,11 @@ go get github.com/qiniu/qmgo
 
     [自动化 fields 详情介绍](https://github.com/qiniu/qmgo/wiki/Automatically-update-fields)
   
-- `validator tags` 基于tag的字段验证
+- `Validation tags` 基于tag的字段验证
     
     功能基于[go-playground/validator](https://github.com/go-playground/validator)实现。
     
     所以`Qmgo`支持所有[go-playground/validator 的struct验证规则](https://github.com/go-playground/validator#usage-and-documentation)，比如：
-    
     ```go
     type User struct {
         FirstName string            `bson:"fname"`
@@ -318,6 +318,24 @@ go get github.com/qiniu/qmgo
     本功能只对以下API有效：
     ` InsertOne、InsertyMany、Upsert、UpsertId、ReplaceOne `
 
+- 插件化编程
+    
+    - 实现以下方法
+    ```go
+    func Do(doc interface{}, opType operator.OpType, opts ...interface{}) error{
+      // do anything
+    }
+    ```
+    
+    - 将方法通过middleware包的Register方法注入
+      Qmgo会在支持的[操作](operator/operate_type.go)执行前后调用
+    ```go
+    middleware.Register(Do)
+    ```
+    [Example](middleware/middleware_test.go)
+    
+    Qmgo的hook、自动更新field和validation tags都通过这种方式实现
+  
 ## `qmgo` vs `go.mongodb.org/mongo-driver`
 
 下面我们举一个多文件查找、`sort`和`limit`的例子, 说明`qmgo`和`mgo`的相似，以及对`go.mongodb.org/mongo-driver`的改进

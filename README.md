@@ -22,15 +22,15 @@ English | [简体中文](README_ZH.md)
 -`MongoDB 2.6` and above.
 
 ## Features
-- CRUD to documents
+- CRUD to documents, with all official supported options
 - Sort、limit、count、select、distinct
 - Transactions
 - Hooks
-- Automatically update default and custom fields
+- Automatically default and custom fields
 - Predefine operator keys
 - Aggregate、indexes operation、cursor
 - Validation tags
-- All options when create connection and CRUD
+- Plugin
 
 ## Installation
 
@@ -244,7 +244,7 @@ Or
     ````
     [More about hooks](https://github.com/qiniu/qmgo/wiki/Hooks)
 
-- Automatically update fields
+- Automatically fields
 
     Qmgo support two ways to make specific fields automatically update in specific API
    
@@ -316,6 +316,26 @@ Or
     Qmgo tags only supported in following API：
     ` InsertOne、InsertyMany、Upsert、UpsertId、ReplaceOne `
 
+- Plugin
+    
+    - Implement following method:
+    
+    ```go
+    func Do(doc interface{}, opType operator.OpType, opts ...interface{}) error{
+      // do anything
+    }
+    ```
+    
+    - Call Register() in package middleware, register the method `Do`
+      Qmgo will call `Do` before and after the [operation](operator/operate_type.go)
+      
+    ```go
+    middleware.Register(Do)
+    ```
+    [Example](middleware/middleware_test.go)
+    
+    The `hook`、`automatically fields` and `validation tags` in Qmgo runs with **plugin**.
+    
 ## `Qmgo` vs `go.mongodb.org/mongo-driver`
 
 Below we give an example of multi-file search、sort and limit to illustrate the similarities between `qmgo` and `mgo` and the improvement compare to `go.mongodb.org/mongo-driver`.
