@@ -20,6 +20,7 @@
 - 自动化更新的默认和定制fields
 - 预定义操作符
 - 聚合`Aggregate`、索引操作、`cursor`
+- `validator tags` 基于tag的字段验证
 - 创建链接和增删改查时支持所有官方的options
 
 ## 安装
@@ -36,213 +37,213 @@ go get github.com/qiniu/qmgo
 
 - 开始
 
-`import`并新建连接
-
-```go
-import(
-    "context"
-
-    "github.com/qiniu/qmgo"
-)
-
-ctx := context.Background()
-client, err := qmgo.NewClient(ctx, &qmgo.Config{Uri: "mongodb://localhost:27017"})
-db := client.Database("class")
-coll := db.Collection("user")
-
-```
-
-如果你的连接是指向固定的 database 和 collection，我们推荐使用下面的更方便的方法初始化连接，后续操作都基于`cli`而不用再关心 database 和 collection
-
-```go
-cli, err := qmgo.Open(ctx, &qmgo.Config{Uri: "mongodb://localhost:27017", Database: "class", Coll: "user"})
-```
-
-**_后面都会基于`cli`来举例，如果你使用第一种传统的方式进行初始化，根据上下文，将`cli`替换成`client`、`db` 或 `coll`即可_**
-
-在初始化成功后，请`defer`来关闭连接
-
-```go
-defer func() {
-    if err = cli.Close(ctx); err != nil {
-        panic(err)
-    }
-}()
-```
+    `import`并新建连接
+    
+    ```go
+    import(
+        "context"
+    
+        "github.com/qiniu/qmgo"
+    )
+    
+    ctx := context.Background()
+    client, err := qmgo.NewClient(ctx, &qmgo.Config{Uri: "mongodb://localhost:27017"})
+    db := client.Database("class")
+    coll := db.Collection("user")
+    
+    ```
+    
+    如果你的连接是指向固定的 database 和 collection，我们推荐使用下面的更方便的方法初始化连接，后续操作都基于`cli`而不用再关心 database 和 collection
+    
+    ```go
+    cli, err := qmgo.Open(ctx, &qmgo.Config{Uri: "mongodb://localhost:27017", Database: "class", Coll: "user"})
+    ```
+    
+    **_后面都会基于`cli`来举例，如果你使用第一种传统的方式进行初始化，根据上下文，将`cli`替换成`client`、`db` 或 `coll`即可_**
+    
+    在初始化成功后，请`defer`来关闭连接
+    
+    ```go
+    defer func() {
+        if err = cli.Close(ctx); err != nil {
+            panic(err)
+        }
+    }()
+    ```
 
 - 创建索引
 
-做操作前，我们先初始化一些数据：
+    做操作前，我们先初始化一些数据：
+    
+    ```go
+    
+    type UserInfo struct {
+        Name   string `bson:"name"`
+        Age    uint16 `bson:"age"`
+        Weight uint32 `bson:"weight"`
+    }
+    
+    var userInfo = UserInfo{
+        Name:   "xm",
+        Age:    7,
+        Weight: 40,
+    }
+    ```
 
-```go
+    创建索引
 
-type UserInfo struct {
-	Name   string `bson:"name"`
-	Age    uint16 `bson:"age"`
-	Weight uint32 `bson:"weight"`
-}
-
-var userInfo = UserInfo{
-	Name:   "xm",
-	Age:    7,
-	Weight: 40,
-}
-```
-
-创建索引
-
-```go
-cli.CreateOneIndex(context.Background(), options.IndexModel{Key: []string{"name"}, Unique: true})
-cli.CreateIndexes(context.Background(), []options.IndexModel{{Key: []string{"id2", "id3"}}})
-```
+    ```go
+    cli.CreateOneIndex(context.Background(), options.IndexModel{Key: []string{"name"}, Unique: true})
+    cli.CreateIndexes(context.Background(), []options.IndexModel{{Key: []string{"id2", "id3"}}})
+    ```
 
 - 插入一个文档
 
-```go
-// insert one document
-result, err := cli.Insert(ctx, userInfo)
-```
+    ```go
+    // insert one document
+    result, err := cli.Insert(ctx, userInfo)
+    ```
 
 - 查找一个文档
 
-```go
-	// find one document
-one := UserInfo{}
-err = cli.Find(ctx, bson.M{"name": userInfo.Name}).One(&one)
-```
+    ```go
+        // find one document
+    one := UserInfo{}
+    err = cli.Find(ctx, bson.M{"name": userInfo.Name}).One(&one)
+    ```
 
 - 删除文档
 
-```go
-err = cli.Remove(ctx, bson.M{"age": 7})
-```
+    ```go
+    err = cli.Remove(ctx, bson.M{"age": 7})
+    ```
 
 - 插入多条数据
 
-```go
-// multiple insert
-var userInfos = []UserInfo{
-	UserInfo{Name: "a1", Age: 6, Weight: 20},
-	UserInfo{Name: "b2", Age: 6, Weight: 25},
-	UserInfo{Name: "c3", Age: 6, Weight: 30},
-	UserInfo{Name: "d4", Age: 6, Weight: 35},
-	UserInfo{Name: "a1", Age: 7, Weight: 40},
-	UserInfo{Name: "a1", Age: 8, Weight: 45},
-}
-result, err = cli.Collection.InsertMany(ctx, userInfos)
-```
+    ```go
+    // multiple insert
+    var userInfos = []UserInfo{
+        UserInfo{Name: "a1", Age: 6, Weight: 20},
+        UserInfo{Name: "b2", Age: 6, Weight: 25},
+        UserInfo{Name: "c3", Age: 6, Weight: 30},
+        UserInfo{Name: "d4", Age: 6, Weight: 35},
+        UserInfo{Name: "a1", Age: 7, Weight: 40},
+        UserInfo{Name: "a1", Age: 8, Weight: 45},
+    }
+    result, err = cli.Collection.InsertMany(ctx, userInfos)
+    ```
 
 - 批量查找、`Sort`和`Limit`
 
-```go
-// find all 、sort and limit
-batch := []UserInfo{}
-cli.Find(ctx, bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
-```
+    ```go
+    // find all 、sort and limit
+    batch := []UserInfo{}
+    cli.Find(ctx, bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
+    ```
 
 - Count
 
-```go
-count, err := cli.Find(ctx, bson.M{"age": 6}).Count()
-```
+    ```go
+    count, err := cli.Find(ctx, bson.M{"age": 6}).Count()
+    ```
 
 - Update
 
-```go
-// UpdateOne one
-err := cli.UpdateOne(ctx, bson.M{"name": "d4"}, bson.M{"$set": bson.M{"age": 7}})
-
-// UpdateAll
-result, err := cli.UpdateAll(ctx, bson.M{"age": 6}, bson.M{"$set": bson.M{"age": 10}})
-```
+    ```go
+    // UpdateOne one
+    err := cli.UpdateOne(ctx, bson.M{"name": "d4"}, bson.M{"$set": bson.M{"age": 7}})
+    
+    // UpdateAll
+    result, err := cli.UpdateAll(ctx, bson.M{"age": 6}, bson.M{"$set": bson.M{"age": 10}})
+    ```
 
 - Select
 
-```go
-err := cli.Find(ctx, bson.M{"age": 10}).Select(bson.M{"age": 1}).One(&one)
-```
+    ```go
+    err := cli.Find(ctx, bson.M{"age": 10}).Select(bson.M{"age": 1}).One(&one)
+    ```
 
 - Aggregate
 
-```go
-matchStage := bson.D{{"$match", []bson.E{{"weight", bson.D{{"$gt", 30}}}}}}
-groupStage := bson.D{{"$group", bson.D{{"_id", "$name"}, {"total", bson.D{{"$sum", "$age"}}}}}}
-var showsWithInfo []bson.M
-err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(&showsWithInfo)
-```
+    ```go
+    matchStage := bson.D{{"$match", []bson.E{{"weight", bson.D{{"$gt", 30}}}}}}
+    groupStage := bson.D{{"$group", bson.D{{"_id", "$name"}, {"total", bson.D{{"$sum", "$age"}}}}}}
+    var showsWithInfo []bson.M
+    err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(&showsWithInfo)
+    ```
 
 - 建立连接时支持所有 mongoDB 的`Options`
 
-```go
-poolMonitor := &event.PoolMonitor{
-	Event: func(evt *event.PoolEvent) {
-		switch evt.Type {
-		case event.GetSucceeded:
-			fmt.Println("GetSucceeded")
-		case event.ConnectionReturned:
-			fmt.Println("ConnectionReturned")
-		}
-	},
-}
-
-opt := options.Client().SetPoolMonitor(poolMonitor)  // more options use the chain options.
-cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL}, opt)
-
-```
+    ```go
+    poolMonitor := &event.PoolMonitor{
+        Event: func(evt *event.PoolEvent) {
+            switch evt.Type {
+            case event.GetSucceeded:
+                fmt.Println("GetSucceeded")
+            case event.ConnectionReturned:
+                fmt.Println("ConnectionReturned")
+            }
+        },
+    }
+    
+    opt := options.Client().SetPoolMonitor(poolMonitor)  // more options use the chain options.
+    cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL}, opt)
+    
+    ```
 
 - 事务
 
-有史以来最简单和强大的事务, 同时还有超时和重试等功能:
-
-```go
-callback := func(sessCtx context.Context) (interface{}, error) {
-    // 重要：确保事务中的每一个操作，都使用传入的sessCtx参数
-    if _, err := cli.InsertOne(sessCtx, bson.D{{"abc", int32(1)}}); err != nil {
-        return nil, err
+    有史以来最简单和强大的事务, 同时还有超时和重试等功能:
+    
+    ```go
+    callback := func(sessCtx context.Context) (interface{}, error) {
+        // 重要：确保事务中的每一个操作，都使用传入的sessCtx参数
+        if _, err := cli.InsertOne(sessCtx, bson.D{{"abc", int32(1)}}); err != nil {
+            return nil, err
+        }
+        if _, err := cli.InsertOne(sessCtx, bson.D{{"xyz", int32(999)}}); err != nil {
+            return nil, err
+        }
+        return nil, nil
     }
-    if _, err := cli.InsertOne(sessCtx, bson.D{{"xyz", int32(999)}}); err != nil {
-        return nil, err
-    }
-    return nil, nil
-}
-result, err = cli.DoTransaction(ctx, callback)
-```
-
-[关于事务的更多内容](https://github.com/qiniu/qmgo/wiki/Transactions)
+    result, err = cli.DoTransaction(ctx, callback)
+    ```
+    
+    [关于事务的更多内容](https://github.com/qiniu/qmgo/wiki/Transactions)
 
 - 预定义操作符
 
-```go
-// aggregate
-matchStage := bson.D{{operator.Match, []bson.E{{"weight", bson.D{{operator.Gt, 30}}}}}}
-groupStage := bson.D{{operator.Group, bson.D{{"_id", "$name"}, {"total", bson.D{{operator.Sum, "$age"}}}}}}
-var showsWithInfo []bson.M
-err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(&showsWithInfo)
-```
+    ```go
+    // aggregate
+    matchStage := bson.D{{operator.Match, []bson.E{{"weight", bson.D{{operator.Gt, 30}}}}}}
+    groupStage := bson.D{{operator.Group, bson.D{{"_id", "$name"}, {"total", bson.D{{operator.Sum, "$age"}}}}}}
+    var showsWithInfo []bson.M
+    err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(&showsWithInfo)
+    ```
 
 - Hooks
 
-Qmgo 灵活的 hooks:
+    Qmgo 灵活的 hooks:
 
-```go
-type User struct {
-	Name         string    `bson:"name"`
-	Age          int       `bson:"age"`
-}
-func (u *User) BeforeInsert() error {
-	fmt.Println("before insert called")
-	return nil
-}
-func (u *User) AfterInsert() error {
-  	fmt.Println("after insert called")
-	return nil
-}
-
-u := &User{Name: "Alice", Age: 7}
-_, err := cli.InsertOne(context.Background(), u)
-```
-
-[Hooks 详情介绍](<https://github.com/qiniu/qmgo/wiki/Hooks--(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)>)
+    ```go
+    type User struct {
+        Name         string    `bson:"name"`
+        Age          int       `bson:"age"`
+    }
+    func (u *User) BeforeInsert() error {
+        fmt.Println("before insert called")
+        return nil
+    }
+    func (u *User) AfterInsert() error {
+        fmt.Println("after insert called")
+        return nil
+    }
+    
+    u := &User{Name: "Alice", Age: 7}
+    _, err := cli.InsertOne(context.Background(), u)
+    ```
+    
+    [Hooks 详情介绍](<https://github.com/qiniu/qmgo/wiki/Hooks--(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)>)
 
 
 - 自动化更新fields
@@ -293,10 +294,34 @@ _, err := cli.InsertOne(context.Background(), u)
     // UpdateTimeAt 会被自动更新
     ```
   
-[例子介绍](https://github.com/qiniu/qmgo/blob/master/field_test.go)
+    [例子介绍](https://github.com/qiniu/qmgo/blob/master/field_test.go)
 
-[自动化 fields 详情介绍](https://github.com/qiniu/qmgo/wiki/Automatically-update-fields)
+    [自动化 fields 详情介绍](https://github.com/qiniu/qmgo/wiki/Automatically-update-fields)
   
+- `validator tags` 基于tag的字段验证
+    
+    功能基于[go-playground/validator](https://github.com/go-playground/validator)实现。
+    
+    所以`Qmgo`支持所有[go-playground/validator 的验证规则](https://github.com/go-playground/validator#usage-and-documentation)，比如：
+    
+    ```go
+    type User struct {
+        FirstName string            `json:"fname"`
+        LastName  string            `json:"lname"`
+        // Age must in [0,130]
+        Age       uint8             `validate:"gte=0,lte=130"` 
+        //  Email can't be empty string, and must has email format
+        Email     string            `json:"e-mail" validate:"required,email"`
+        // CreateAt must lte than current time
+        CreateAt  time.Time         `json:"createAt" validate:"lte"`
+        // Relations can't has more than 2 elements  
+        Relations map[string]string `json:"relations" validate:"max=2"`
+    }
+    ```
+  
+    本功能只对以下API有效：
+    ` InsertOne、InsertyMany、Upsert、UpsertId、ReplaceOne `
+
 ## `qmgo` vs `go.mongodb.org/mongo-driver`
 
 下面我们举一个多文件查找、`sort`和`limit`的例子, 说明`qmgo`和`mgo`的相似，以及对`go.mongodb.org/mongo-driver`的改进

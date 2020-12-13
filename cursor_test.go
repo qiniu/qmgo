@@ -39,7 +39,8 @@ func TestCursor(t *testing.T) {
 		bson.M{"_id": id3, "name": "Lucas", "age": 20},
 		bson.M{"_id": id4, "name": "Lucas", "age": 21},
 	}
-	cli.InsertMany(context.Background(), docs)
+	_, err := cli.InsertMany(context.Background(), docs)
+	ast.NoError(err)
 
 	var res QueryTestItem
 

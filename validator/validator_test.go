@@ -3,6 +3,7 @@ package validator
 import (
 	"github.com/qiniu/qmgo/operator"
 	"github.com/stretchr/testify/require"
+	"go.mongodb.org/mongo-driver/bson"
 	"testing"
 )
 
@@ -49,6 +50,7 @@ func TestValidator(t *testing.T) {
 	}
 	ast.NoError(Do(user, operator.BeforeInsert))
 	ast.NoError(Do(user, operator.BeforeUpsert))
+	ast.NoError(Do(*user, operator.BeforeUpsert))
 
 	users := []*User{user, user, user}
 	ast.NoError(Do(users, operator.BeforeInsert))
@@ -66,7 +68,28 @@ func TestValidator(t *testing.T) {
 	user.Addresses[0].City = "" // string tag use default value
 	ast.Error(Do(user, operator.BeforeInsert))
 
+	// input slice
 	users = []*User{user, user, user}
-	ast.Error(Do(user, operator.BeforeInsert))
+	ast.Error(Do(users, operator.BeforeInsert))
 
+	user.Addresses[0].City = "shanghai"
+	users = []*User{user, user, user}
+	ast.NoError(Do(users, operator.BeforeInsert))
+
+	us := []User{*user, *user, *user}
+	ast.NoError(Do(us, operator.BeforeInsert))
+
+	// all bson type
+	mdoc := []interface{}{bson.M{"name": "", "age": 12}, bson.M{"name": "", "age": 12}}
+	ast.NoError(Do(mdoc, operator.BeforeInsert))
+	adoc := bson.A{"Alex", "12"}
+	ast.NoError(Do(adoc, operator.BeforeInsert))
+	edoc := bson.E{"Alex", "12"}
+	ast.NoError(Do(edoc, operator.BeforeInsert))
+	ddoc := bson.D{{"foo", "bar"}, {"hello", "world"}, {"pi", 3.14159}}
+	ast.NoError(Do(ddoc, operator.BeforeInsert))
+
+	// nil ptr
+	user = nil
+	ast.NoError(Do(user, operator.BeforeInsert))
 }

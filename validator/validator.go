@@ -2,6 +2,7 @@ package validator
 
 import (
 	"reflect"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/qiniu/qmgo/operator"
@@ -40,8 +41,9 @@ func Do(doc interface{}, opType operator.OpType, opts ...interface{}) error {
 		default:
 			return do(doc)
 		}
+	default:
+		return do(doc)
 	}
-	//fmt.Println("not support type")
 	return nil
 }
 
@@ -81,6 +83,21 @@ func sliceHandle(docs interface{}, opType operator.OpType) error {
 
 // do check if opType is supported and call fieldHandler
 func do(doc interface{}) error {
-	//fmt.Println(reflect.TypeOf(doc).Name(), reflect.TypeOf(doc).Kind())
+	if !validatorStruct(doc) {
+		return nil
+	}
 	return validate.Struct(doc)
+}
+
+// validatorStruct check if kind of doc is validator supported struct
+// same implement as validator
+func validatorStruct(doc interface{}) bool {
+	val := reflect.ValueOf(doc)
+	if val.Kind() == reflect.Ptr && !val.IsNil() {
+		val = val.Elem()
+	}
+	if val.Kind() != reflect.Struct || val.Type() == reflect.TypeOf(time.Time{}) {
+		return false
+	}
+	return true
 }
