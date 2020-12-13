@@ -11,16 +11,12 @@ import (
 
 // User contains user information
 type User struct {
-	FirstName string `json:"fname"`
-	LastName  string `json:"lname"`
-	// Age must in [0,130]
-	Age uint8 `validate:"gte=0,lte=130"`
-	//  Email can't be empty string, and must has email format
-	Email string `json:"e-mail" validate:"required,email"`
-	// CreateAt must lte than current time
-	CreateAt time.Time `json:"createAt" validate:"lte"`
-	// Relations can't has more than 2 elements
-	Relations map[string]string `json:"relations" validate:"max=2"`
+	FirstName string            `bson:"fname"`
+	LastName  string            `bson:"lname"`
+	Age       uint8             `bson:"age" validate:"gte=0,lte=130" `    // Age must in [0,130]
+	Email     string            `bson:"e-mail" validate:"required,email"` //  Email can't be empty string, and must has email format
+	CreateAt  time.Time         `bson:"createAt" validate:"lte"`          // CreateAt must lte than current time
+	Relations map[string]string `bson:"relations" validate:"max=2"`       // Relations can't has more than 2 elements
 }
 
 func TestValidator(t *testing.T) {

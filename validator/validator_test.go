@@ -9,12 +9,12 @@ import (
 
 // User contains user information
 type User struct {
-	FirstName      string     `json:"fname"`
-	LastName       string     `json:"lname"`
-	Age            uint8      `validate:"gte=0,lte=130"`
-	Email          string     `json:"e-mail" validate:"required,email"`
-	FavouriteColor string     `validate:"hexcolor|rgb|rgba"`
-	Addresses      []*Address `validate:"required,dive,required"` // a person can have a home and cottage...
+	FirstName      string     `bson:"fname"`
+	LastName       string     `bson:"lname"`
+	Age            uint8      `bson:"age" validate:"gte=0,lte=130"`
+	Email          string     `bson:"e-mail" validate:"required,email"`
+	FavouriteColor string     `bson:"favouriteColor" validate:"hexcolor|rgb|rgba"`
+	Addresses      []*Address `bson:"addresses" validate:"required,dive,required"` // a person can have a home and cottage...
 }
 
 // Address houses a users address information
