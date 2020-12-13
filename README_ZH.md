@@ -327,8 +327,8 @@ go get github.com/qiniu/qmgo
     }
     ```
     
-    - 将方法通过middleware包的Register方法注入
-      Qmgo会在支持的[操作](operator/operate_type.go)执行前后调用
+    - 调用middleware包的Register方法，注入`Do`
+      Qmgo会在支持的[操作](operator/operate_type.go)执行前后调用`Do`
     ```go
     middleware.Register(Do)
     ```
