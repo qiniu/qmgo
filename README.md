@@ -327,6 +327,7 @@ Or
     ```
     
     - Call Register() from package middleware, register the method `Do`
+    
       Qmgo will call `Do` before and after the [operation](operator/operate_type.go)
       
     ```go
