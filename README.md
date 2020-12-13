@@ -29,7 +29,7 @@ English | [简体中文](README_ZH.md)
 - Automatically update default and custom fields
 - Predefine operator keys
 - Aggregate、indexes operation、cursor
-- Validate tags
+- Validation tags
 - All options when create connection and CRUD
 
 ## Installation
@@ -296,11 +296,11 @@ Or
 
     [More about automatically fields](https://github.com/qiniu/qmgo/wiki/Automatically-update-fields)
 
-- Validate tags
+- Validation tags
 
-    Qmgo tags is Based on [go-playground/validator](https://github.com/go-playground/validator).
+    Qmgo Validation tags is Based on [go-playground/validator](https://github.com/go-playground/validator).
     
-    So qmgo support [all features in go-playground/validator](https://github.com/go-playground/validator#usage-and-documentation), such as:
+    So Qmgo support [all features in go-playground/validator](https://github.com/go-playground/validator#usage-and-documentation), such as:
     
     ```go
     type User struct {
