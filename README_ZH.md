@@ -13,16 +13,15 @@
 
 ## 功能
 
-- 文档的增删改查
+- 文档的增删改查, 均支持官方driver支持的所有options
 - `Sort`、`limit`、`count`、`select`、`distinct`
 - 事务
 - `Hooks`
 - 自动化更新的默认和定制fields
 - 预定义操作符
 - 聚合`Aggregate`、索引操作、`cursor`
-- `validator tags` 基于tag的字段验证
+- `validation tags` 基于tag的字段验证
 - 可自定义插件化编程
-- 创建链接和增删改查时支持所有官方的options
 
 ## 安装
 
@@ -334,7 +333,7 @@ go get github.com/qiniu/qmgo
     ```
     [Example](middleware/middleware_test.go)
     
-    Qmgo的hook、自动更新field和validation tags都通过这种方式实现
+    Qmgo的hook、自动更新field和validation tags都基于plugin的方式实现
   
 ## `qmgo` vs `go.mongodb.org/mongo-driver`
 
