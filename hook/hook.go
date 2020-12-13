@@ -20,16 +20,18 @@ import (
 
 // hookHandler defines the relations between hook type and handler
 var hookHandler = map[operator.OpType]func(hook interface{}) error{
-	operator.BeforeInsert: beforeInsert,
-	operator.AfterInsert:  afterInsert,
-	operator.BeforeUpdate: beforeUpdate,
-	operator.AfterUpdate:  afterUpdate,
-	operator.BeforeQuery:  beforeQuery,
-	operator.AfterQuery:   afterQuery,
-	operator.BeforeRemove: beforeRemove,
-	operator.AfterRemove:  afterRemove,
-	operator.BeforeUpsert: beforeUpsert,
-	operator.AfterUpsert:  afterUpsert,
+	operator.BeforeInsert:  beforeInsert,
+	operator.AfterInsert:   afterInsert,
+	operator.BeforeUpdate:  beforeUpdate,
+	operator.AfterUpdate:   afterUpdate,
+	operator.BeforeQuery:   beforeQuery,
+	operator.AfterQuery:    afterQuery,
+	operator.BeforeRemove:  beforeRemove,
+	operator.AfterRemove:   afterRemove,
+	operator.BeforeUpsert:  beforeUpsert,
+	operator.AfterUpsert:   afterUpsert,
+	operator.BeforeReplace: beforeUpdate,
+	operator.AfterReplace:  afterUpdate,
 }
 
 //

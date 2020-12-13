@@ -4,18 +4,21 @@ import (
 	"github.com/qiniu/qmgo/field"
 	"github.com/qiniu/qmgo/hook"
 	"github.com/qiniu/qmgo/operator"
+	"github.com/qiniu/qmgo/validator"
 )
 
 // callback define the callback function type
 type callback func(doc interface{}, opType operator.OpType, opts ...interface{}) error
 
-// middlewareCallback the register callback slice, the hook and field callback register when init for the order
+// middlewareCallback the register callback slice
+// some callback initial here without Register() for order
 var middlewareCallback = []callback{
 	hook.Do,
 	field.Do,
+	validator.Do,
 }
 
-// Register register callback into middleware,
+// Register register callback into middleware
 func Register(cb callback) {
 	middlewareCallback = append(middlewareCallback, cb)
 }

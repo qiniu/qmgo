@@ -238,10 +238,9 @@ func TestCollection_Upsert(t *testing.T) {
 		bson.D{{Key: "_id", Value: id1}, {Key: "name", Value: "Alice"}},
 		bson.D{{Key: "_id", Value: id2}, {Key: "name", Value: "Lucas"}},
 	}
-	_, _ = cli.InsertMany(context.Background(), docs)
+	_, err := cli.InsertMany(context.Background(), docs)
 
-	var err error
-
+	ast.NoError(err)
 	// replace already exist
 	filter1 := bson.M{
 		"name": "Alice",

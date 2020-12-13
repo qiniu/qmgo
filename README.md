@@ -29,6 +29,7 @@ English | [简体中文](README_ZH.md)
 - Automatically update default and custom fields
 - Predefine operator keys
 - Aggregate、indexes operation、cursor
+- Validation tags
 - All options when create connection and CRUD
 
 ## Installation
@@ -43,200 +44,205 @@ Or
 
 - Start
 
-`import` and create a new connection
-```go
-import (
-    "context"
-  
-    "github.com/qiniu/qmgo"
-)
-
-ctx := context.Background()
-client, err := qmgo.NewClient(ctx, &qmgo.Config{Uri: "mongodb://localhost:27017"})
-db := client.Database("class")
-coll := db.Collection("user")
-```
-If your connection points to a fixed database and collection, recommend using the following way to initialize the connection.
-All operations can be based on `cli`:
-
-```go
-cli, err := qmgo.Open(ctx, &qmgo.Config{Uri: "mongodb://localhost:27017", Database: "class", Coll: "user"})
-```
-
-***The following examples will be based on `cli`, if you use the first way for initialization, replace `cli` with `client`、`db` or `coll`***
-
-Make sure to defer a call to Disconnect after instantiating your client:
-
-```go
-defer func() {
-if err = cli.Close(ctx); err != nil {
-        panic(err)
-    }
-}()
-```
+    `import` and create a new connection
+    ```go
+    import (
+        "context"
+      
+        "github.com/qiniu/qmgo"
+    )
+    
+    ctx := context.Background()
+    client, err := qmgo.NewClient(ctx, &qmgo.Config{Uri: "mongodb://localhost:27017"})
+    db := client.Database("class")
+    coll := db.Collection("user")
+    ```
+    If your connection points to a fixed database and collection, recommend using the following way to initialize the connection.
+    All operations can be based on `cli`:
+    
+    ```go
+    cli, err := qmgo.Open(ctx, &qmgo.Config{Uri: "mongodb://localhost:27017", Database: "class", Coll: "user"})
+    ```
+    
+    ***The following examples will be based on `cli`, if you use the first way for initialization, replace `cli` with `client`、`db` or `coll`***
+    
+    Make sure to defer a call to Disconnect after instantiating your client:
+    
+    ```go
+    defer func() {
+    if err = cli.Close(ctx); err != nil {
+            panic(err)
+        }
+    }()
+    ```
 
 - Create index
 
-Before doing the operation, we first initialize some data:
-
-```go
-type UserInfo struct {
-	Name   string `bson:"name"`
-	Age    uint16 `bson:"age"`
-	Weight uint32 `bson:"weight"`
-}
-
-var userInfo = UserInfo{
-    Name: "xm",
-    Age: 7,
-    Weight: 40,
-}
-```
-
-Create index
-
-```go
-cli.CreateOneIndex(context.Background(), options.IndexModel{Key: []string{"name"}, Unique: true})
-cli.CreateIndexes(context.Background(), []options.IndexModel{{Key: []string{"id2", "id3"}}})
-```
+    Before doing the operation, we first initialize some data:
+    
+    ```go
+    type UserInfo struct {
+        Name   string `bson:"name"`
+        Age    uint16 `bson:"age"`
+        Weight uint32 `bson:"weight"`
+    }
+    
+    var userInfo = UserInfo{
+        Name: "xm",
+        Age: 7,
+        Weight: 40,
+    }
+    ```
+    
+    Create index
+    
+    ```go
+    cli.CreateOneIndex(context.Background(), options.IndexModel{Key: []string{"name"}, Unique: true})
+    cli.CreateIndexes(context.Background(), []options.IndexModel{{Key: []string{"id2", "id3"}}})
+    ```
 
 - Insert a document
 
-```go
-// insert one document
-result, err := cli.Insert(ctx, userInfo)
-```
+    ```go
+    // insert one document
+    result, err := cli.Insert(ctx, userInfo)
+    ```
 
 - Find a document
 
-```go
-// find one document
-  one := UserInfo{}
-  err = cli.Find(ctx, bson.M{"name": userInfo.Name}).One(&one)
-```
+    ```go
+    // find one document
+      one := UserInfo{}
+      err = cli.Find(ctx, bson.M{"name": userInfo.Name}).One(&one)
+    ```
 
 - Delete documents
-
-```go
-err = cli.Remove(ctx, bson.M{"age": 7})
-```
+    
+    ```go
+    err = cli.Remove(ctx, bson.M{"age": 7})
+    ```
 
 - Insert multiple data
 
-```go
-// multiple insert
-var userInfos = []UserInfo{
-	UserInfo{Name: "a1", Age: 6, Weight: 20},
-	UserInfo{Name: "b2", Age: 6, Weight: 25},
-	UserInfo{Name: "c3", Age: 6, Weight: 30},
-	UserInfo{Name: "d4", Age: 6, Weight: 35},
-	UserInfo{Name: "a1", Age: 7, Weight: 40},
-	UserInfo{Name: "a1", Age: 8, Weight: 45},
-}
-result, err = cli.Collection.InsertMany(ctx, userInfos)
-```
+    ```go
+    // multiple insert
+    var userInfos = []UserInfo{
+        UserInfo{Name: "a1", Age: 6, Weight: 20},
+        UserInfo{Name: "b2", Age: 6, Weight: 25},
+        UserInfo{Name: "c3", Age: 6, Weight: 30},
+        UserInfo{Name: "d4", Age: 6, Weight: 35},
+        UserInfo{Name: "a1", Age: 7, Weight: 40},
+        UserInfo{Name: "a1", Age: 8, Weight: 45},
+    }
+    result, err = cli.Collection.InsertMany(ctx, userInfos)
+    ```
 
 - Search all, sort and limit
-```go
-// find all, sort and limit
-batch := []UserInfo{}
-cli.Find(ctx, bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
-```
+    ```go
+    // find all, sort and limit
+    batch := []UserInfo{}
+    cli.Find(ctx, bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
+    ```
 - Count
-````go
-count, err := cli.Find(ctx, bson.M{"age": 6}).Count()
-````
+
+    ````go
+    count, err := cli.Find(ctx, bson.M{"age": 6}).Count()
+    ````
 
 - Update
-````go
-// UpdateOne one
-err := cli.UpdateOne(ctx, bson.M{"name": "d4"}, bson.M{"$set": bson.M{"age": 7}})
 
-// UpdateAll
-result, err := cli.UpdateAll(ctx, bson.M{"age": 6}, bson.M{"$set": bson.M{"age": 10}})
-````
+    ````go
+    // UpdateOne one
+    err := cli.UpdateOne(ctx, bson.M{"name": "d4"}, bson.M{"$set": bson.M{"age": 7}})
+    
+    // UpdateAll
+    result, err := cli.UpdateAll(ctx, bson.M{"age": 6}, bson.M{"$set": bson.M{"age": 10}})
+    ````
 
 - Select
-````go
-err := cli.Find(ctx, bson.M{"age": 10}).Select(bson.M{"age": 1}).One(&one)
-````
+
+    ````go
+    err := cli.Find(ctx, bson.M{"age": 10}).Select(bson.M{"age": 1}).One(&one)
+    ````
 
 - Aggregate
-```go
-matchStage := bson.D{{"$match", []bson.E{{"weight", bson.D{{"$gt", 30}}}}}}
-groupStage := bson.D{{"$group", bson.D{{"_id", "$name"}, {"total", bson.D{{"$sum", "$age"}}}}}}
-var showsWithInfo []bson.M
-err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(&showsWithInfo)
-```
+
+    ```go
+    matchStage := bson.D{{"$match", []bson.E{{"weight", bson.D{{"$gt", 30}}}}}}
+    groupStage := bson.D{{"$group", bson.D{{"_id", "$name"}, {"total", bson.D{{"$sum", "$age"}}}}}}
+    var showsWithInfo []bson.M
+    err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(&showsWithInfo)
+    ```
 
 - Support All mongoDB Options when create connection
 
-````go
-poolMonitor := &event.PoolMonitor{
-	Event: func(evt *event.PoolEvent) {
-		switch evt.Type {
-		case event.GetSucceeded:
-			fmt.Println("GetSucceeded")
-		case event.ConnectionReturned:
-			fmt.Println("ConnectionReturned")
-		}
-	},
-}
-opt := options.Client().SetPoolMonitor(poolMonitor)  // more options use the chain options.
-cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL}, opt) 
-
-
-````
+    ````go
+    poolMonitor := &event.PoolMonitor{
+        Event: func(evt *event.PoolEvent) {
+            switch evt.Type {
+            case event.GetSucceeded:
+                fmt.Println("GetSucceeded")
+            case event.ConnectionReturned:
+                fmt.Println("ConnectionReturned")
+            }
+        },
+    }
+    opt := options.Client().SetPoolMonitor(poolMonitor)  // more options use the chain options.
+    cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL}, opt) 
+    
+    
+    ````
 
 - Transactions
 
-The super simple and powerful transaction, with features like `timeout`、`retry`:
-````go
-callback := func(sessCtx context.Context) (interface{}, error) {
-    // Important: make sure the sessCtx used in every operation in the whole transaction
-    if _, err := cli.InsertOne(sessCtx, bson.D{{"abc", int32(1)}}); err != nil {
-        return nil, err
+    The super simple and powerful transaction, with features like `timeout`、`retry`:
+    ````go
+    callback := func(sessCtx context.Context) (interface{}, error) {
+        // Important: make sure the sessCtx used in every operation in the whole transaction
+        if _, err := cli.InsertOne(sessCtx, bson.D{{"abc", int32(1)}}); err != nil {
+            return nil, err
+        }
+        if _, err := cli.InsertOne(sessCtx, bson.D{{"xyz", int32(999)}}); err != nil {
+            return nil, err
+        }
+        return nil, nil
     }
-    if _, err := cli.InsertOne(sessCtx, bson.D{{"xyz", int32(999)}}); err != nil {
-        return nil, err
-    }
-    return nil, nil
-}
-result, err = cli.DoTransaction(ctx, callback)
-````
-[More about transaction](https://github.com/qiniu/qmgo/wiki/Transactions)
+    result, err = cli.DoTransaction(ctx, callback)
+    ````
+    [More about transaction](https://github.com/qiniu/qmgo/wiki/Transactions)
 
 - Predefine operator keys
-````go
-// aggregate
-matchStage := bson.D{{operator.Match, []bson.E{{"weight", bson.D{{operator.Gt, 30}}}}}}
-groupStage := bson.D{{operator.Group, bson.D{{"_id", "$name"}, {"total", bson.D{{operator.Sum, "$age"}}}}}}
-var showsWithInfo []bson.M
-err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(&showsWithInfo)
-````
+
+    ````go
+    // aggregate
+    matchStage := bson.D{{operator.Match, []bson.E{{"weight", bson.D{{operator.Gt, 30}}}}}}
+    groupStage := bson.D{{operator.Group, bson.D{{"_id", "$name"}, {"total", bson.D{{operator.Sum, "$age"}}}}}}
+    var showsWithInfo []bson.M
+    err = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(&showsWithInfo)
+    ````
 
 - Hooks
 
-Qmgo flexible hooks:
+    Qmgo flexible hooks:
 
-````go
-type User struct {
-	Name         string    `bson:"name"`
-	Age          int       `bson:"age"`
-}
-func (u *User) BeforeInsert() error {
-  	fmt.Println("before insert called")
-	return nil
-}
-func (u *User) AfterInsert() error {
- 	fmt.Println("after insert called")
-  	return nil
-}
-
-u := &User{Name: "Alice", Age: 7}
-_, err := cli.InsertOne(context.Background(), u)
-````
-[More about hooks](https://github.com/qiniu/qmgo/wiki/Hooks)
+    ````go
+    type User struct {
+        Name         string    `bson:"name"`
+        Age          int       `bson:"age"`
+    }
+    func (u *User) BeforeInsert() error {
+        fmt.Println("before insert called")
+        return nil
+    }
+    func (u *User) AfterInsert() error {
+        fmt.Println("after insert called")
+        return nil
+    }
+    
+    u := &User{Name: "Alice", Age: 7}
+    _, err := cli.InsertOne(context.Background(), u)
+    ````
+    [More about hooks](https://github.com/qiniu/qmgo/wiki/Hooks)
 
 - Automatically update fields
 
@@ -286,9 +292,33 @@ _, err := cli.InsertOne(context.Background(), u)
     // UpdateTimeAt will update
     ```
 
-Check [examples here](https://github.com/qiniu/qmgo/blob/master/field_test.go)
+    Check [examples here](https://github.com/qiniu/qmgo/blob/master/field_test.go)
 
-[More about automatically fields](https://github.com/qiniu/qmgo/wiki/Automatically-update-fields)
+    [More about automatically fields](https://github.com/qiniu/qmgo/wiki/Automatically-update-fields)
+
+- Validation tags
+
+    Qmgo Validation tags is Based on [go-playground/validator](https://github.com/go-playground/validator).
+    
+    So Qmgo support [all validations on structs in go-playground/validator](https://github.com/go-playground/validator#usage-and-documentation), such as:
+    
+    ```go
+    type User struct {
+        FirstName string            `json:"fname"`
+        LastName  string            `json:"lname"`
+        // Age must in [0,130]
+        Age       uint8             `validate:"gte=0,lte=130"` 
+        //  Email can't be empty string, and must has email format
+        Email     string            `json:"e-mail" validate:"required,email"`
+        // CreateAt must lte than current time
+        CreateAt  time.Time         `json:"createAt" validate:"lte"`
+        // Relations can't has more than 2 elements  
+        Relations map[string]string `json:"relations" validate:"max=2"`
+    }
+    ```
+    
+    本功能只对以下API有效：
+    ` InsertOne、InsertyMany、Upsert、UpsertId、ReplaceOne `
 
 ## `Qmgo` vs `go.mongodb.org/mongo-driver`
 
