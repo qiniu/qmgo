@@ -16,6 +16,7 @@ package qmgo
 import (
 	"context"
 	"fmt"
+	"go.mongodb.org/mongo-driver/bson/bsoncodec"
 	"reflect"
 
 	"github.com/qiniu/qmgo/middleware"
@@ -38,6 +39,7 @@ type Query struct {
 	ctx        context.Context
 	collection *mongo.Collection
 	opts       []qOpts.FindOptions
+	registry   *bsoncodec.Registry
 }
 
 // Sort is Used to set the sorting rules for the returned results
@@ -220,7 +222,7 @@ func (q *Query) Distinct(key string, result interface{}) error {
 		return err
 	}
 
-	valueType, valueBytes, err_ := bson.MarshalValue(res)
+	valueType, valueBytes, err_ := bson.MarshalValueWithRegistry(q.registry, res)
 	if err_ != nil {
 		fmt.Printf("bson.MarshalValue err: %+v\n", err_)
 		return err_

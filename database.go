@@ -15,6 +15,7 @@ package qmgo
 
 import (
 	"context"
+	"go.mongodb.org/mongo-driver/bson/bsoncodec"
 
 	opts "github.com/qiniu/qmgo/options"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -24,6 +25,8 @@ import (
 // Database is a handle to a MongoDB database
 type Database struct {
 	database *mongo.Database
+
+	registry *bsoncodec.Registry
 }
 
 // Collection gets collection from database
@@ -33,6 +36,7 @@ func (d *Database) Collection(name string) *Collection {
 
 	return &Collection{
 		collection: cp,
+		registry:   d.registry,
 	}
 }
 
