@@ -221,8 +221,11 @@ func (q *Query) Distinct(key string, result interface{}) error {
 	if err != nil {
 		return err
 	}
-
-	valueType, valueBytes, err_ := bson.MarshalValueWithRegistry(q.registry, res)
+	registry := q.registry
+	if registry == nil {
+		registry = bson.DefaultRegistry
+	}
+	valueType, valueBytes, err_ := bson.MarshalValueWithRegistry(registry, res)
 	if err_ != nil {
 		fmt.Printf("bson.MarshalValue err: %+v\n", err_)
 		return err_
