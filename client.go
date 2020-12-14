@@ -20,9 +20,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/qiniu/qmgo/options"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/bsoncodec"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	opts "go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"go.mongodb.org/mongo-driver/x/mongo/driver/connstring"
 	"go.mongodb.org/mongo-driver/x/mongo/driver/description"
@@ -107,7 +109,7 @@ type QmgoClient struct {
 
 // Open creates client instance according to config
 // QmgoClient can operates all qmgo.client 、qmgo.database and qmgo.collection
-func Open(ctx context.Context, conf *Config, o ...*options.ClientOptions) (cli *QmgoClient, err error) {
+func Open(ctx context.Context, conf *Config, o ...options.ClientOptions) (cli *QmgoClient, err error) {
 	client, err := NewClient(ctx, conf, o...)
 	if err != nil {
 		fmt.Println("new client fail", err)
@@ -130,29 +132,32 @@ func Open(ctx context.Context, conf *Config, o ...*options.ClientOptions) (cli *
 type Client struct {
 	client *mongo.Client
 	conf   Config
+
+	registry *bsoncodec.Registry
 }
 
-// NewClient creates mongo.client
-func NewClient(ctx context.Context, conf *Config, o ...*options.ClientOptions) (cli *Client, err error) {
-	client, err := client(ctx, conf, o...)
+// NewClient creates Qmgo MongoDB client
+func NewClient(ctx context.Context, conf *Config, o ...options.ClientOptions) (cli *Client, err error) {
+	opt, err := newConnectOpts(conf, o...)
+	if err != nil {
+		return nil, err
+	}
+	client, err := client(ctx, opt)
 	if err != nil {
 		fmt.Println("new client fail", err)
 		return
 	}
 	cli = &Client{
-		client: client,
-		conf:   *conf,
+		client:   client,
+		conf:     *conf,
+		registry: opt.Registry,
 	}
 	return
 }
 
-// client creates connection to mongo
-func client(ctx context.Context, conf *Config, o ...*options.ClientOptions) (client *mongo.Client, err error) {
-	opts, err := newConnectOpts(conf, o...)
-	if err != nil {
-		return nil, err
-	}
-	client, err = mongo.Connect(ctx, opts)
+// client creates connection to MongoDB
+func client(ctx context.Context, opt *opts.ClientOptions) (client *mongo.Client, err error) {
+	client, err = mongo.Connect(ctx, opt)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -171,50 +176,49 @@ func client(ctx context.Context, conf *Config, o ...*options.ClientOptions) (cli
 // Qmgo will follow this way official mongodb driver do：
 // - the configuration in uri takes precedence over the configuration in the setter
 // - Check the validity of the configuration in the uri, while the configuration in the setter is basically not checked
-func newConnectOpts(conf *Config, o ...*options.ClientOptions) (*options.ClientOptions, error) {
-	var opts *options.ClientOptions
-	opts = new(options.ClientOptions)
+func newConnectOpts(conf *Config, o ...options.ClientOptions) (*opts.ClientOptions, error) {
+	option := opts.Client()
 	for _, apply := range o {
-		opts = options.MergeClientOptions(opts, apply)
+		option = opts.MergeClientOptions(apply.ClientOptions)
 	}
 	if conf.ConnectTimeoutMS != nil {
 		timeoutDur := time.Duration(*conf.ConnectTimeoutMS) * time.Millisecond
-		opts.SetConnectTimeout(timeoutDur)
+		option.SetConnectTimeout(timeoutDur)
 
 	}
 	if conf.SocketTimeoutMS != nil {
 		timeoutDur := time.Duration(*conf.SocketTimeoutMS) * time.Millisecond
-		opts.SetSocketTimeout(timeoutDur)
+		option.SetSocketTimeout(timeoutDur)
 	} else {
-		opts.SetSocketTimeout(300 * time.Second)
+		option.SetSocketTimeout(300 * time.Second)
 	}
 	if conf.MaxPoolSize != nil {
-		opts.SetMaxPoolSize(*conf.MaxPoolSize)
+		option.SetMaxPoolSize(*conf.MaxPoolSize)
 	}
 	if conf.MinPoolSize != nil {
-		opts.SetMinPoolSize(*conf.MinPoolSize)
+		option.SetMinPoolSize(*conf.MinPoolSize)
 	}
 	if conf.ReadPreference != nil {
 		readPreference, err := newReadPref(*conf.ReadPreference)
 		if err != nil {
 			return nil, err
 		}
-		opts.SetReadPreference(readPreference)
+		option.SetReadPreference(readPreference)
 	}
 	if conf.Auth != nil {
 		auth, err := newAuth(*conf.Auth)
 		if err != nil {
 			return nil, err
 		}
-		opts.SetAuth(auth)
+		option.SetAuth(auth)
 	}
-	opts.ApplyURI(conf.Uri)
+	option.ApplyURI(conf.Uri)
 
-	return opts, nil
+	return option, nil
 }
 
 // newAuth create options.Credential from conf.Auth
-func newAuth(auth Credential) (credential options.Credential, err error) {
+func newAuth(auth Credential) (credential opts.Credential, err error) {
 	if auth.AuthMechanism != "" {
 		credential.AuthMechanism = auth.AuthMechanism
 	}
@@ -287,7 +291,7 @@ func (c *Client) Ping(timeout int64) error {
 
 // Database create connection to database
 func (c *Client) Database(name string) *Database {
-	return &Database{database: c.client.Database(name)}
+	return &Database{database: c.client.Database(name), registry: c.registry}
 }
 
 // Session create one session on client

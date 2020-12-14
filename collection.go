@@ -23,6 +23,7 @@ import (
 	"github.com/qiniu/qmgo/operator"
 	opts "github.com/qiniu/qmgo/options"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/bsoncodec"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"
@@ -31,6 +32,8 @@ import (
 // Collection is a handle to a MongoDB collection
 type Collection struct {
 	collection *mongo.Collection
+
+	registry *bsoncodec.Registry
 }
 
 // Find find by condition filter，return QueryI
@@ -40,6 +43,7 @@ func (c *Collection) Find(ctx context.Context, filter interface{}, opts ...opts.
 		collection: c.collection,
 		filter:     filter,
 		opts:       opts,
+		registry:   c.registry,
 	}
 }
 

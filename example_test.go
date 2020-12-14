@@ -16,15 +16,15 @@ package qmgo
 import (
 	"context"
 	"errors"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"testing"
 
 	"github.com/qiniu/qmgo/operator"
-
+	"github.com/qiniu/qmgo/options"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/event"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	opts "go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const (
@@ -70,8 +70,8 @@ func TestQmgo(t *testing.T) {
 	ctx := context.Background()
 
 	// create connect
-	opt := options.Client().SetAppName("example")
-	cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL}, opt)
+	opt := opts.Client().SetAppName("example")
+	cli, err := Open(ctx, &Config{Uri: URI, Database: DATABASE, Coll: COLL}, options.ClientOptions{ClientOptions: opt})
 
 	ast.Nil(err)
 	defer func() {
