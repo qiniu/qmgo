@@ -16,7 +16,6 @@ package qmgo
 import (
 	"context"
 	"fmt"
-	"go.mongodb.org/mongo-driver/bson/bsoncodec"
 	"reflect"
 	"strings"
 
@@ -24,6 +23,7 @@ import (
 	"github.com/qiniu/qmgo/operator"
 	opts "github.com/qiniu/qmgo/options"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/bsoncodec"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"

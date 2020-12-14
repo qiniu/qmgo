@@ -16,13 +16,13 @@ package qmgo
 import (
 	"context"
 	"fmt"
-	"go.mongodb.org/mongo-driver/bson/bsoncodec"
 	"net/url"
 	"strings"
 	"time"
 
 	"github.com/qiniu/qmgo/options"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/bsoncodec"
 	"go.mongodb.org/mongo-driver/mongo"
 	opts "go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -130,8 +130,9 @@ func Open(ctx context.Context, conf *Config, o ...options.ClientOptions) (cli *Q
 
 // Client creates client to mongo
 type Client struct {
-	client   *mongo.Client
-	conf     Config
+	client *mongo.Client
+	conf   Config
+
 	registry *bsoncodec.Registry
 }
 
