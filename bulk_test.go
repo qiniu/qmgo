@@ -17,7 +17,6 @@ func TestBulk(t *testing.T) {
 	defer cli.Close(context.Background())
 	defer cli.DropCollection(context.Background())
 
-	// insertOne
 	id := primitive.NewObjectID()
 	lucas := UserInfo{Id: primitive.NewObjectID(), Name: "Lucas", Age: 12}
 	alias := UserInfo{Id: id, Name: "Alias", Age: 21}
@@ -29,7 +28,7 @@ func TestBulk(t *testing.T) {
 	result, err := cli.Bulk().
 		InsertOne(lucas).InsertOne(alias).InsertOne(jess).
 		UpdateOne(bson.M{"name": "Jess"}, bson.M{operator.Set: bson.M{"age": 23}}).UpdateId(id, bson.M{operator.Set: bson.M{"age": 23}}).
-		UpdateAll(bson.M{"age": 23}, bson.M{operator.Set: bson.M{"age": 18}}). // update 2
+		UpdateAll(bson.M{"age": 23}, bson.M{operator.Set: bson.M{"age": 18}}).
 		Upsert(bson.M{"age": 17}, joe).UpsertId(ethanId, ethan).
 		Remove(bson.M{"name": "Joe"}).RemoveId(ethanId).RemoveAll(bson.M{"age": 18}).
 		Run(context.Background())
