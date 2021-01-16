@@ -78,75 +78,74 @@ func (c *Collection) Bulk() *Bulk {
 //
 // If ordered, writes does not continue after one individual write fails.
 // Default is ordered.
-func (b *Bulk) SetOrdered(ordered bool) {
+func (b *Bulk) SetOrdered(ordered bool) *Bulk {
 	b.ordered = &ordered
+	return b
 }
 
 // InsertOne queues an InsertOne operation for bulk execution.
-func (b *Bulk) InsertOne(doc interface{}) {
-	wm := &mongo.InsertOneModel{
-		Document: doc,
-	}
+func (b *Bulk) InsertOne(doc interface{}) *Bulk {
+	wm := mongo.NewInsertOneModel().SetDocument(doc)
 	b.queue = append(b.queue, wm)
+	return b
 }
 
 // Remove queues a Remove operation for bulk execution.
-func (b *Bulk) Remove(filter interface{}) {
-	wm := &mongo.DeleteOneModel{
-		Filter: filter,
-	}
+func (b *Bulk) Remove(filter interface{}) *Bulk {
+	wm := mongo.NewDeleteOneModel().SetFilter(filter)
 	b.queue = append(b.queue, wm)
+	return b
 }
 
 // RemoveId queues a RemoveId operation for bulk execution.
-func (b *Bulk) RemoveId(id interface{}) {
+func (b *Bulk) RemoveId(id interface{}) *Bulk {
 	b.Remove(bson.M{"_id": id})
+	return b
 }
 
 // RemoveAll queues a RemoveAll operation for bulk execution.
-func (b *Bulk) RemoveAll(filter interface{}) {
-	wm := &mongo.DeleteManyModel{
-		Filter: filter,
-	}
+func (b *Bulk) RemoveAll(filter interface{}) *Bulk {
+	wm := mongo.NewDeleteManyModel().SetFilter(filter)
 	b.queue = append(b.queue, wm)
+	return b
 }
 
 // Upsert queues an Upsert operation for bulk execution.
-func (b *Bulk) Upsert(filter interface{}, replacement interface{}) {
-	wm := &mongo.UpdateOneModel{
-		Filter: filter,
-		Update: replacement,
-	}
-	wm.SetUpsert(true)
+// The replacement should be document without operator
+func (b *Bulk) Upsert(filter interface{}, replacement interface{}) *Bulk {
+	wm := mongo.NewReplaceOneModel().SetFilter(filter).SetReplacement(replacement).SetUpsert(true)
 	b.queue = append(b.queue, wm)
+	return b
 }
 
 // UpsertId queues an UpsertId operation for bulk execution.
-func (b *Bulk) UpsertId(id interface{}, replacement interface{}) {
+// The replacement should be document without operator
+func (b *Bulk) UpsertId(id interface{}, replacement interface{}) *Bulk {
 	b.Upsert(bson.M{"_id": id}, replacement)
+	return b
 }
 
 // UpdateOne queues an UpdateOne operation for bulk execution.
-func (b *Bulk) UpdateOne(filter interface{}, update interface{}) {
-	wm := &mongo.UpdateOneModel{
-		Filter: filter,
-		Update: update,
-	}
+// The update should contain operator
+func (b *Bulk) UpdateOne(filter interface{}, update interface{}) *Bulk {
+	wm := mongo.NewUpdateOneModel().SetFilter(filter).SetUpdate(update)
 	b.queue = append(b.queue, wm)
+	return b
 }
 
 // UpdateId queues an UpdateId operation for bulk execution.
-func (b *Bulk) UpdateId(id interface{}, update interface{}) {
+// The update should contain operator
+func (b *Bulk) UpdateId(id interface{}, update interface{}) *Bulk {
 	b.UpdateOne(bson.M{"_id": id}, update)
+	return b
 }
 
 // UpdateAll queues an UpdateAll operation for bulk execution.
-func (b *Bulk) UpdateAll(filter interface{}, update interface{}) {
-	wm := &mongo.UpdateManyModel{
-		Filter: filter,
-		Update: update,
-	}
+// The update should contain operator
+func (b *Bulk) UpdateAll(filter interface{}, update interface{}) *Bulk {
+	wm := mongo.NewUpdateManyModel().SetFilter(filter).SetUpdate(update)
 	b.queue = append(b.queue, wm)
+	return b
 }
 
 // Run executes the collected operations in a single bulk operation.
