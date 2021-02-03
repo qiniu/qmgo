@@ -105,7 +105,7 @@ Or
 
     ```go
     // insert one document
-    result, err := cli.Insert(ctx, userInfo)
+    result, err := cli.InsertOne(ctx, userInfo)
     ```
 
 - Find a document
