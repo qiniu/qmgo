@@ -101,7 +101,7 @@ go get github.com/qiniu/qmgo
 
     ```go
     // insert one document
-    result, err := cli.Insert(ctx, userInfo)
+    result, err := cli.InsertOne(ctx, userInfo)
     ```
 
 - 查找一个文档
