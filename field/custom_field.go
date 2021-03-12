@@ -34,9 +34,9 @@ type CustomFieldsHook interface {
 
 // CustomFieldsBuilder defines the interface which user use to set custom fields
 type CustomFieldsBuilder interface {
-	SetUpdateAt(filedName string) CustomFieldsBuilder
-	SetCreateAt(filedName string) CustomFieldsBuilder
-	SetId(filedName string) CustomFieldsBuilder
+	SetUpdateAt(fieldName string) CustomFieldsBuilder
+	SetCreateAt(fieldName string) CustomFieldsBuilder
+	SetId(fieldName string) CustomFieldsBuilder
 }
 
 // NewCustom creates new Builder which is used to set the custom fields
@@ -45,20 +45,20 @@ func NewCustom() CustomFieldsBuilder {
 }
 
 // SetUpdateAt set the custom UpdateAt field
-func (c *CustomFields) SetUpdateAt(filedName string) CustomFieldsBuilder {
-	c.updateAt = filedName
+func (c *CustomFields) SetUpdateAt(fieldName string) CustomFieldsBuilder {
+	c.updateAt = fieldName
 	return c
 }
 
 // SetCreateAt set the custom CreateAt field
-func (c *CustomFields) SetCreateAt(filedName string) CustomFieldsBuilder {
-	c.createAt = filedName
+func (c *CustomFields) SetCreateAt(fieldName string) CustomFieldsBuilder {
+	c.createAt = fieldName
 	return c
 }
 
 // SetId set the custom Id field
-func (c *CustomFields) SetId(filedName string) CustomFieldsBuilder {
-	c.id = filedName
+func (c *CustomFields) SetId(fieldName string) CustomFieldsBuilder {
+	c.id = fieldName
 	return c
 }
 
