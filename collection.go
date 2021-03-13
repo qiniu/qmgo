@@ -412,11 +412,12 @@ func (c *Collection) RemoveAll(ctx context.Context, filter interface{}, opts ...
 }
 
 // Aggregate executes an aggregate command against the collection and returns a AggregateI to get resulting documents.
-func (c *Collection) Aggregate(ctx context.Context, pipeline interface{}) AggregateI {
+func (c *Collection) Aggregate(ctx context.Context, pipeline interface{}, opts ...opts.AggregateOptions) AggregateI {
 	return &Aggregate{
 		ctx:        ctx,
 		collection: c.collection,
 		pipeline:   pipeline,
+		options:    opts,
 	}
 }
 

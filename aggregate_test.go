@@ -16,6 +16,8 @@ package qmgo
 import (
 	"context"
 	"errors"
+	opts "github.com/qiniu/qmgo/options"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -46,8 +48,12 @@ func TestAggregate(t *testing.T) {
 	matchStage := bson.D{{"$match", []bson.E{{"age", bson.D{{"$gt", 11}}}}}}
 	groupStage := bson.D{{"$group", bson.D{{"_id", "$name"}, {"total", bson.D{{"$sum", "$age"}}}}}}
 	var showsWithInfo []bson.M
+
+	opt := opts.AggregateOptions{
+		AggregateOptions: options.Aggregate().SetAllowDiskUse(true),
+	}
 	// aggregate ALL()
-	err := cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}).All(&showsWithInfo)
+	err := cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}, opt).All(&showsWithInfo)
 	ast.NoError(err)
 	ast.Equal(2, len(showsWithInfo))
 	for _, v := range showsWithInfo {
@@ -80,15 +86,19 @@ func TestAggregate(t *testing.T) {
 	// One()
 	var oneInfo bson.M
 
+	opt = opts.AggregateOptions{
+		AggregateOptions: options.Aggregate().SetAllowDiskUse(true),
+	}
+	iter = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}, opt)
+	ast.NotNil(iter)
 	iter = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage})
 	ast.NotNil(iter)
-
 	err = iter.One(&oneInfo)
 	ast.NoError(err)
 	ast.Equal(true, oneInfo["_id"] == "Alice" || oneInfo["_id"] == "Lucas")
 
 	// iter
-	iter = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage})
+	iter = cli.Aggregate(context.Background(), Pipeline{matchStage, groupStage}, opt)
 	ast.NotNil(iter)
 
 	i := iter.Iter()
