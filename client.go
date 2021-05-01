@@ -26,9 +26,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	opts "go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
-	"go.mongodb.org/mongo-driver/x/mongo/driver/connstring"
-	"go.mongodb.org/mongo-driver/x/mongo/driver/description"
-	"go.mongodb.org/mongo-driver/x/mongo/driver/topology"
 )
 
 // Config for initial mongodb instance
@@ -341,33 +338,6 @@ func (c *Client) ServerVersion() string {
 		return ""
 	}
 	return v.StringValue()
-}
-
-// topology get topology from mongoDB server, like single、ReplicaSet
-// TODO dont know why need to do `cli, err := Open(ctx, &c.conf)` to get topo,
-// Before figure it out, we only use this function in UT
-func (c *Client) topology() (description.TopologyKind, error) {
-	ConnString, err := connstring.ParseAndValidate(c.conf.Uri)
-	if err != nil {
-		return 0, err
-	}
-	topo, err := topology.New(
-		topology.WithConnString(func(connstring.ConnString) connstring.ConnString {
-			return ConnString
-		}))
-	err = topo.Connect()
-
-	ctx := context.Background()
-	conf := c.conf
-	var maxPoolSize uint64 = 2
-	var minPoolSize uint64 = 0
-	conf.MaxPoolSize = &maxPoolSize
-	conf.MinPoolSize = &minPoolSize
-	// I dont get why need on more connect to make topo valid....
-	cli, err := Open(ctx, &c.conf)
-	defer cli.Close(ctx)
-	cli.ServerVersion()
-	return topo.Kind(), nil
 }
 
 // transactionAllowed check if transaction is allowed
