@@ -313,6 +313,9 @@ func (c *Client) Session() (*Session, error) {
 // - if operations in callback return qmgo.ErrTransactionNotSupported,
 // - If the ctx parameter already has a Session attached to it, it will be replaced by this session.
 func (c *Client) DoTransaction(ctx context.Context, callback func(sessCtx context.Context) (interface{}, error)) (interface{}, error) {
+	if !c.transactionAllowed() {
+		return nil, ErrTransactionNotSupported
+	}
 	s, err := c.Session()
 	if err != nil {
 		return nil, err
@@ -323,16 +326,16 @@ func (c *Client) DoTransaction(ctx context.Context, callback func(sessCtx contex
 
 // ServerVersion get the version of mongoDB server, like 4.4.0
 func (c *Client) ServerVersion() string {
-	var serverStatus bson.Raw
+	var buildInfo bson.Raw
 	err := c.client.Database("admin").RunCommand(
 		context.Background(),
-		bson.D{{"serverStatus", 1}},
-	).Decode(&serverStatus)
+		bson.D{{"buildInfo", 1}},
+	).Decode(&buildInfo)
 	if err != nil {
 		fmt.Println("run command err", err)
 		return ""
 	}
-	v, err := serverStatus.LookupErr("version")
+	v, err := buildInfo.LookupErr("version")
 	if err != nil {
 		fmt.Println("look up err", err)
 		return ""
