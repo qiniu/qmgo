@@ -435,11 +435,11 @@ func TestQuery_Distinct(t *testing.T) {
 	err = cli.Find(context.Background(), filter2).Distinct("age", &res5)
 	ast.EqualError(err, ErrQueryResultTypeInconsistent.Error())
 
-	var res6 []int32
-
-	err = cli.Find(context.Background(), filter2).Distinct("", &res6)
-	ast.Error(err) // (Location40352) FieldPath cannot be constructed with empty string
-	ast.Equal(0, len(res6))
+	// different behavior with different version of mongod, v4.4.0 return err and v4.0.19 return nil
+	//var res6 []int32
+	//err = cli.Find(context.Background(), filter2).Distinct("", &res6)
+	//ast.Error(err) // (Location40352) FieldPath cannot be constructed with empty string
+	//ast.Equal(0, len(res6))
 
 	var res7 []int32
 	filter3 := 1
