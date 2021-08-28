@@ -770,7 +770,7 @@ func TestChangeStream(t *testing.T) {
 	defer cli.Close(context.Background())
 	defer cli.DropCollection(context.Background())
 
-	opts := &options.ChangeStreamOptions{}
+	opts := &options.ChangeStreamOptions{officialOpts.ChangeStream()}
 	c, e := cli.Watch(context.Background(), mongo.Pipeline{}, opts)
 	ast.NoError(e)
 	defer c.Close(context.Background())
