@@ -16,7 +16,9 @@ package qmgo
 import (
 	"context"
 
+	opts "github.com/qiniu/qmgo/options"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/mongo/driver"
 )
 
@@ -37,8 +39,12 @@ type Session struct {
 //  the whole transaction will retry, so this transaction must be idempotent
 //- if operations in callback return qmgo.ErrTransactionNotSupported,
 //- If the ctx parameter already has a Session attached to it, it will be replaced by this session.
-func (s *Session) StartTransaction(ctx context.Context, cb func(sessCtx context.Context) (interface{}, error)) (interface{}, error) {
-	result, err := s.session.WithTransaction(ctx, wrapperCustomCb(cb))
+func (s *Session) StartTransaction(ctx context.Context, cb func(sessCtx context.Context) (interface{}, error), opts ...*opts.TransactionOptions) (interface{}, error) {
+	transactionOpts := options.Transaction()
+	if len(opts) > 0 && opts[0].TransactionOptions != nil {
+		transactionOpts = opts[0].TransactionOptions
+	}
+	result, err := s.session.WithTransaction(ctx, wrapperCustomCb(cb), transactionOpts)
 	if err != nil {
 		return nil, err
 	}

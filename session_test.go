@@ -17,11 +17,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"testing"
-
+	opts "github.com/qiniu/qmgo/options"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"testing"
 )
 
 func initTransactionClient(coll string) *QmgoClient {
@@ -63,7 +64,9 @@ func TestClient_DoTransaction(t *testing.T) {
 		}
 		return nil, nil
 	}
-	_, err := cli.DoTransaction(ctx, fn)
+	tops := options.Transaction()
+	op := &opts.TransactionOptions{tops}
+	_, err := cli.DoTransaction(ctx, fn, op)
 	ast.NoError(err)
 	r := bson.M{}
 	cli.Find(ctx, bson.M{"abc": 1}).One(&r)
@@ -78,7 +81,9 @@ func TestSession_AbortTransaction(t *testing.T) {
 	cli := initTransactionClient("test")
 
 	defer cli.DropCollection(context.Background())
-	s, err := cli.Session()
+	sOpts := options.Session().SetSnapshot(false)
+	o := &opts.SessionOptions{sOpts}
+	s, err := cli.Session(o)
 	ast.NoError(err)
 	ctx := context.Background()
 	defer s.EndSession(ctx)
@@ -95,7 +100,9 @@ func TestSession_AbortTransaction(t *testing.T) {
 		return nil, nil
 	}
 
-	_, err = s.StartTransaction(ctx, callback)
+	tops := options.Transaction()
+	op := &opts.TransactionOptions{tops}
+	_, err = s.StartTransaction(ctx, callback, op)
 	ast.NoError(err)
 
 	r := bson.M{}

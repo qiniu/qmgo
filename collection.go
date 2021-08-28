@@ -557,7 +557,7 @@ func (c *Collection) GetCollectionName() string {
 // https://docs.mongodb.com/manual/changeStreams/ for more information about change streams.
 func (c *Collection) Watch(ctx context.Context, pipeline interface{}, opts ...*opts.ChangeStreamOptions) (*mongo.ChangeStream, error) {
 	changeStreamOption := options.ChangeStream()
-	if len(opts) > 0 {
+	if len(opts) > 0 && opts[0].ChangeStreamOptions != nil {
 		changeStreamOption = opts[0].ChangeStreamOptions
 	}
 	return c.collection.Watch(ctx, pipeline, changeStreamOption)
