@@ -20,6 +20,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	officialOpts "go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/qiniu/qmgo/operator"
@@ -761,4 +762,30 @@ func TestCollection_ReplaceOne(t *testing.T) {
 
 	err = cli.ReplaceOne(context.Background(), bson.M{"_id": "notexist"}, nil)
 	ast.Error(err)
+}
+
+func TestChangeStream(t *testing.T) {
+	ast := require.New(t)
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
+
+	opts := &options.ChangeStreamOptions{officialOpts.ChangeStream()}
+	c, e := cli.Watch(context.Background(), mongo.Pipeline{}, opts)
+	ast.NoError(e)
+	defer c.Close(context.Background())
+
+	doneChane := make(chan struct{})
+	go func() {
+		ok := c.Next(context.Background())
+		ast.True(ok)
+		doneChane <- struct{}{}
+	}()
+
+	id := primitive.NewObjectID()
+	ui := UserInfo{Id: id, Name: "Lucas", Age: 17}
+	_, err := cli.InsertOne(context.Background(), ui)
+	ast.NoError(err)
+	<-doneChane
+
 }

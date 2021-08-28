@@ -553,6 +553,16 @@ func (c *Collection) GetCollectionName() string {
 	return c.collection.Name()
 }
 
+// Watch returns a change stream for all changes on the corresponding collection. See
+// https://docs.mongodb.com/manual/changeStreams/ for more information about change streams.
+func (c *Collection) Watch(ctx context.Context, pipeline interface{}, opts ...*opts.ChangeStreamOptions) (*mongo.ChangeStream, error) {
+	changeStreamOption := options.ChangeStream()
+	if len(opts) > 0 && opts[0].ChangeStreamOptions != nil {
+		changeStreamOption = opts[0].ChangeStreamOptions
+	}
+	return c.collection.Watch(ctx, pipeline, changeStreamOption)
+}
+
 // translateUpdateResult translates mongo update result to qmgo define UpdateResult
 func translateUpdateResult(res *mongo.UpdateResult) (result *UpdateResult) {
 	result = &UpdateResult{
