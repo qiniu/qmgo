@@ -97,6 +97,19 @@ type ReadPref struct {
 	Mode readpref.Mode `json:"mode"`
 }
 
+// alias mongo drive bson primitives
+// thus user don't need to import go.mongodb.org/mongo-driver/mongo, it should all in qmgo
+type (
+	// M is an alias of bson.M
+	M = bson.M
+	// A is an alias of bson.A
+	A = bson.A
+	// D is an alias of bson.D
+	D = bson.D
+	// E is an alias of bson.E
+	E = bson.E
+)
+
 // QmgoClient specifies the instance to operate mongoDB
 type QmgoClient struct {
 	*Collection
