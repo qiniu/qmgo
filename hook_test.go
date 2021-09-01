@@ -383,7 +383,11 @@ func TestHookErr(t *testing.T) {
 
 	u := &UserHook{Name: "Lucas", Age: 7}
 	myHook := &MyErrorHook{}
-	_, err := cli.InsertOne(context.Background(), u, options.InsertOneOptions{
+	myHook1 := &MyErrorHook{}
+	myHook2 := &MyErrorHook{}
+	myHooks := []*MyErrorHook{myHook1, myHook2}
+	res, err := cli.InsertOne(context.Background(), u)
+	_, err = cli.InsertOne(context.Background(), u, options.InsertOneOptions{
 		InsertHook: myHook,
 	})
 	ast.Error(err)
@@ -396,6 +400,27 @@ func TestHookErr(t *testing.T) {
 	ast.Error(err)
 	ast.Equal(2, myHook.beforeICount)
 	ast.Equal(1, myHook.afterICount)
+
+	_, err = cli.InsertMany(context.Background(), myHooks, options.InsertManyOptions{
+		InsertHook: myHooks,
+	})
+	ast.Error(err)
+	ast.Equal(1, myHook1.beforeICount)
+	ast.Equal(0, myHook2.beforeICount)
+	ast.Equal(0, myHook1.afterICount)
+	ast.Equal(0, myHook2.afterICount)
+
+	_, err = cli.InsertMany(context.Background(), myHooks, options.InsertManyOptions{
+		InsertHook: myHooks,
+	})
+	_, err = cli.InsertMany(context.Background(), myHooks, options.InsertManyOptions{
+		InsertHook: myHooks,
+	})
+	ast.Error(err)
+	ast.Equal(3, myHook1.beforeICount)
+	ast.Equal(2, myHook2.beforeICount)
+	ast.Equal(1, myHook1.afterICount)
+	ast.Equal(0, myHook2.afterICount)
 
 	err = cli.UpdateOne(ctx, bson.M{"name": "Lucas"}, bson.M{operator.Set: bson.M{"age": 27}}, options.UpdateOptions{
 		UpdateHook: myHook,
@@ -411,10 +436,34 @@ func TestHookErr(t *testing.T) {
 	ast.Equal(2, myHook.beforeUCount)
 	ast.Equal(1, myHook.afterUCount)
 
-	err = cli.UpdateId(ctx, bson.M{"name": "Lucas"}, bson.M{operator.Set: bson.M{"age": 27}}, options.UpdateOptions{
-		UpdateHook: myHook,
+	myUpdateHook := &MyErrorHook{}
+	err = cli.UpdateId(ctx, res.InsertedID, bson.M{operator.Set: bson.M{"age": 27}}, options.UpdateOptions{
+		UpdateHook: myUpdateHook,
 	})
 	ast.Error(err)
+	ast.Equal(1, myUpdateHook.beforeUCount)
+	ast.Equal(0, myUpdateHook.afterUCount)
+	err = cli.UpdateId(ctx, res.InsertedID, bson.M{operator.Set: bson.M{"age": 27}}, options.UpdateOptions{
+		UpdateHook: myUpdateHook,
+	})
+	ast.Error(err)
+	ast.Equal(2, myUpdateHook.beforeUCount)
+	ast.Equal(1, myUpdateHook.afterUCount)
+
+	myUpdateAllHook := &MyErrorHook{}
+	_, err = cli.UpdateAll(ctx, bson.M{"name": "Lucas"}, bson.M{operator.Set: bson.M{"age": 27}}, options.UpdateOptions{
+		UpdateHook: myUpdateAllHook,
+	})
+	ast.Error(err)
+	ast.Equal(1, myUpdateAllHook.beforeUCount)
+	ast.Equal(0, myUpdateAllHook.afterUCount)
+
+	_, err = cli.UpdateAll(ctx, bson.M{"name": "Lucas"}, bson.M{operator.Set: bson.M{"age": 27}}, options.UpdateOptions{
+		UpdateHook: myUpdateAllHook,
+	})
+	ast.Error(err)
+	ast.Equal(2, myUpdateAllHook.beforeUCount)
+	ast.Equal(1, myUpdateAllHook.afterUCount)
 
 	err = cli.Find(ctx, bson.M{"age": 27}, options.FindOptions{
 		QueryHook: myHook,
@@ -463,5 +512,58 @@ func TestHookErr(t *testing.T) {
 		UpsertHook: myUpsertHook,
 	})
 	ast.Error(err)
+	ast.Equal(1, myUpsertHook.beforeUsCount)
+	ast.Equal(0, myUpsertHook.afterUsCount)
 
+	_, err = cli.UpsertId(ctx, bson.M{"name": "Lucas"}, u, options.UpsertOptions{
+		UpsertHook: myUpsertHook,
+	})
+	ast.Error(err)
+	ast.Equal(2, myUpsertHook.beforeUsCount)
+	ast.Equal(1, myUpsertHook.afterUsCount)
+
+	myRemoveHook := &MyErrorHook{}
+	resRemoved, err := cli.InsertOne(context.Background(), u)
+	err = cli.RemoveId(ctx, resRemoved.InsertedID, options.RemoveOptions{
+		RemoveHook: myRemoveHook,
+	})
+	ast.Error(err)
+	ast.Equal(1, myRemoveHook.beforeRCount)
+	ast.Equal(0, myRemoveHook.afterRCount)
+	err = cli.RemoveId(ctx, resRemoved.InsertedID, options.RemoveOptions{
+		RemoveHook: myRemoveHook,
+	})
+	ast.Error(err)
+	ast.Equal(2, myRemoveHook.beforeRCount)
+	ast.Equal(1, myRemoveHook.afterRCount)
+
+	myRemoveHook = &MyErrorHook{}
+	_, err = cli.RemoveAll(ctx, bson.M{"name": "Lucas"}, options.RemoveOptions{
+		RemoveHook: myRemoveHook,
+	})
+	ast.Error(err)
+	ast.Equal(1, myRemoveHook.beforeRCount)
+	ast.Equal(0, myRemoveHook.afterRCount)
+	_, err = cli.RemoveAll(ctx, bson.M{"name": "Lucas"}, options.RemoveOptions{
+		RemoveHook: myRemoveHook,
+	})
+	ast.Error(err)
+	ast.Equal(2, myRemoveHook.beforeRCount)
+	ast.Equal(1, myRemoveHook.afterRCount)
+
+	myReplaceHook := &MyErrorHook{}
+	_, err = cli.InsertOne(context.Background(), u)
+	err = cli.ReplaceOne(ctx, bson.M{"name": "Lucas"}, &u, options.ReplaceOptions{
+		UpdateHook: myReplaceHook,
+	})
+	ast.Error(err)
+	ast.Equal(1, myReplaceHook.beforeUCount)
+	ast.Equal(0, myReplaceHook.afterUCount)
+
+	err = cli.ReplaceOne(ctx, bson.M{"name": "Lucas"}, &u, options.ReplaceOptions{
+		UpdateHook: myReplaceHook,
+	})
+	ast.Error(err)
+	ast.Equal(2, myReplaceHook.beforeUCount)
+	ast.Equal(1, myReplaceHook.afterUCount)
 }
