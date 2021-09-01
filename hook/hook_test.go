@@ -31,14 +31,14 @@ type User struct {
 	AfterCalled bool `bson:"afterCalled"`
 }
 
-func (u *User) BeforeInsert() error {
+func (u *User) BeforeInsert(ctx context.Context) error {
 	if u.Name == "Lucas" || u.Name == "Alices" {
 		u.Age = 17
 	}
 	return nil
 }
 
-func (u *User) AfterInsert() error {
+func (u *User) AfterInsert(ctx context.Context) error {
 	u.AfterCalled = true
 	return nil
 }
@@ -78,14 +78,14 @@ func TestInsertHook(t *testing.T) {
 	ast.NoError(err)
 }
 
-func (u *User) BeforeUpdate() error {
+func (u *User) BeforeUpdate(ctx context.Context) error {
 	if u.Name == "Lucas" || u.Name == "Alices" {
 		u.Age = 17
 	}
 	return nil
 }
 
-func (u *User) AfterUpdate() error {
+func (u *User) AfterUpdate(ctx context.Context) error {
 	u.AfterCalled = true
 	return nil
 }
@@ -121,7 +121,7 @@ func TestUpdateHook(t *testing.T) {
 
 }
 
-func (u *User) BeforeQuery() error {
+func (u *User) BeforeQuery(ctx context.Context) error {
 	if u.Name == "Lucas" || u.Name == "Alices" {
 		u.Age = 17
 	}
@@ -130,7 +130,7 @@ func (u *User) BeforeQuery() error {
 	return nil
 }
 
-func (u *User) AfterQuery() error {
+func (u *User) AfterQuery(ctx context.Context) error {
 	u.AfterCalled = true
 	return nil
 }
@@ -168,14 +168,14 @@ func TestQueryHook(t *testing.T) {
 	Do(&uss, operator.BeforeQuery, ctx)
 
 }
-func (u *User) BeforeRemove() error {
+func (u *User) BeforeRemove(ctx context.Context) error {
 	if u.Name == "Lucas" || u.Name == "Alices" {
 		u.Age = 17
 	}
 	return nil
 }
 
-func (u *User) AfterRemove() error {
+func (u *User) AfterRemove(ctx context.Context) error {
 	u.AfterCalled = true
 	return nil
 }
@@ -211,14 +211,14 @@ func TestRemoveHook(t *testing.T) {
 	}
 
 }
-func (u *User) BeforeUpsert() error {
+func (u *User) BeforeUpsert(ctx context.Context) error {
 	if u.Name == "Lucas" || u.Name == "Alices" {
 		u.Age = 17
 	}
 	return nil
 }
 
-func (u *User) AfterUpsert() error {
+func (u *User) AfterUpsert(ctx context.Context) error {
 	u.AfterCalled = true
 	return nil
 }
@@ -266,11 +266,11 @@ type UserError struct {
 	mock.Mock `bson:"-"`
 }
 
-func (u *UserError) BeforeInsert() error {
+func (u *UserError) BeforeInsert(ctx context.Context) error {
 	return nil
 }
 
-func (u *UserError) AfterInsert() error {
+func (u *UserError) AfterInsert(ctx context.Context) error {
 	args := u.Called()
 	return args.Error(0)
 }
