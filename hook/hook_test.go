@@ -14,6 +14,7 @@
 package hook
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"testing"
@@ -44,21 +45,22 @@ func (u *User) AfterInsert() error {
 
 func TestInsertHook(t *testing.T) {
 	ast := require.New(t)
+	ctx := context.Background()
 
 	u := &User{Name: "Lucas", Age: 7}
-	err := Do(u, operator.BeforeInsert)
+	err := Do(u, operator.BeforeInsert, ctx)
 	ast.NoError(err)
 	ast.Equal(17, u.Age)
 
-	err = Do(u, operator.AfterInsert)
+	err = Do(u, operator.AfterInsert, ctx)
 	ast.NoError(err)
 	ast.True(u.AfterCalled)
 
 	u1, u2 := &User{Name: "Lucas", Age: 7}, &User{Name: "Alices", Age: 8}
 	us := []interface{}{u1, u2}
-	err = Do(us, operator.BeforeInsert)
+	err = Do(us, operator.BeforeInsert, ctx)
 	ast.NoError(err)
-	err = Do(us, operator.AfterInsert)
+	err = Do(us, operator.AfterInsert, ctx)
 	ast.NoError(err)
 	for _, v := range us {
 		vv := v.(*User)
@@ -72,7 +74,7 @@ func TestInsertHook(t *testing.T) {
 	}
 
 	u3 := User{Name: "Lucas", Age: 7}
-	err = Do(u3, operator.BeforeInsert)
+	err = Do(u3, operator.BeforeInsert, ctx)
 	ast.NoError(err)
 }
 
@@ -89,21 +91,22 @@ func (u *User) AfterUpdate() error {
 }
 func TestUpdateHook(t *testing.T) {
 	ast := require.New(t)
+	ctx := context.Background()
 
 	u := &User{Name: "Lucas", Age: 7}
-	err := Do(u, operator.BeforeUpdate)
+	err := Do(u, operator.BeforeUpdate, ctx)
 	ast.NoError(err)
 	ast.Equal(17, u.Age)
 
-	err = Do(u, operator.AfterUpdate)
+	err = Do(u, operator.AfterUpdate, ctx)
 	ast.NoError(err)
 	ast.True(u.AfterCalled)
 
 	u1, u2 := &User{Name: "Lucas", Age: 7}, &User{Name: "Alices", Age: 8}
 	us := []interface{}{u1, u2}
-	err = Do(us, operator.BeforeUpdate)
+	err = Do(us, operator.BeforeUpdate, ctx)
 	ast.NoError(err)
-	err = Do(us, operator.AfterUpdate)
+	err = Do(us, operator.AfterUpdate, ctx)
 	ast.NoError(err)
 	for _, v := range us {
 		vv := v.(*User)
@@ -133,21 +136,22 @@ func (u *User) AfterQuery() error {
 }
 func TestQueryHook(t *testing.T) {
 	ast := require.New(t)
+	ctx := context.Background()
 
 	u := &User{Name: "Lucas", Age: 7}
-	err := Do(u, operator.BeforeQuery)
+	err := Do(u, operator.BeforeQuery, ctx)
 	ast.NoError(err)
 	ast.Equal(17, u.Age)
 
-	err = Do(u, operator.AfterQuery)
+	err = Do(u, operator.AfterQuery, ctx)
 	ast.NoError(err)
 	ast.True(u.AfterCalled)
 
 	u1, u2 := &User{Name: "Lucas", Age: 7}, &User{Name: "Alices", Age: 8}
 	us := []interface{}{u1, u2}
-	err = Do(us, operator.BeforeQuery)
+	err = Do(us, operator.BeforeQuery, ctx)
 	ast.NoError(err)
-	err = Do(us, operator.AfterQuery)
+	err = Do(us, operator.AfterQuery, ctx)
 	ast.NoError(err)
 	for _, v := range us {
 		vv := v.(*User)
@@ -161,7 +165,7 @@ func TestQueryHook(t *testing.T) {
 	}
 
 	uss := []*User{&User{Name: "Lucas"}, &User{Name: "Alices"}}
-	Do(&uss, operator.BeforeQuery)
+	Do(&uss, operator.BeforeQuery, ctx)
 
 }
 func (u *User) BeforeRemove() error {
@@ -178,21 +182,22 @@ func (u *User) AfterRemove() error {
 
 func TestRemoveHook(t *testing.T) {
 	ast := require.New(t)
+	ctx := context.Background()
 
 	u := &User{Name: "Lucas", Age: 7}
-	err := Do(u, operator.BeforeRemove)
+	err := Do(u, operator.BeforeRemove, ctx)
 	ast.NoError(err)
 	ast.Equal(17, u.Age)
 
-	err = Do(u, operator.AfterRemove)
+	err = Do(u, operator.AfterRemove, ctx)
 	ast.NoError(err)
 	ast.True(u.AfterCalled)
 
 	u1, u2 := &User{Name: "Lucas", Age: 7}, &User{Name: "Alices", Age: 8}
 	us := []interface{}{u1, u2}
-	err = Do(us, operator.BeforeRemove)
+	err = Do(us, operator.BeforeRemove, ctx)
 	ast.NoError(err)
-	err = Do(us, operator.AfterRemove)
+	err = Do(us, operator.AfterRemove, ctx)
 	ast.NoError(err)
 	for _, v := range us {
 		vv := v.(*User)
@@ -220,21 +225,22 @@ func (u *User) AfterUpsert() error {
 
 func TestUpsertHook(t *testing.T) {
 	ast := require.New(t)
+	ctx := context.Background()
 
 	u := &User{Name: "Lucas", Age: 7}
-	err := Do(u, operator.BeforeUpsert)
+	err := Do(u, operator.BeforeUpsert, ctx)
 	ast.NoError(err)
 	ast.Equal(17, u.Age)
 
-	err = Do(u, operator.AfterUpsert)
+	err = Do(u, operator.AfterUpsert, ctx)
 	ast.NoError(err)
 	ast.True(u.AfterCalled)
 
 	u1, u2 := &User{Name: "Lucas", Age: 7}, &User{Name: "Alices", Age: 8}
 	us := []interface{}{u1, u2}
-	err = Do(us, operator.BeforeUpsert)
+	err = Do(us, operator.BeforeUpsert, ctx)
 	ast.NoError(err)
-	err = Do(us, operator.AfterUpsert)
+	err = Do(us, operator.AfterUpsert, ctx)
 	ast.NoError(err)
 	for _, v := range us {
 		vv := v.(*User)
@@ -248,7 +254,7 @@ func TestUpsertHook(t *testing.T) {
 	}
 
 	u3 := User{Name: "Lucas", Age: 7}
-	err = Do(u3, operator.BeforeInsert)
+	err = Do(u3, operator.BeforeInsert, ctx)
 	ast.NoError(err)
 }
 
@@ -270,13 +276,14 @@ func (u *UserError) AfterInsert() error {
 }
 func TestSliceError(t *testing.T) {
 	ast := require.New(t)
+	ctx := context.Background()
 
 	u1, u2 := &UserError{Name: "Lucas", Age: 7}, &UserError{Name: "Alices", Age: 8}
 	us := []interface{}{u1, u2}
 
 	u1.On("AfterInsert").Return(nil)
 	u2.On("AfterInsert").Return(errors.New("called"))
-	err := Do(us, operator.AfterInsert)
+	err := Do(us, operator.AfterInsert, ctx)
 	ast.Equal("called", err.Error())
 
 }
@@ -291,20 +298,21 @@ type UserNoHook struct {
 
 func TestUserNoHook(t *testing.T) {
 	ast := require.New(t)
+	ctx := context.Background()
 
 	u := &UserNoHook{Name: "Lucas", Age: 7}
-	err := Do(u, operator.BeforeInsert)
+	err := Do(u, operator.BeforeInsert, ctx)
 	ast.NoError(err)
 	ast.Equal(7, u.Age)
 
-	err = Do(u, operator.AfterInsert)
+	err = Do(u, operator.AfterInsert, ctx)
 	ast.NoError(err)
 
 	u1, u2 := &UserNoHook{Name: "Lucas", Age: 7}, &UserNoHook{Name: "Alices", Age: 8}
 	us := []interface{}{u1, u2}
-	err = Do(us, operator.BeforeInsert)
+	err = Do(us, operator.BeforeInsert, ctx)
 	ast.NoError(err)
-	err = Do(us, operator.AfterInsert)
+	err = Do(us, operator.AfterInsert, ctx)
 	ast.NoError(err)
 	for _, v := range us {
 		vv := v.(*UserNoHook)
@@ -317,31 +325,31 @@ func TestUserNoHook(t *testing.T) {
 		ast.False(vv.AfterCalled)
 	}
 
-	err = Do(u, operator.BeforeUpdate)
+	err = Do(u, operator.BeforeUpdate, ctx)
 	ast.NoError(err)
-	err = Do(u, operator.AfterUpdate)
+	err = Do(u, operator.AfterUpdate, ctx)
 	ast.NoError(err)
-	err = Do(us, operator.BeforeUpdate)
+	err = Do(us, operator.BeforeUpdate, ctx)
 	ast.NoError(err)
-	err = Do(us, operator.AfterUpdate)
-	ast.NoError(err)
-
-	err = Do(u, operator.BeforeQuery)
-	ast.NoError(err)
-	err = Do(u, operator.AfterQuery)
-	ast.NoError(err)
-	err = Do(us, operator.BeforeQuery)
-	ast.NoError(err)
-	err = Do(us, operator.AfterQuery)
+	err = Do(us, operator.AfterUpdate, ctx)
 	ast.NoError(err)
 
-	err = Do(u, operator.BeforeRemove)
+	err = Do(u, operator.BeforeQuery, ctx)
 	ast.NoError(err)
-	err = Do(u, operator.AfterRemove)
+	err = Do(u, operator.AfterQuery, ctx)
 	ast.NoError(err)
-	err = Do(us, operator.BeforeRemove)
+	err = Do(us, operator.BeforeQuery, ctx)
 	ast.NoError(err)
-	err = Do(us, operator.AfterRemove)
+	err = Do(us, operator.AfterQuery, ctx)
+	ast.NoError(err)
+
+	err = Do(u, operator.BeforeRemove, ctx)
+	ast.NoError(err)
+	err = Do(u, operator.AfterRemove, ctx)
+	ast.NoError(err)
+	err = Do(us, operator.BeforeRemove, ctx)
+	ast.NoError(err)
+	err = Do(us, operator.AfterRemove, ctx)
 	ast.NoError(err)
 }
 
@@ -350,14 +358,15 @@ var sliceBeforeQueryCount = 0
 func TestSliceHook(t *testing.T) {
 	sliceBeforeQueryCount = 0
 	ast := require.New(t)
+	ctx := context.Background()
 
 	u := &User{Name: "Lucas"}
-	Do(u, operator.BeforeQuery)
+	Do(u, operator.BeforeQuery, ctx)
 
 	uss := []*User{&User{Name: "Lucas"}, &User{Name: "Alices"}}
-	Do(uss, operator.BeforeQuery)
+	Do(uss, operator.BeforeQuery, ctx)
 
-	Do(&uss, operator.BeforeQuery)
+	Do(&uss, operator.BeforeQuery, ctx)
 
 	ast.Equal(5, sliceBeforeQueryCount)
 
@@ -365,16 +374,18 @@ func TestSliceHook(t *testing.T) {
 
 func TestNilError(t *testing.T) {
 	ast := require.New(t)
+	ctx := context.Background()
 
-	err := Do(nil, operator.BeforeUpsert)
+	err := Do(nil, operator.BeforeUpsert, ctx)
 	ast.NoError(err)
 
 }
 
 func TestOpts(t *testing.T) {
 	ast := require.New(t)
+	ctx := context.Background()
 
 	u := &User{Name: "Lucas", Age: 7}
-	err := Do(nil, operator.BeforeInsert, u)
+	err := Do(nil, operator.BeforeInsert, ctx, u)
 	ast.NoError(err)
 }

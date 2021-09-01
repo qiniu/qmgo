@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"context"
 	"reflect"
 	"time"
 
@@ -22,7 +23,7 @@ func validatorNeeded(opType operator.OpType) bool {
 
 // Do calls validator check
 // Don't use opts here
-func Do(doc interface{}, opType operator.OpType, opts ...interface{}) error {
+func Do(doc interface{}, opType operator.OpType, ctx context.Context, opts ...interface{}) error {
 	if !validatorNeeded(opType) {
 		return nil
 	}
