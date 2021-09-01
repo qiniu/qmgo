@@ -13,16 +13,16 @@ func TestMiddleware(t *testing.T) {
 	ast := require.New(t)
 	ctx := context.Background()
 	// not register
-	ast.NoError(Do("success", operator.BeforeInsert, ctx))
+	ast.NoError(Do(ctx, "success", operator.BeforeInsert))
 
 	// valid register
 	Register(callbackTest)
-	ast.NoError(Do("success", operator.BeforeInsert, ctx))
-	ast.Error(Do("failure", operator.BeforeUpsert, ctx))
-	ast.NoError(Do("failure", operator.BeforeUpdate, ctx, "success"))
+	ast.NoError(Do(ctx, "success", operator.BeforeInsert))
+	ast.Error(Do(ctx, "failure", operator.BeforeUpsert))
+	ast.NoError(Do(ctx, "failure", operator.BeforeUpdate, "success"))
 }
 
-func callbackTest(doc interface{}, opType operator.OpType, ctx context.Context, opts ...interface{}) error {
+func callbackTest(ctx context.Context, doc interface{}, opType operator.OpType, opts ...interface{}) error {
 	if doc.(string) == "success" && opType == operator.BeforeInsert {
 		return nil
 	}

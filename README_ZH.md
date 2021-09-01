@@ -230,11 +230,11 @@ go get github.com/qiniu/qmgo
         Name         string    `bson:"name"`
         Age          int       `bson:"age"`
     }
-    func (u *User) BeforeInsert() error {
+    func (u *User) BeforeInsert(ctx context.Context) error {
         fmt.Println("before insert called")
         return nil
     }
-    func (u *User) AfterInsert() error {
+    func (u *User) AfterInsert(ctx context.Context) error {
         fmt.Println("after insert called")
         return nil
     }
