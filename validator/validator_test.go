@@ -32,8 +32,8 @@ func TestValidator(t *testing.T) {
 
 	user := &User{}
 	// not need validator op
-	ast.NoError(Do(user, operator.BeforeRemove, ctx))
-	ast.NoError(Do(user, operator.AfterInsert, ctx))
+	ast.NoError(Do(ctx, user, operator.BeforeRemove))
+	ast.NoError(Do(ctx, user, operator.AfterInsert))
 	// check success
 	address := &Address{
 		Street: "Eavesdown Docks",
@@ -50,50 +50,50 @@ func TestValidator(t *testing.T) {
 		FavouriteColor: "#000",
 		Addresses:      []*Address{address, address},
 	}
-	ast.NoError(Do(user, operator.BeforeInsert, ctx))
-	ast.NoError(Do(user, operator.BeforeUpsert, ctx))
-	ast.NoError(Do(*user, operator.BeforeUpsert, ctx))
+	ast.NoError(Do(ctx, user, operator.BeforeInsert))
+	ast.NoError(Do(ctx, user, operator.BeforeUpsert))
+	ast.NoError(Do(ctx, *user, operator.BeforeUpsert))
 
 	users := []*User{user, user, user}
-	ast.NoError(Do(users, operator.BeforeInsert, ctx))
+	ast.NoError(Do(ctx, users, operator.BeforeInsert))
 
 	// check failure
 	user.Age = 150
-	ast.Error(Do(user, operator.BeforeInsert, ctx))
+	ast.Error(Do(ctx, user, operator.BeforeInsert))
 	user.Age = 22
 	user.Email = "1234@gmail" // invalid email
-	ast.Error(Do(user, operator.BeforeInsert, ctx))
+	ast.Error(Do(ctx, user, operator.BeforeInsert))
 	user.Email = "1234@gmail.com"
 	user.Addresses[0].City = "" // string tag use default value
-	ast.Error(Do(user, operator.BeforeInsert, ctx))
+	ast.Error(Do(ctx, user, operator.BeforeInsert))
 
 	// input slice
 	users = []*User{user, user, user}
-	ast.Error(Do(users, operator.BeforeInsert, ctx))
+	ast.Error(Do(ctx, users, operator.BeforeInsert))
 
 	useris := []interface{}{user, user, user}
-	ast.Error(Do(useris, operator.BeforeInsert, ctx))
+	ast.Error(Do(ctx, useris, operator.BeforeInsert))
 
 	user.Addresses[0].City = "shanghai"
 	users = []*User{user, user, user}
-	ast.NoError(Do(users, operator.BeforeInsert, ctx))
+	ast.NoError(Do(ctx, users, operator.BeforeInsert))
 
 	us := []User{*user, *user, *user}
-	ast.NoError(Do(us, operator.BeforeInsert, ctx))
-	ast.NoError(Do(&us, operator.BeforeInsert, ctx))
+	ast.NoError(Do(ctx, us, operator.BeforeInsert))
+	ast.NoError(Do(ctx, &us, operator.BeforeInsert))
 
 	// all bson type
 	mdoc := []interface{}{bson.M{"name": "", "age": 12}, bson.M{"name": "", "age": 12}}
-	ast.NoError(Do(mdoc, operator.BeforeInsert, ctx))
+	ast.NoError(Do(ctx, mdoc, operator.BeforeInsert))
 	adoc := bson.A{"Alex", "12"}
-	ast.NoError(Do(adoc, operator.BeforeInsert, ctx))
+	ast.NoError(Do(ctx, adoc, operator.BeforeInsert))
 	edoc := bson.E{"Alex", "12"}
-	ast.NoError(Do(edoc, operator.BeforeInsert, ctx))
+	ast.NoError(Do(ctx, edoc, operator.BeforeInsert))
 	ddoc := bson.D{{"foo", "bar"}, {"hello", "world"}, {"pi", 3.14159}}
-	ast.NoError(Do(ddoc, operator.BeforeInsert, ctx))
+	ast.NoError(Do(ctx, ddoc, operator.BeforeInsert))
 
 	// nil ptr
 	user = nil
-	ast.NoError(Do(user, operator.BeforeInsert, ctx))
-	ast.NoError(Do(nil, operator.BeforeInsert, ctx))
+	ast.NoError(Do(ctx, user, operator.BeforeInsert))
+	ast.NoError(Do(ctx, nil, operator.BeforeInsert))
 }
