@@ -321,7 +321,7 @@ Or
     - Implement following method:
     
     ```go
-    func Do(doc interface{}, opType operator.OpType, opts ...interface{}) error{
+    func Do(ctx context.Context, doc interface{}, opType operator.OpType, opts ...interface{}) error{
       // do anything
     }
     ```

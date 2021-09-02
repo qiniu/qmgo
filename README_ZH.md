@@ -321,7 +321,7 @@ go get github.com/qiniu/qmgo
     
     - 实现以下方法
     ```go
-    func Do(doc interface{}, opType operator.OpType, opts ...interface{}) error{
+    func Do(ctx context.Context, doc interface{}, opType operator.OpType, opts ...interface{}) error{
       // do anything
     }
     ```
