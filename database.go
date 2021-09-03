@@ -30,9 +30,9 @@ type Database struct {
 }
 
 // Collection gets collection from database
-func (d *Database) Collection(name string) *Collection {
-	var cp *mongo.Collection
-	cp = d.database.Collection(name)
+func (d *Database) Collection(name string, opts ...*options.CollectionOptions) *Collection {
+
+	var cp = d.database.Collection(name, opts...)
 
 	return &Collection{
 		collection: cp,
