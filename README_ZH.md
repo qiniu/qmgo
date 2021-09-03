@@ -230,11 +230,11 @@ go get github.com/qiniu/qmgo
         Name         string    `bson:"name"`
         Age          int       `bson:"age"`
     }
-    func (u *User) BeforeInsert() error {
+    func (u *User) BeforeInsert(ctx context.Context) error {
         fmt.Println("before insert called")
         return nil
     }
-    func (u *User) AfterInsert() error {
+    func (u *User) AfterInsert(ctx context.Context) error {
         fmt.Println("after insert called")
         return nil
     }
@@ -321,7 +321,7 @@ go get github.com/qiniu/qmgo
     
     - 实现以下方法
     ```go
-    func Do(doc interface{}, opType operator.OpType, opts ...interface{}) error{
+    func Do(ctx context.Context, doc interface{}, opType operator.OpType, opts ...interface{}) error{
       // do anything
     }
     ```

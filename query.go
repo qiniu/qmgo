@@ -106,7 +106,7 @@ func (q *Query) Limit(n int64) QueryI {
 // If the search fails, an error will be returned
 func (q *Query) One(result interface{}) error {
 	if len(q.opts) > 0 {
-		if err := middleware.Do(q.opts[0].QueryHook, operator.BeforeQuery); err != nil {
+		if err := middleware.Do(q.ctx, q.opts[0].QueryHook, operator.BeforeQuery); err != nil {
 			return err
 		}
 	}
@@ -131,7 +131,7 @@ func (q *Query) One(result interface{}) error {
 		return err
 	}
 	if len(q.opts) > 0 {
-		if err := middleware.Do(q.opts[0].QueryHook, operator.AfterQuery); err != nil {
+		if err := middleware.Do(q.ctx, q.opts[0].QueryHook, operator.AfterQuery); err != nil {
 			return err
 		}
 	}
@@ -142,7 +142,7 @@ func (q *Query) One(result interface{}) error {
 // The static type of result must be a slice pointer
 func (q *Query) All(result interface{}) error {
 	if len(q.opts) > 0 {
-		if err := middleware.Do(q.opts[0].QueryHook, operator.BeforeQuery); err != nil {
+		if err := middleware.Do(q.ctx, q.opts[0].QueryHook, operator.BeforeQuery); err != nil {
 			return err
 		}
 	}
@@ -179,7 +179,7 @@ func (q *Query) All(result interface{}) error {
 		return err
 	}
 	if len(q.opts) > 0 {
-		if err := middleware.Do(q.opts[0].QueryHook, operator.AfterQuery); err != nil {
+		if err := middleware.Do(q.ctx, q.opts[0].QueryHook, operator.AfterQuery); err != nil {
 			return err
 		}
 	}

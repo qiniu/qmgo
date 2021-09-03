@@ -14,6 +14,7 @@
 package field
 
 import (
+	"context"
 	"reflect"
 	"time"
 
@@ -36,7 +37,7 @@ var fieldHandler = map[operator.OpType]func(doc interface{}) error{
 
 // Do call the specific method to handle field based on fType
 // Don't use opts here
-func Do(doc interface{}, opType operator.OpType, opts ...interface{}) error {
+func Do(ctx context.Context, doc interface{}, opType operator.OpType, opts ...interface{}) error {
 	to := reflect.TypeOf(doc)
 	if to == nil {
 		return nil

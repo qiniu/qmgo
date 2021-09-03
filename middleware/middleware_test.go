@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"fmt"
 	"github.com/qiniu/qmgo/operator"
 	"testing"
@@ -10,17 +11,18 @@ import (
 
 func TestMiddleware(t *testing.T) {
 	ast := require.New(t)
+	ctx := context.Background()
 	// not register
-	ast.NoError(Do("success", operator.BeforeInsert))
+	ast.NoError(Do(ctx, "success", operator.BeforeInsert))
 
 	// valid register
 	Register(callbackTest)
-	ast.NoError(Do("success", operator.BeforeInsert))
-	ast.Error(Do("failure", operator.BeforeUpsert))
-	ast.NoError(Do("failure", operator.BeforeUpdate, "success"))
+	ast.NoError(Do(ctx, "success", operator.BeforeInsert))
+	ast.Error(Do(ctx, "failure", operator.BeforeUpsert))
+	ast.NoError(Do(ctx, "failure", operator.BeforeUpdate, "success"))
 }
 
-func callbackTest(doc interface{}, opType operator.OpType, opts ...interface{}) error {
+func callbackTest(ctx context.Context, doc interface{}, opType operator.OpType, opts ...interface{}) error {
 	if doc.(string) == "success" && opType == operator.BeforeInsert {
 		return nil
 	}

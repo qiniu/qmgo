@@ -33,27 +33,27 @@ type UserHook struct {
 	afterCount  int
 }
 
-func (u *UserHook) BeforeUpsert() error {
+func (u *UserHook) BeforeUpsert(ctx context.Context) error {
 	u.beforeCount++
 	return nil
 }
 
-func (u *UserHook) AfterUpsert() error {
+func (u *UserHook) AfterUpsert(ctx context.Context) error {
 	u.afterCount++
 	return nil
 }
 
-func (u *UserHook) BeforeUpdate() error {
+func (u *UserHook) BeforeUpdate(ctx context.Context) error {
 	u.beforeCount++
 	return nil
 }
 
-func (u *UserHook) AfterUpdate() error {
+func (u *UserHook) AfterUpdate(ctx context.Context) error {
 	u.afterCount++
 	return nil
 }
 
-func (u *UserHook) BeforeInsert() error {
+func (u *UserHook) BeforeInsert(ctx context.Context) error {
 	if u.Name == "Lucas" || u.Name == "xm" {
 		u.Age = 17
 	}
@@ -62,7 +62,7 @@ func (u *UserHook) BeforeInsert() error {
 
 var afterInsertCount = 0
 
-func (u *UserHook) AfterInsert() error {
+func (u *UserHook) AfterInsert(ctx context.Context) error {
 	afterInsertCount++
 	return nil
 }
@@ -72,12 +72,12 @@ type MyQueryHook struct {
 	afterCount  int
 }
 
-func (q *MyQueryHook) BeforeQuery() error {
+func (q *MyQueryHook) BeforeQuery(ctx context.Context) error {
 	q.beforeCount++
 	return nil
 }
 
-func (q *MyQueryHook) AfterQuery() error {
+func (q *MyQueryHook) AfterQuery(ctx context.Context) error {
 	q.afterCount++
 	return nil
 }
@@ -148,12 +148,12 @@ type MyUpdateHook struct {
 	afterUpdateCount  int
 }
 
-func (u *MyUpdateHook) BeforeUpdate() error {
+func (u *MyUpdateHook) BeforeUpdate(ctx context.Context) error {
 	u.beforeUpdateCount++
 	return nil
 }
 
-func (u *MyUpdateHook) AfterUpdate() error {
+func (u *MyUpdateHook) AfterUpdate(ctx context.Context) error {
 	u.afterUpdateCount++
 	return nil
 }
@@ -209,12 +209,12 @@ type MyRemoveHook struct {
 	afterCount  int
 }
 
-func (m *MyRemoveHook) BeforeRemove() error {
+func (m *MyRemoveHook) BeforeRemove(ctx context.Context) error {
 	m.beforeCount++
 	return nil
 }
 
-func (m *MyRemoveHook) AfterRemove() error {
+func (m *MyRemoveHook) AfterRemove(ctx context.Context) error {
 	m.afterCount++
 	return nil
 }
@@ -298,7 +298,7 @@ type MyErrorHook struct {
 	afterUsCount  int
 }
 
-func (m *MyErrorHook) BeforeUpsert() error {
+func (m *MyErrorHook) BeforeUpsert(ctx context.Context) error {
 	if m.beforeUsCount == 0 {
 		m.beforeUsCount++
 		return errors.New("error")
@@ -307,7 +307,7 @@ func (m *MyErrorHook) BeforeUpsert() error {
 	return nil
 }
 
-func (m *MyErrorHook) AfterUpsert() error {
+func (m *MyErrorHook) AfterUpsert(ctx context.Context) error {
 	if m.afterUsCount == 0 {
 		m.afterUsCount++
 		return errors.New("error")
@@ -316,7 +316,7 @@ func (m *MyErrorHook) AfterUpsert() error {
 	return nil
 }
 
-func (m *MyErrorHook) BeforeRemove() error {
+func (m *MyErrorHook) BeforeRemove(ctx context.Context) error {
 	if m.beforeRCount == 0 {
 		m.beforeRCount++
 		return errors.New("error")
@@ -325,12 +325,12 @@ func (m *MyErrorHook) BeforeRemove() error {
 	return nil
 }
 
-func (m *MyErrorHook) AfterRemove() error {
+func (m *MyErrorHook) AfterRemove(ctx context.Context) error {
 	m.afterRCount++
 	return errors.New("error")
 }
 
-func (m *MyErrorHook) BeforeQuery() error {
+func (m *MyErrorHook) BeforeQuery(ctx context.Context) error {
 	if m.beforeQCount == 0 {
 		m.beforeQCount++
 		return errors.New("error")
@@ -340,12 +340,12 @@ func (m *MyErrorHook) BeforeQuery() error {
 	return nil
 }
 
-func (m *MyErrorHook) AfterQuery() error {
+func (m *MyErrorHook) AfterQuery(ctx context.Context) error {
 	m.afterQCount++
 	return errors.New("error")
 }
 
-func (m *MyErrorHook) BeforeInsert() error {
+func (m *MyErrorHook) BeforeInsert(ctx context.Context) error {
 	if m.beforeICount == 0 {
 		m.beforeICount++
 		return errors.New("error")
@@ -355,12 +355,12 @@ func (m *MyErrorHook) BeforeInsert() error {
 	return nil
 }
 
-func (m *MyErrorHook) AfterInsert() error {
+func (m *MyErrorHook) AfterInsert(ctx context.Context) error {
 	m.afterICount++
 	return errors.New("error")
 }
 
-func (m *MyErrorHook) BeforeUpdate() error {
+func (m *MyErrorHook) BeforeUpdate(ctx context.Context) error {
 	if m.beforeUCount == 0 {
 		m.beforeUCount++
 		return errors.New("error")
@@ -369,7 +369,7 @@ func (m *MyErrorHook) BeforeUpdate() error {
 	return nil
 }
 
-func (m *MyErrorHook) AfterUpdate() error {
+func (m *MyErrorHook) AfterUpdate(ctx context.Context) error {
 	m.afterUCount++
 	return errors.New("error")
 }
@@ -383,7 +383,11 @@ func TestHookErr(t *testing.T) {
 
 	u := &UserHook{Name: "Lucas", Age: 7}
 	myHook := &MyErrorHook{}
-	_, err := cli.InsertOne(context.Background(), u, options.InsertOneOptions{
+	myHook1 := &MyErrorHook{}
+	myHook2 := &MyErrorHook{}
+	myHooks := []*MyErrorHook{myHook1, myHook2}
+	res, err := cli.InsertOne(context.Background(), u)
+	_, err = cli.InsertOne(context.Background(), u, options.InsertOneOptions{
 		InsertHook: myHook,
 	})
 	ast.Error(err)
@@ -396,6 +400,27 @@ func TestHookErr(t *testing.T) {
 	ast.Error(err)
 	ast.Equal(2, myHook.beforeICount)
 	ast.Equal(1, myHook.afterICount)
+
+	_, err = cli.InsertMany(context.Background(), myHooks, options.InsertManyOptions{
+		InsertHook: myHooks,
+	})
+	ast.Error(err)
+	ast.Equal(1, myHook1.beforeICount)
+	ast.Equal(0, myHook2.beforeICount)
+	ast.Equal(0, myHook1.afterICount)
+	ast.Equal(0, myHook2.afterICount)
+
+	_, err = cli.InsertMany(context.Background(), myHooks, options.InsertManyOptions{
+		InsertHook: myHooks,
+	})
+	_, err = cli.InsertMany(context.Background(), myHooks, options.InsertManyOptions{
+		InsertHook: myHooks,
+	})
+	ast.Error(err)
+	ast.Equal(3, myHook1.beforeICount)
+	ast.Equal(2, myHook2.beforeICount)
+	ast.Equal(1, myHook1.afterICount)
+	ast.Equal(0, myHook2.afterICount)
 
 	err = cli.UpdateOne(ctx, bson.M{"name": "Lucas"}, bson.M{operator.Set: bson.M{"age": 27}}, options.UpdateOptions{
 		UpdateHook: myHook,
@@ -411,10 +436,34 @@ func TestHookErr(t *testing.T) {
 	ast.Equal(2, myHook.beforeUCount)
 	ast.Equal(1, myHook.afterUCount)
 
-	err = cli.UpdateId(ctx, bson.M{"name": "Lucas"}, bson.M{operator.Set: bson.M{"age": 27}}, options.UpdateOptions{
-		UpdateHook: myHook,
+	myUpdateHook := &MyErrorHook{}
+	err = cli.UpdateId(ctx, res.InsertedID, bson.M{operator.Set: bson.M{"age": 27}}, options.UpdateOptions{
+		UpdateHook: myUpdateHook,
 	})
 	ast.Error(err)
+	ast.Equal(1, myUpdateHook.beforeUCount)
+	ast.Equal(0, myUpdateHook.afterUCount)
+	err = cli.UpdateId(ctx, res.InsertedID, bson.M{operator.Set: bson.M{"age": 27}}, options.UpdateOptions{
+		UpdateHook: myUpdateHook,
+	})
+	ast.Error(err)
+	ast.Equal(2, myUpdateHook.beforeUCount)
+	ast.Equal(1, myUpdateHook.afterUCount)
+
+	myUpdateAllHook := &MyErrorHook{}
+	_, err = cli.UpdateAll(ctx, bson.M{"name": "Lucas"}, bson.M{operator.Set: bson.M{"age": 27}}, options.UpdateOptions{
+		UpdateHook: myUpdateAllHook,
+	})
+	ast.Error(err)
+	ast.Equal(1, myUpdateAllHook.beforeUCount)
+	ast.Equal(0, myUpdateAllHook.afterUCount)
+
+	_, err = cli.UpdateAll(ctx, bson.M{"name": "Lucas"}, bson.M{operator.Set: bson.M{"age": 27}}, options.UpdateOptions{
+		UpdateHook: myUpdateAllHook,
+	})
+	ast.Error(err)
+	ast.Equal(2, myUpdateAllHook.beforeUCount)
+	ast.Equal(1, myUpdateAllHook.afterUCount)
 
 	err = cli.Find(ctx, bson.M{"age": 27}, options.FindOptions{
 		QueryHook: myHook,
@@ -463,5 +512,58 @@ func TestHookErr(t *testing.T) {
 		UpsertHook: myUpsertHook,
 	})
 	ast.Error(err)
+	ast.Equal(1, myUpsertHook.beforeUsCount)
+	ast.Equal(0, myUpsertHook.afterUsCount)
 
+	_, err = cli.UpsertId(ctx, bson.M{"name": "Lucas"}, u, options.UpsertOptions{
+		UpsertHook: myUpsertHook,
+	})
+	ast.Error(err)
+	ast.Equal(2, myUpsertHook.beforeUsCount)
+	ast.Equal(1, myUpsertHook.afterUsCount)
+
+	myRemoveHook := &MyErrorHook{}
+	resRemoved, err := cli.InsertOne(context.Background(), u)
+	err = cli.RemoveId(ctx, resRemoved.InsertedID, options.RemoveOptions{
+		RemoveHook: myRemoveHook,
+	})
+	ast.Error(err)
+	ast.Equal(1, myRemoveHook.beforeRCount)
+	ast.Equal(0, myRemoveHook.afterRCount)
+	err = cli.RemoveId(ctx, resRemoved.InsertedID, options.RemoveOptions{
+		RemoveHook: myRemoveHook,
+	})
+	ast.Error(err)
+	ast.Equal(2, myRemoveHook.beforeRCount)
+	ast.Equal(1, myRemoveHook.afterRCount)
+
+	myRemoveHook = &MyErrorHook{}
+	_, err = cli.RemoveAll(ctx, bson.M{"name": "Lucas"}, options.RemoveOptions{
+		RemoveHook: myRemoveHook,
+	})
+	ast.Error(err)
+	ast.Equal(1, myRemoveHook.beforeRCount)
+	ast.Equal(0, myRemoveHook.afterRCount)
+	_, err = cli.RemoveAll(ctx, bson.M{"name": "Lucas"}, options.RemoveOptions{
+		RemoveHook: myRemoveHook,
+	})
+	ast.Error(err)
+	ast.Equal(2, myRemoveHook.beforeRCount)
+	ast.Equal(1, myRemoveHook.afterRCount)
+
+	myReplaceHook := &MyErrorHook{}
+	_, err = cli.InsertOne(context.Background(), u)
+	err = cli.ReplaceOne(ctx, bson.M{"name": "Lucas"}, &u, options.ReplaceOptions{
+		UpdateHook: myReplaceHook,
+	})
+	ast.Error(err)
+	ast.Equal(1, myReplaceHook.beforeUCount)
+	ast.Equal(0, myReplaceHook.afterUCount)
+
+	err = cli.ReplaceOne(ctx, bson.M{"name": "Lucas"}, &u, options.ReplaceOptions{
+		UpdateHook: myReplaceHook,
+	})
+	ast.Error(err)
+	ast.Equal(2, myReplaceHook.beforeUCount)
+	ast.Equal(1, myReplaceHook.afterUCount)
 }

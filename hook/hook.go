@@ -14,12 +14,13 @@
 package hook
 
 import (
+	"context"
 	"github.com/qiniu/qmgo/operator"
 	"reflect"
 )
 
 // hookHandler defines the relations between hook type and handler
-var hookHandler = map[operator.OpType]func(hook interface{}) error{
+var hookHandler = map[operator.OpType]func(ctx context.Context, hook interface{}) error{
 	operator.BeforeInsert:  beforeInsert,
 	operator.AfterInsert:   afterInsert,
 	operator.BeforeUpdate:  beforeUpdate,
@@ -41,7 +42,7 @@ var hookHandler = map[operator.OpType]func(hook interface{}) error{
 
 // Do call the specific method to handle hook based on hType
 // If opts has valid value, use it instead of original hook
-func Do(hook interface{}, opType operator.OpType, opts ...interface{}) error {
+func Do(ctx context.Context, hook interface{}, opType operator.OpType, opts ...interface{}) error {
 	if len(opts) > 0 {
 		hook = opts[0]
 	}
@@ -52,27 +53,26 @@ func Do(hook interface{}, opType operator.OpType, opts ...interface{}) error {
 	}
 	switch to.Kind() {
 	case reflect.Slice:
-		return sliceHandle(hook, opType)
+		return sliceHandle(ctx, hook, opType)
 	case reflect.Ptr:
 		v := reflect.ValueOf(hook).Elem()
 		switch v.Kind() {
 		case reflect.Slice:
-			return sliceHandle(v.Interface(), opType)
+			return sliceHandle(ctx, v.Interface(), opType)
 		default:
-			return do(hook, opType)
+			return do(ctx, hook, opType)
 		}
 	default:
-		return do(hook, opType)
+		return do(ctx, hook, opType)
 	}
-	return nil
 }
 
 // sliceHandle handles the slice hooks
-func sliceHandle(hook interface{}, opType operator.OpType) error {
+func sliceHandle(ctx context.Context, hook interface{}, opType operator.OpType) error {
 	// []interface{}{UserType{}...}
 	if h, ok := hook.([]interface{}); ok {
 		for _, v := range h {
-			if err := do(v, opType); err != nil {
+			if err := do(ctx, v, opType); err != nil {
 				return err
 			}
 		}
@@ -81,138 +81,138 @@ func sliceHandle(hook interface{}, opType operator.OpType) error {
 	// []UserType{}
 	s := reflect.ValueOf(hook)
 	for i := 0; i < s.Len(); i++ {
-		if err := do(s.Index(i).Interface(), opType); err != nil {
+		if err := do(ctx, s.Index(i).Interface(), opType); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-// InsertHook defines the insert hook interface
+// BeforeInsertHook InsertHook defines the insert hook interface
 type BeforeInsertHook interface {
-	BeforeInsert() error
+	BeforeInsert(ctx context.Context) error
 }
 type AfterInsertHook interface {
-	AfterInsert() error
+	AfterInsert(ctx context.Context) error
 }
 
 // beforeInsert calls custom BeforeInsert
-func beforeInsert(hook interface{}) error {
+func beforeInsert(ctx context.Context, hook interface{}) error {
 	if ih, ok := hook.(BeforeInsertHook); ok {
-		return ih.BeforeInsert()
+		return ih.BeforeInsert(ctx)
 	}
 	return nil
 }
 
 // afterInsert calls custom AfterInsert
-func afterInsert(hook interface{}) error {
+func afterInsert(ctx context.Context, hook interface{}) error {
 	if ih, ok := hook.(AfterInsertHook); ok {
-		return ih.AfterInsert()
+		return ih.AfterInsert(ctx)
 	}
 	return nil
 }
 
-// UpdateHook defines the Update hook interface
+// BeforeUpdateHook defines the Update hook interface
 type BeforeUpdateHook interface {
-	BeforeUpdate() error
+	BeforeUpdate(ctx context.Context) error
 }
 type AfterUpdateHook interface {
-	AfterUpdate() error
+	AfterUpdate(ctx context.Context) error
 }
 
 // beforeUpdate calls custom BeforeUpdate
-func beforeUpdate(hook interface{}) error {
+func beforeUpdate(ctx context.Context, hook interface{}) error {
 	if ih, ok := hook.(BeforeUpdateHook); ok {
-		return ih.BeforeUpdate()
+		return ih.BeforeUpdate(ctx)
 	}
 	return nil
 }
 
 // afterUpdate calls custom AfterUpdate
-func afterUpdate(hook interface{}) error {
+func afterUpdate(ctx context.Context, hook interface{}) error {
 	if ih, ok := hook.(AfterUpdateHook); ok {
-		return ih.AfterUpdate()
+		return ih.AfterUpdate(ctx)
 	}
 	return nil
 }
 
-// QueryHook defines the query hook interface
+// BeforeQueryHook QueryHook defines the query hook interface
 type BeforeQueryHook interface {
-	BeforeQuery() error
+	BeforeQuery(ctx context.Context) error
 }
 type AfterQueryHook interface {
-	AfterQuery() error
+	AfterQuery(ctx context.Context) error
 }
 
 // beforeQuery calls custom BeforeQuery
-func beforeQuery(hook interface{}) error {
+func beforeQuery(ctx context.Context, hook interface{}) error {
 	if ih, ok := hook.(BeforeQueryHook); ok {
-		return ih.BeforeQuery()
+		return ih.BeforeQuery(ctx)
 	}
 	return nil
 }
 
 // afterQuery calls custom AfterQuery
-func afterQuery(doc interface{}) error {
-	if ih, ok := doc.(AfterQueryHook); ok {
-		return ih.AfterQuery()
+func afterQuery(ctx context.Context, hook interface{}) error {
+	if ih, ok := hook.(AfterQueryHook); ok {
+		return ih.AfterQuery(ctx)
 	}
 	return nil
 }
 
-// RemoveHook defines the remove hook interface
+// BeforeRemoveHook RemoveHook defines the remove hook interface
 type BeforeRemoveHook interface {
-	BeforeRemove() error
+	BeforeRemove(ctx context.Context) error
 }
 type AfterRemoveHook interface {
-	AfterRemove() error
+	AfterRemove(ctx context.Context) error
 }
 
 // beforeRemove calls custom BeforeRemove
-func beforeRemove(hook interface{}) error {
+func beforeRemove(ctx context.Context, hook interface{}) error {
 	if ih, ok := hook.(BeforeRemoveHook); ok {
-		return ih.BeforeRemove()
+		return ih.BeforeRemove(ctx)
 	}
 	return nil
 }
 
 // afterRemove calls custom AfterRemove
-func afterRemove(hook interface{}) error {
+func afterRemove(ctx context.Context, hook interface{}) error {
 	if ih, ok := hook.(AfterRemoveHook); ok {
-		return ih.AfterRemove()
+		return ih.AfterRemove(ctx)
 	}
 	return nil
 }
 
-// UpsertHook defines the upsert hook interface
+// BeforeUpsertHook UpsertHook defines the upsert hook interface
 type BeforeUpsertHook interface {
-	BeforeUpsert() error
+	BeforeUpsert(ctx context.Context) error
 }
 type AfterUpsertHook interface {
-	AfterUpsert() error
+	AfterUpsert(ctx context.Context) error
 }
 
 // beforeUpsert calls custom BeforeUpsert
-func beforeUpsert(hook interface{}) error {
+func beforeUpsert(ctx context.Context, hook interface{}) error {
 	if ih, ok := hook.(BeforeUpsertHook); ok {
-		return ih.BeforeUpsert()
+		return ih.BeforeUpsert(ctx)
 	}
 	return nil
 }
 
 // afterUpsert calls custom AfterUpsert
-func afterUpsert(hook interface{}) error {
+func afterUpsert(ctx context.Context, hook interface{}) error {
 	if ih, ok := hook.(AfterUpsertHook); ok {
-		return ih.AfterUpsert()
+		return ih.AfterUpsert(ctx)
 	}
 	return nil
 }
 
-// do check if opType is supported and call hookHanlder
-func do(hook interface{}, opType operator.OpType) error {
+// do check if opType is supported and call hookHandler
+func do(ctx context.Context, hook interface{}, opType operator.OpType) error {
 	if f, ok := hookHandler[opType]; !ok {
 		return nil
 	} else {
-		return f(hook)
+		return f(ctx, hook)
 	}
 }
