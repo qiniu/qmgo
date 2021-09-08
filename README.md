@@ -380,5 +380,4 @@ The Qmgo project welcomes all contributors. We appreciate your help!
 
 - Join [gitter room](https://gitter.im/qiniu/qmgo)
 - Join [qmgo discussions](https://github.com/qiniu/qmgo/discussions)
-- Join QQ group: 868647305
 
