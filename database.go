@@ -64,3 +64,15 @@ func (d *Database) RunCommand(ctx context.Context, runCommand interface{}, opts 
 	}
 	return d.database.RunCommand(ctx, runCommand, option)
 }
+
+// CreateCollection executes a create command to explicitly create a new collection with the specified name on the
+// server. If the collection being created already exists, this method will return a mongo.CommandError. This method
+// requires driver version 1.4.0 or higher.
+//
+// The opts parameter can be used to specify options for the operation (see the options.CreateCollectionOptions
+// documentation).
+//
+// For more information about the command, see https://docs.mongodb.com/manual/reference/command/create/.
+func (db *Database) CreateCollection(ctx context.Context, name string, opts ...*options.CreateCollectionOptions) error {
+	return db.database.CreateCollection(ctx,name,opts...)
+}

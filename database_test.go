@@ -66,3 +66,19 @@ func TestRunCommand(t *testing.T) {
 		{"ping", 1}}, opts)
 	ast.NoError(res.Err())
 }
+
+func TestCreateCollection(t *testing.T) {
+	ast := require.New(t)
+
+	cli := initClient("test")
+
+	timeSeriesOpt := options.TimeSeriesOptions{
+		TimeField: "time",
+	}
+
+	timeSeriesOpt.SetMetaField("metadata")
+	opts := options.CreateCollection().SetTimeSeriesOptions(&timeSeriesOpt)
+	if err := cli.CreateCollection(ctx, "log", opts); err != nil {
+		ast.NoError(res.Err())
+	}
+}
