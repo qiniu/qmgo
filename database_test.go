@@ -73,12 +73,11 @@ func TestCreateCollection(t *testing.T) {
 	cli := initClient("test")
 
 	timeSeriesOpt := options.TimeSeriesOptions{
-		TimeField: "time",
+		TimeField:"timestamp",
 	}
-
 	timeSeriesOpt.SetMetaField("metadata")
-	opts := options.CreateCollection().SetTimeSeriesOptions(&timeSeriesOpt)
-	if err := cli.CreateCollection(ctx, "log", opts); err != nil {
+	createCollectionOpts := opts.CreateCollectionOptions{CreateCollectionOptions: options.CreateCollection().SetTimeSeriesOptions(&timeSeriesOpt)}
+	if err := cli.CreateCollection(ctx, "syslog", createCollectionOpts); err != nil {
 		ast.NoError(res.Err())
 	}
 }

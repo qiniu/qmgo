@@ -71,8 +71,12 @@ func (d *Database) RunCommand(ctx context.Context, runCommand interface{}, opts 
 //
 // The opts parameter can be used to specify options for the operation (see the options.CreateCollectionOptions
 // documentation).
-//
-// For more information about the command, see https://docs.mongodb.com/manual/reference/command/create/.
-func (db *Database) CreateCollection(ctx context.Context, name string, opts ...*options.CreateCollectionOptions) error {
-	return db.database.CreateCollection(ctx,name,opts...)
+func (db *Database) CreateCollection(ctx context.Context, name string, opts ...opts.CreateCollectionOptions) error {
+	var option []*options.CreateCollectionOptions
+	for _,opt := range opts{
+		if opt.CreateCollectionOptions != nil{
+			option = append(option,opt.CreateCollectionOptions)
+		}
+	}
+	return db.database.CreateCollection(ctx,name,option...)
 }
