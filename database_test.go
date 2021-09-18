@@ -82,4 +82,5 @@ func TestCreateCollection(t *testing.T) {
 		ast.NoError(err)
 	}
 	cli.DropCollection(ctx)
+	cli.DropDatabase(ctx)
 }
