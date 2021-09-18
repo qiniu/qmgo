@@ -76,8 +76,10 @@ func TestCreateCollection(t *testing.T) {
 		TimeField:"timestamp",
 	}
 	timeSeriesOpt.SetMetaField("metadata")
+	ctx := context.Background()
 	createCollectionOpts := opts.CreateCollectionOptions{CreateCollectionOptions: options.CreateCollection().SetTimeSeriesOptions(&timeSeriesOpt)}
 	if err := cli.CreateCollection(ctx, "syslog", createCollectionOpts); err != nil {
-		ast.NoError(res.Err())
+		ast.NoError(err)
 	}
+	cli.DropCollection(ctx)
 }
