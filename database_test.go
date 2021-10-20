@@ -67,20 +67,20 @@ func TestRunCommand(t *testing.T) {
 	ast.NoError(res.Err())
 }
 
-func TestCreateCollection(t *testing.T) {
-	ast := require.New(t)
-
-	cli := initClient("test")
-
-	timeSeriesOpt := options.TimeSeriesOptions{
-		TimeField:"timestamp",
-	}
-	timeSeriesOpt.SetMetaField("metadata")
-	ctx := context.Background()
-	createCollectionOpts := opts.CreateCollectionOptions{CreateCollectionOptions: options.CreateCollection().SetTimeSeriesOptions(&timeSeriesOpt)}
-	if err := cli.CreateCollection(ctx, "syslog", createCollectionOpts); err != nil {
-		ast.NoError(err)
-	}
-	cli.DropCollection(ctx)
-	cli.DropDatabase(ctx)
-}
+//func TestCreateCollection(t *testing.T) {
+//	ast := require.New(t)
+//
+//	cli := initClient("test")
+//
+//	timeSeriesOpt := options.TimeSeriesOptions{
+//		TimeField:"timestamp",
+//	}
+//	timeSeriesOpt.SetMetaField("metadata")
+//	ctx := context.Background()
+//	createCollectionOpts := opts.CreateCollectionOptions{CreateCollectionOptions: options.CreateCollection().SetTimeSeriesOptions(&timeSeriesOpt)}
+//	if err := cli.CreateCollection(ctx, "syslog", createCollectionOpts); err != nil {
+//		ast.NoError(err)
+//	}
+//	cli.DropCollection(ctx)
+//	cli.DropDatabase(ctx)
+//}
