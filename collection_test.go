@@ -34,7 +34,9 @@ func TestCollection_EnsureIndex(t *testing.T) {
 	defer cli.DropCollection(context.Background())
 
 	cli.ensureIndex(context.Background(), nil)
-	cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"id1"}, Unique: true}})
+	indexOpts := officialOpts.Index()
+	indexOpts.SetUnique(true)
+	cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"id1"}, IndexOptions: indexOpts}})
 	cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"id2", "id3"}}})
 	cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"id4", "-id5"}}})
 
@@ -88,7 +90,9 @@ func TestCollection_CreateIndexes(t *testing.T) {
 
 	var expireS int32 = 100
 	unique := []string{"id1"}
-	ast.NoError(cli.CreateOneIndex(context.Background(), options.IndexModel{Key: unique, Unique: true, ExpireAfterSeconds: &expireS}))
+	indexOpts := officialOpts.Index()
+	indexOpts.SetUnique(true).SetExpireAfterSeconds(expireS)
+	ast.NoError(cli.CreateOneIndex(context.Background(), options.IndexModel{Key: unique, IndexOptions: indexOpts}))
 
 	ast.NoError(cli.CreateIndexes(context.Background(), []options.IndexModel{{Key: []string{"id2", "id3"}},
 		{Key: []string{"id4", "-id5"}}}))
@@ -131,7 +135,9 @@ func TestCollection_DropIndex(t *testing.T) {
 	cli := initClient("test")
 	defer cli.DropCollection(context.Background())
 
-	cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"index1"}, Unique: true}})
+	indexOpts := officialOpts.Index()
+	indexOpts.SetUnique(true)
+	cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"index1"}, IndexOptions: indexOpts}})
 
 	// same index，error
 	ast.Error(cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"index1"}}}))
@@ -140,7 +146,9 @@ func TestCollection_DropIndex(t *testing.T) {
 	ast.NoError(err)
 	ast.NoError(cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"index1"}}}))
 
-	cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"-index1"}, Unique: true}})
+	indexOpts = officialOpts.Index()
+	indexOpts.SetUnique(true)
+	cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"-index1"}, IndexOptions: indexOpts}})
 	// same index，error
 	ast.Error(cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"-index1"}}}))
 
@@ -154,7 +162,9 @@ func TestCollection_DropIndex(t *testing.T) {
 	err = cli.DropIndex(context.Background(), []string{"index2"})
 	ast.Error(err)
 
-	cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"index2", "-index1"}, Unique: true}})
+	indexOpts = officialOpts.Index()
+	indexOpts.SetUnique(true)
+	cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"index2", "-index1"}, IndexOptions: indexOpts}})
 	ast.Error(cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"index2", "-index1"}}}))
 	err = cli.DropIndex(context.Background(), []string{"index2", "-index1"})
 	ast.NoError(err)
