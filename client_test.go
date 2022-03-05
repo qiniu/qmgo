@@ -16,12 +16,12 @@ package qmgo
 import (
 	"context"
 	"fmt"
-	options2 "go.mongodb.org/mongo-driver/mongo/options"
 	"testing"
 
 	"github.com/qiniu/qmgo/options"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
+	officialOpts "go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
@@ -129,7 +129,7 @@ func TestClient(t *testing.T) {
 	c, err := NewClient(context.Background(), cfg)
 	ast.Equal(nil, err)
 
-	opts := &options.DatabaseOptions{DatabaseOptions: options2.Database().SetReadPreference(readpref.PrimaryPreferred())}
+	opts := &options.DatabaseOptions{DatabaseOptions: officialOpts.Database().SetReadPreference(readpref.PrimaryPreferred())}
 	coll := c.Database("qmgotest", opts).Collection("testopen")
 
 	res, err := coll.InsertOne(context.Background(), bson.D{{Key: "x", Value: 1}})
