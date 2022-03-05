@@ -105,7 +105,7 @@ func setTime(doc interface{}, fieldName string, overWrite bool) {
 		tt := time.Now()
 		switch a := ca.Interface().(type) {
 		case time.Time:
-			if reflect.DeepEqual(ca.Interface().(time.Time), nilTime) {
+			if ca.Interface().(time.Time).IsZero() {
 				ca.Set(reflect.ValueOf(tt))
 			} else if overWrite {
 				ca.Set(reflect.ValueOf(tt))

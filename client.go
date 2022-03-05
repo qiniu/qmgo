@@ -287,8 +287,14 @@ func (c *Client) Ping(timeout int64) error {
 }
 
 // Database create connection to database
-func (c *Client) Database(name string) *Database {
-	return &Database{database: c.client.Database(name), registry: c.registry}
+func (c *Client) Database(name string, options ...*options.DatabaseOptions) *Database {
+	opts := opts.Database()
+	if len(options) > 0 {
+		if options[0].DatabaseOptions != nil {
+			opts = options[0].DatabaseOptions
+		}
+	}
+	return &Database{database: c.client.Database(name, opts), registry: c.registry}
 }
 
 // Session create one session on client

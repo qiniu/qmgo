@@ -436,13 +436,9 @@ func (c *Collection) ensureIndex(ctx context.Context, indexes []opts.IndexModel)
 
 			keysDoc = keysDoc.Append(key, bsonx.Int32(n))
 		}
-		iOptions := options.Index().SetUnique(idx.Unique).SetBackground(idx.Background).SetSparse(idx.Sparse)
-		if idx.ExpireAfterSeconds != nil {
-			iOptions.SetExpireAfterSeconds(*idx.ExpireAfterSeconds)
-		}
 		model = mongo.IndexModel{
 			Keys:    keysDoc,
-			Options: iOptions,
+			Options: idx.IndexOptions,
 		}
 
 		indexModels = append(indexModels, model)
@@ -471,7 +467,9 @@ func (c *Collection) EnsureIndexes(ctx context.Context, uniques []string, indexe
 	var indexesModel []opts.IndexModel
 	for _, v := range uniques {
 		vv := strings.Split(v, ",")
-		model := opts.IndexModel{Key: vv, Unique: true}
+		indexOpts := options.Index()
+		indexOpts.SetUnique(true)
+		model := opts.IndexModel{Key: vv, IndexOptions: indexOpts}
 		uniqueModel = append(uniqueModel, model)
 	}
 	if err = c.CreateIndexes(ctx, uniqueModel); err != nil {

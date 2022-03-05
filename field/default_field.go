@@ -14,9 +14,9 @@
 package field
 
 import (
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"reflect"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // DefaultFieldHook defines the interface to change default fields by hook
@@ -41,7 +41,7 @@ func (df *DefaultField) DefaultUpdateAt() {
 
 // DefaultCreateAt changes the default createAt field
 func (df *DefaultField) DefaultCreateAt() {
-	if reflect.DeepEqual(df.CreateAt, nilTime) {
+	if df.CreateAt.IsZero() {
 		df.CreateAt = time.Now().Local()
 	}
 }
