@@ -146,6 +146,8 @@ func TestCollection_DropIndex(t *testing.T) {
 	ast.NoError(err)
 	ast.NoError(cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"index1"}}}))
 
+	indexOpts = officialOpts.Index()
+	indexOpts.SetUnique(true)
 	cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"-index1"}, IndexOptions: indexOpts}})
 	// same index，error
 	ast.Error(cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"-index1"}}}))
@@ -160,6 +162,8 @@ func TestCollection_DropIndex(t *testing.T) {
 	err = cli.DropIndex(context.Background(), []string{"index2"})
 	ast.Error(err)
 
+	indexOpts = officialOpts.Index()
+	indexOpts.SetUnique(true)
 	cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"index2", "-index1"}, IndexOptions: indexOpts}})
 	ast.Error(cli.ensureIndex(context.Background(), []options.IndexModel{{Key: []string{"index2", "-index1"}}}))
 	err = cli.DropIndex(context.Background(), []string{"index2", "-index1"})
