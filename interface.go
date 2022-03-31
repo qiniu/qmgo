@@ -51,6 +51,7 @@ type QueryI interface {
 	Sort(fields ...string) QueryI
 	Select(selector interface{}) QueryI
 	Skip(n int64) QueryI
+	BatchSize(n int64) QueryI
 	Limit(n int64) QueryI
 	One(result interface{}) error
 	All(result interface{}) error
