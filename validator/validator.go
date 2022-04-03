@@ -12,6 +12,11 @@ import (
 // use a single instance of Validate, it caches struct info
 var validate = validator.New()
 
+// SetValidate let validate can use custom rules
+func SetValidate(v *validator.Validate) {
+	validate = v
+}
+
 // validatorNeeded checks if the validator is needed to opType
 func validatorNeeded(opType operator.OpType) bool {
 	switch opType {

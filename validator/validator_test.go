@@ -2,6 +2,7 @@ package validator
 
 import (
 	"context"
+	"github.com/go-playground/validator/v10"
 	"github.com/qiniu/qmgo/operator"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
@@ -24,6 +25,11 @@ type Address struct {
 	City   string `validate:"required"`
 	Planet string `validate:"required"`
 	Phone  string `validate:"required"`
+}
+
+// CustomRule use custom rule
+type CustomRule struct {
+	Name string `validate:"required,foo"`
 }
 
 func TestValidator(t *testing.T) {
@@ -96,4 +102,13 @@ func TestValidator(t *testing.T) {
 	user = nil
 	ast.NoError(Do(ctx, user, operator.BeforeInsert))
 	ast.NoError(Do(ctx, nil, operator.BeforeInsert))
+
+	// use custom rules
+	customRule := &CustomRule{Name: "bar"}
+	v := validator.New()
+	_ = v.RegisterValidation("foo", func(fl validator.FieldLevel) bool {
+		return fl.Field().String() == "bar"
+	})
+	SetValidate(v)
+	ast.NoError(Do(ctx, customRule, operator.BeforeInsert))
 }
