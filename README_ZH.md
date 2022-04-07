@@ -379,6 +379,4 @@ coll.Find(bson.M{"age": 6}).Sort("weight").Limit(7).All(&batch)
 
 ## 沟通交流:
 
-- 加入 [gitter room](https://gitter.im/qiniu/qmgo)
-
 - 加入 [qmgo discussions](https://github.com/qiniu/qmgo/discussions)
