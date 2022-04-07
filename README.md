@@ -378,6 +378,5 @@ The Qmgo project welcomes all contributors. We appreciate your help!
 
 ## Communication:
 
-- Join [gitter room](https://gitter.im/qiniu/qmgo)
 - Join [qmgo discussions](https://github.com/qiniu/qmgo/discussions)
 
