@@ -43,17 +43,18 @@ type Query struct {
 	registry   *bsoncodec.Registry
 }
 
-// Sort is Used to set the sorting rules for the returned results
-// Format: "age" or "+age" means to sort the age field in ascending order, "-age" means in descending order
-// When multiple sort fields are passed in at the same time, they are arranged in the order in which the fields are passed in.
-// For example, {"age", "-name"}, first sort by age in ascending order, then sort by name in descending order
-
+// BatchSize sets the value for the BatchSize field.
+// Means the maximum number of documents to be included in each batch returned by the server.
 func (q *Query) BatchSize(n int64) QueryI {
 	newQ := q
 	newQ.batchSize = &n
 	return newQ
 }
 
+// Sort is Used to set the sorting rules for the returned results
+// Format: "age" or "+age" means to sort the age field in ascending order, "-age" means in descending order
+// When multiple sort fields are passed in at the same time, they are arranged in the order in which the fields are passed in.
+// For example, {"age", "-name"}, first sort by age in ascending order, then sort by name in descending order
 func (q *Query) Sort(fields ...string) QueryI {
 	if len(fields) == 0 {
 		// A nil bson.D will not correctly serialize, but this case is no-op
@@ -155,7 +156,6 @@ func (q *Query) All(result interface{}) error {
 		}
 	}
 	opt := options.Find()
-
 	if q.sort != nil {
 		opt.SetSort(q.sort)
 	}
@@ -171,7 +171,6 @@ func (q *Query) All(result interface{}) error {
 	if q.hint != nil {
 		opt.SetHint(q.hint)
 	}
-
 	if q.batchSize != nil {
 		opt.SetBatchSize(int32(*q.batchSize))
 	}

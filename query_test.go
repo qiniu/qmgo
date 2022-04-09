@@ -830,3 +830,28 @@ func TestQuery_Apply(t *testing.T) {
 	ast.Equal("", res4.Name)
 	ast.Equal(0, res4.Age)
 }
+
+func TestQuery_BatchSize(t *testing.T) {
+	ast := require.New(t)
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
+	cli.EnsureIndexes(context.Background(), nil, []string{"name"})
+
+	id1 := primitive.NewObjectID()
+	id2 := primitive.NewObjectID()
+	id3 := primitive.NewObjectID()
+	id4 := primitive.NewObjectID()
+	docs := []interface{}{
+		bson.M{"_id": id1, "name": "Alice", "age": 18},
+		bson.M{"_id": id2, "name": "Alice", "age": 19},
+		bson.M{"_id": id3, "name": "Lucas", "age": 20},
+		bson.M{"_id": id4, "name": "Lucas", "age": 21},
+	}
+	_, _ = cli.InsertMany(context.Background(), docs)
+	var res []QueryTestItem
+
+	err := cli.Find(context.Background(), bson.M{"name": "Alice"}).BatchSize(1).All(&res)
+	ast.NoError(err)
+	ast.Len(res, 2)
+}
