@@ -156,7 +156,7 @@ func (q *Query) All(result interface{}) error {
 		}
 	}
 	opt := options.Find()
-
+	err
 	if q.sort != nil {
 		opt.SetSort(q.sort)
 	}
