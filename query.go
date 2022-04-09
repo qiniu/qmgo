@@ -29,12 +29,13 @@ import (
 
 // Query struct definition
 type Query struct {
-	filter  interface{}
-	sort    interface{}
-	project interface{}
-	hint    interface{}
-	limit   *int64
-	skip    *int64
+	filter    interface{}
+	sort      interface{}
+	project   interface{}
+	hint      interface{}
+	limit     *int64
+	skip      *int64
+	batchSize *int64
 
 	ctx        context.Context
 	collection *mongo.Collection
@@ -46,6 +47,13 @@ type Query struct {
 // Format: "age" or "+age" means to sort the age field in ascending order, "-age" means in descending order
 // When multiple sort fields are passed in at the same time, they are arranged in the order in which the fields are passed in.
 // For example, {"age", "-name"}, first sort by age in ascending order, then sort by name in descending order
+
+func (q *Query) BatchSize(n int64) QueryI {
+	newQ := q
+	newQ.batchSize = &n
+	return newQ
+}
+
 func (q *Query) Sort(fields ...string) QueryI {
 	if len(fields) == 0 {
 		// A nil bson.D will not correctly serialize, but this case is no-op
@@ -164,6 +172,10 @@ func (q *Query) All(result interface{}) error {
 		opt.SetHint(q.hint)
 	}
 
+	if q.batchSize != nil {
+		opt.SetBatchSize(int32(*q.batchSize))
+	}
+
 	var err error
 	var cursor *mongo.Cursor
 
@@ -257,6 +269,10 @@ func (q *Query) Cursor() CursorI {
 	}
 	if q.skip != nil {
 		opt.SetSkip(*q.skip)
+	}
+
+	if q.batchSize != nil {
+		opt.SetBatchSize(int32(*q.batchSize))
 	}
 
 	var err error
