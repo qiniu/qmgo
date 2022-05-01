@@ -93,7 +93,7 @@ go get github.com/qiniu/qmgo
     创建索引
 
     ```go
-    cli.CreateOneIndex(context.Background(), options.IndexModel{Key: []string{"name"}, Unique: true})
+    cli.CreateOneIndex(context.Background(), options.IndexModel{Key: []string{"name"}})
     cli.CreateIndexes(context.Background(), []options.IndexModel{{Key: []string{"id2", "id3"}}})
     ```
 
