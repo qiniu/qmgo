@@ -211,6 +211,11 @@ func (q *Query) Count() (n int64, err error) {
 	return q.collection.CountDocuments(q.ctx, q.filter, opt)
 }
 
+// EstimatedCount count the number of the collection by using the metadata
+func (q *Query) EstimatedCount() (n int64, err error) {
+	return q.collection.EstimatedDocumentCount(q.ctx)
+}
+
 // Distinct gets the unique value of the specified field in the collection and return it in the form of slice
 // result should be passed a pointer to slice
 // The function will verify whether the static type of the elements in the result slice is consistent with the data type obtained in mongodb
