@@ -52,6 +52,7 @@ type QueryI interface {
 	Select(selector interface{}) QueryI
 	Skip(n int64) QueryI
 	BatchSize(n int64) QueryI
+	NoCursorTimeout(n bool) QueryI
 	Limit(n int64) QueryI
 	One(result interface{}) error
 	All(result interface{}) error
