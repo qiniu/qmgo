@@ -29,18 +29,25 @@ import (
 
 // Query struct definition
 type Query struct {
-	filter    interface{}
-	sort      interface{}
-	project   interface{}
-	hint      interface{}
-	limit     *int64
-	skip      *int64
-	batchSize *int64
+	filter          interface{}
+	sort            interface{}
+	project         interface{}
+	hint            interface{}
+	limit           *int64
+	skip            *int64
+	batchSize       *int64
+	noCursorTimeout *bool
 
 	ctx        context.Context
 	collection *mongo.Collection
 	opts       []qOpts.FindOptions
 	registry   *bsoncodec.Registry
+}
+
+func (q *Query) NoCursorTimeout(n bool) QueryI {
+	newQ := q
+	newQ.noCursorTimeout = &n
+	return newQ
 }
 
 // BatchSize sets the value for the BatchSize field.
@@ -174,6 +181,9 @@ func (q *Query) All(result interface{}) error {
 	if q.batchSize != nil {
 		opt.SetBatchSize(int32(*q.batchSize))
 	}
+	if q.noCursorTimeout != nil {
+		opt.SetNoCursorTimeout(*q.noCursorTimeout)
+	}
 
 	var err error
 	var cursor *mongo.Cursor
@@ -272,6 +282,9 @@ func (q *Query) Cursor() CursorI {
 
 	if q.batchSize != nil {
 		opt.SetBatchSize(int32(*q.batchSize))
+	}
+	if q.noCursorTimeout != nil {
+		opt.SetNoCursorTimeout(*q.noCursorTimeout)
 	}
 
 	var err error
