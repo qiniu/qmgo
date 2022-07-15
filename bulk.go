@@ -148,6 +148,12 @@ func (b *Bulk) UpdateAll(filter interface{}, update interface{}) *Bulk {
 	return b
 }
 
+// UnsafeAdd is unsafe. adding raw writemodel into queue.
+func (b *Bulk) UnsafeAdd(wm mongo.WriteModel) *Bulk {
+	b.queue = append(b.queue, wm)
+	return b
+}
+
 // Run executes the collected operations in a single bulk operation.
 //
 // A successful call resets the Bulk. If an error is returned, the internal
