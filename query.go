@@ -37,11 +37,18 @@ type Query struct {
 	skip            *int64
 	batchSize       *int64
 	noCursorTimeout *bool
+	collation       *options.Collation
 
 	ctx        context.Context
 	collection *mongo.Collection
 	opts       []qOpts.FindOptions
 	registry   *bsoncodec.Registry
+}
+
+func (q *Query) Collation(collation *options.Collation) QueryI {
+	newQ := q
+	newQ.collation = collation
+	return newQ
 }
 
 func (q *Query) NoCursorTimeout(n bool) QueryI {
@@ -128,6 +135,9 @@ func (q *Query) One(result interface{}) error {
 	}
 	opt := options.FindOne()
 
+	if q.collation != nil {
+		opt.SetCollation(q.collation)
+	}
 	if q.sort != nil {
 		opt.SetSort(q.sort)
 	}
@@ -163,6 +173,9 @@ func (q *Query) All(result interface{}) error {
 		}
 	}
 	opt := options.Find()
+	if q.collation != nil {
+		opt.SetCollation(q.collation)
+	}
 	if q.sort != nil {
 		opt.SetSort(q.sort)
 	}
