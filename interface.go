@@ -13,6 +13,8 @@
 
 package qmgo
 
+import "go.mongodb.org/mongo-driver/mongo/options"
+
 // CollectionI
 // 集合操作接口
 //type CollectionI interface {
@@ -48,6 +50,7 @@ type CursorI interface {
 
 // QueryI Query interface
 type QueryI interface {
+	Collation(collation *options.Collation) QueryI
 	Sort(fields ...string) QueryI
 	Select(selector interface{}) QueryI
 	Skip(n int64) QueryI
