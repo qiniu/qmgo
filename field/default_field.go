@@ -46,7 +46,7 @@ func (df *DefaultField) DefaultCreateAt() {
 	}
 }
 
-// DefaultCreateAt changes the default _id field
+// DefaultId changes the default _id field
 func (df *DefaultField) DefaultId() {
 	if df.Id.IsZero() {
 		df.Id = primitive.NewObjectID()
