@@ -216,7 +216,10 @@ func (c *Collection) UpdateOne(ctx context.Context, filter interface{}, update i
 
 	res, err := c.collection.UpdateOne(ctx, filter, update, updateOpts)
 	if res != nil && res.MatchedCount == 0 {
-		err = ErrNoSuchDocuments
+		// UpdateOne support upsert function
+		if updateOpts.Upsert == nil || !*updateOpts.Upsert {
+			err = ErrNoSuchDocuments
+		}
 	}
 	if err != nil {
 		return err
