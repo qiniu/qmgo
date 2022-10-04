@@ -118,6 +118,14 @@ func (b *Bulk) Upsert(filter interface{}, replacement interface{}) *Bulk {
 	return b
 }
 
+// UpsertOne queues an UpsertOne operation for bulk execution.
+// The update should contain operator
+func (b *Bulk) UpsertOne(filter interface{}, update interface{}) *Bulk {
+	wm := mongo.NewUpdateOneModel().SetFilter(filter).SetUpdate(update).SetUpsert(true)
+	b.queue = append(b.queue, wm)
+	return b
+}
+
 // UpsertId queues an UpsertId operation for bulk execution.
 // The replacement should be document without operator
 func (b *Bulk) UpsertId(id interface{}, replacement interface{}) *Bulk {

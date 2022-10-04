@@ -41,3 +41,23 @@ func TestBulk(t *testing.T) {
 	ast.Equal(int64(4), result.MatchedCount)
 
 }
+
+func TestBulkUpsertOne(t *testing.T) {
+	ast := require.New(t)
+	cli := initClient("test")
+	defer cli.Close(context.Background())
+	defer cli.DropCollection(context.Background())
+
+	result, err := cli.Bulk().
+		UpsertOne(bson.M{"name": "Jess"}, bson.M{operator.Set: bson.M{"age": 20}, operator.SetOnInsert: bson.M{"weight": 40}}).
+		UpsertOne(bson.M{"name": "Jess"}, bson.M{operator.Set: bson.M{"age": 30}, operator.SetOnInsert: bson.M{"weight": 40}}).
+		Run(context.Background())
+
+	ast.NoError(err)
+	ast.Equal(int64(0), result.InsertedCount)
+	ast.Equal(int64(1), result.ModifiedCount)
+	ast.Equal(int64(0), result.DeletedCount)
+	ast.Equal(int64(1), result.UpsertedCount)
+	ast.Equal(1, len(result.UpsertedIDs))
+	ast.Equal(int64(1), result.MatchedCount)
+}
