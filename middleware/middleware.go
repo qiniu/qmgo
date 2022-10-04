@@ -26,9 +26,9 @@ func Register(cb callback) {
 
 // Do call every registers
 // The doc is always the document to operate
-func Do(ctx context.Context, doc interface{}, opType operator.OpType, opts ...interface{}) error {
+func Do(ctx context.Context, content interface{}, opType operator.OpType, opts ...interface{}) error {
 	for _, cb := range middlewareCallback {
-		if err := cb(ctx, doc, opType, opts...); err != nil {
+		if err := cb(ctx, content, opType, opts...); err != nil {
 			return err
 		}
 	}

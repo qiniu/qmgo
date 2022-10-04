@@ -436,6 +436,11 @@ func TestCollection_Update(t *testing.T) {
 	err = cli.UpdateOne(context.Background(), filter2, update2)
 	ast.Equal(err, ErrNoSuchDocuments)
 
+	opt := officialOpts.Update().SetUpsert(true)
+	opts = options.UpdateOptions{UpdateOptions: opt}
+	err = cli.UpdateOne(context.Background(), filter2, update2, opts)
+	ast.NoError(err)
+
 	// filter is nil or wrong BSON Document format
 	update3 := bson.M{
 		"name": "Geek",
