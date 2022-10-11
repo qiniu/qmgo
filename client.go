@@ -56,6 +56,8 @@ type Config struct {
 	ReadPreference *ReadPref `json:"readPreference"`
 	// can be used to provide authentication options when configuring a Client.
 	Auth *Credential `json:"auth"`
+	// use direct connections. without automatic discovery
+	Direct *bool `json:"direct"`
 }
 
 // Credential can be used to provide authentication options when configuring a Client.
@@ -208,6 +210,9 @@ func newConnectOpts(conf *Config, o ...options.ClientOptions) (*opts.ClientOptio
 			return nil, err
 		}
 		option.SetAuth(auth)
+	}
+	if conf.Direct != nil {
+		option.SetDirect(*conf.Direct)
 	}
 	option.ApplyURI(conf.Uri)
 
