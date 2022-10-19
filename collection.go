@@ -17,6 +17,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"sort"
 	"strings"
 
 	"github.com/qiniu/qmgo/middleware"
@@ -524,6 +525,28 @@ func (c *Collection) DropIndex(ctx context.Context, indexes []string) error {
 	return err
 }
 
+// ListIndexes list all indexes in one collection
+func (c *Collection) ListIndexes(ctx context.Context) ([]opts.IndexModel, error) {
+	cursor, err := c.collection.Indexes().List(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var indexInfos []bson.M
+	err = cursor.All(ctx, &indexInfos)
+	if err != nil {
+		return nil, err
+	}
+	res := make([]opts.IndexModel, 0, len(indexInfos))
+	for _, indexInfo := range indexInfos {
+		model, err := transIndexInfoToIndexModel(indexInfo)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, model)
+	}
+	return res, err
+}
+
 // generate indexes that store in mongo which may consist more than one index(like []string{"index1","index2"} is stored as "index1_1_index2_1")
 func generateDroppedIndex(index []string) string {
 	var res string
@@ -537,6 +560,44 @@ func generateDroppedIndex(index []string) string {
 		}
 	}
 	return res
+}
+
+func transIndexInfoToIndexModel(indexInfo bson.M) (opts.IndexModel, error) {
+	bytes, err := bson.Marshal(indexInfo)
+	res := opts.IndexModel{}
+	if err != nil {
+		return res, err
+	}
+	indexOptions := options.IndexOptions{}
+	err = bson.Unmarshal(bytes, &indexOptions)
+	if err != nil {
+		return res, err
+	}
+	keyMap := indexInfo["key"].(bson.M)
+	indexName := indexInfo["name"].(string)
+	keySlice := make([]string, 0)
+	sortMap := make(map[string]int, len(keyMap))
+	needSort := true
+	for k, v := range keyMap {
+		keyStr := k
+		i := strings.Index(indexName, k)
+		if i == -1 {
+			needSort = false
+		}
+		if v.(int32) < 0 {
+			keyStr = fmt.Sprintf("-%s", keyStr)
+		}
+		sortMap[keyStr] = i
+		keySlice = append(keySlice, keyStr)
+	}
+	if needSort {
+		sort.SliceStable(keySlice, func(i, j int) bool {
+			return sortMap[keySlice[i]] < sortMap[keySlice[j]]
+		})
+	}
+	res.Key = keySlice
+	res.IndexOptions = &indexOptions
+	return res, nil
 }
 
 // DropCollection drops collection
