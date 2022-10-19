@@ -15,6 +15,7 @@ package qmgo
 
 import (
 	"context"
+	"go.mongodb.org/mongo-driver/bson"
 
 	opts "github.com/qiniu/qmgo/options"
 	"go.mongodb.org/mongo-driver/bson/bsoncodec"
@@ -50,6 +51,10 @@ func (d *Database) DropDatabase(ctx context.Context) error {
 	return d.database.Drop(ctx)
 }
 
+func (d *Database) ListCollectionNames(ctx context.Context) ([]string, error) {
+	return d.database.ListCollectionNames(ctx, bson.D{})
+}
+
 // RunCommand executes the given command against the database.
 //
 // The runCommand parameter must be a document for the command to be executed. It cannot be nil.
@@ -72,11 +77,11 @@ func (d *Database) RunCommand(ctx context.Context, runCommand interface{}, opts 
 // The opts parameter can be used to specify options for the operation (see the options.CreateCollectionOptions
 // documentation).
 func (db *Database) CreateCollection(ctx context.Context, name string, opts ...opts.CreateCollectionOptions) error {
-	var option  = make([]*options.CreateCollectionOptions,0,len(opts))
-	for _,opt := range opts{
-		if opt.CreateCollectionOptions != nil{
-			option = append(option,opt.CreateCollectionOptions)
+	var option = make([]*options.CreateCollectionOptions, 0, len(opts))
+	for _, opt := range opts {
+		if opt.CreateCollectionOptions != nil {
+			option = append(option, opt.CreateCollectionOptions)
 		}
 	}
-	return db.database.CreateCollection(ctx,name,option...)
+	return db.database.CreateCollection(ctx, name, option...)
 }
