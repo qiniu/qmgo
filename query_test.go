@@ -19,18 +19,23 @@ import (
 	"testing"
 	"time"
 
+	"github.com/qiniu/qmgo/operator"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-
-	"github.com/qiniu/qmgo/operator"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type QueryTestItem struct {
 	Id   primitive.ObjectID `bson:"_id"`
 	Name string             `bson:"name"`
 	Age  int                `bson:"age"`
+
+	Instock []struct {
+		Warehouse string `bson:"warehouse"`
+		Qty       int    `bson:"qty"`
+	} `bson:"instock"`
 }
 
 type QueryTestItem2 struct {
@@ -679,8 +684,13 @@ func TestQuery_Apply(t *testing.T) {
 	docs := []interface{}{
 		bson.M{"_id": id1, "name": "Alice", "age": 18},
 		bson.M{"_id": id2, "name": "Alice", "age": 19},
-		bson.M{"_id": id3, "name": "Lucas", "age": 20},
-	}
+		bson.M{"_id": id3, "name": "Lucas", "age": 20, "instock": []bson.M{
+			{"warehouse": "B", "qty": 15},
+			{"warehouse": "C", "qty": 35},
+			{"warehouse": "E", "qty": 15},
+			{"warehouse": "F", "qty": 45},
+		}}}
+
 	_, _ = cli.InsertMany(context.Background(), docs)
 
 	var err error
@@ -829,6 +839,25 @@ func TestQuery_Apply(t *testing.T) {
 	ast.NoError(err)
 	ast.Equal("", res4.Name)
 	ast.Equal(0, res4.Age)
+
+	var res5 = QueryTestItem{}
+	filter5 := bson.M{"name": "Lucas"}
+	change5 := Change{
+		Update:    bson.M{"$set": bson.M{"instock.$[elem].qty": 100}},
+		ReturnNew: true,
+		ArrayFilters: &options.ArrayFilters{Filters: []interface{}{
+			bson.M{"elem.warehouse": bson.M{"$in": []string{"C", "F"}}},
+		}},
+	}
+	err = cli.Find(context.Background(), filter5).Apply(change5, &res5)
+	ast.NoError(err)
+
+	for _, item := range res5.Instock {
+		switch item.Warehouse {
+		case "C", "F":
+			ast.Equal(100, item.Qty)
+		}
+	}
 }
 
 func TestQuery_BatchSize(t *testing.T) {
@@ -854,4 +883,5 @@ func TestQuery_BatchSize(t *testing.T) {
 	err := cli.Find(context.Background(), bson.M{"name": "Alice"}).BatchSize(1).All(&res)
 	ast.NoError(err)
 	ast.Len(res, 2)
+
 }

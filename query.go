@@ -405,6 +405,10 @@ func (q *Query) findOneAndUpdate(change Change, result interface{}) error {
 		opts.SetReturnDocument(options.After)
 	}
 
+	if change.ArrayFilters != nil {
+		opts.ArrayFilters = change.ArrayFilters
+	}
+
 	err := q.collection.FindOneAndUpdate(q.ctx, q.filter, change.Update, opts).Decode(result)
 	if change.Upsert && !change.ReturnNew && err == mongo.ErrNoDocuments {
 		return nil

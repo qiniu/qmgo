@@ -32,11 +32,12 @@ import "go.mongodb.org/mongo-driver/mongo/options"
 
 // Change holds fields for running a findAndModify command via the Query.Apply method.
 type Change struct {
-	Update    interface{} // update/replace document
-	Replace   bool        // Whether to replace the document rather than updating
-	Remove    bool        // Whether to remove the document found rather than updating
-	Upsert    bool        // Whether to insert in case the document isn't found, take effect when Remove is false
-	ReturnNew bool        // Should the modified document be returned rather than the old one, take effect when Remove is false
+	Update       interface{}           // update/replace document
+	Replace      bool                  // Whether to replace the document rather than updating
+	Remove       bool                  // Whether to remove the document found rather than updating
+	Upsert       bool                  // Whether to insert in case the document isn't found, take effect when Remove is false
+	ReturnNew    bool                  // Should the modified document be returned rather than the old one, take effect when Remove is false
+	ArrayFilters *options.ArrayFilters // Update for arrays filter element
 }
 
 // CursorI Cursor interface
