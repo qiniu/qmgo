@@ -33,6 +33,7 @@ type Query struct {
 	sort            interface{}
 	project         interface{}
 	hint            interface{}
+	arrayFilters    *options.ArrayFilters
 	limit           *int64
 	skip            *int64
 	batchSize       *int64
@@ -86,6 +87,12 @@ func (q *Query) Sort(fields ...string) QueryI {
 	}
 	newQ := q
 	newQ.sort = sorts
+	return newQ
+}
+
+func (q *Query) SetArrayFilters(filter *options.ArrayFilters) QueryI {
+	newQ := q
+	newQ.arrayFilters = filter
 	return newQ
 }
 
@@ -405,8 +412,8 @@ func (q *Query) findOneAndUpdate(change Change, result interface{}) error {
 		opts.SetReturnDocument(options.After)
 	}
 
-	if change.ArrayFilters != nil {
-		opts.ArrayFilters = change.ArrayFilters
+	if q.arrayFilters != nil {
+		opts.ArrayFilters = q.arrayFilters
 	}
 
 	err := q.collection.FindOneAndUpdate(q.ctx, q.filter, change.Update, opts).Decode(result)

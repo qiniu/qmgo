@@ -845,17 +845,18 @@ func TestQuery_Apply(t *testing.T) {
 	change5 := Change{
 		Update:    bson.M{"$set": bson.M{"instock.$[elem].qty": 100}},
 		ReturnNew: true,
-		ArrayFilters: &options.ArrayFilters{Filters: []interface{}{
-			bson.M{"elem.warehouse": bson.M{"$in": []string{"C", "F"}}},
-		}},
 	}
-	err = cli.Find(context.Background(), filter5).Apply(change5, &res5)
+	err = cli.Find(context.Background(), filter5).SetArrayFilters(&options.ArrayFilters{Filters: []interface{}{
+		bson.M{"elem.warehouse": bson.M{"$in": []string{"C", "F"}}},
+	}}).Apply(change5, &res5)
 	ast.NoError(err)
 
 	for _, item := range res5.Instock {
 		switch item.Warehouse {
 		case "C", "F":
 			ast.Equal(100, item.Qty)
+		case "B", "E":
+			ast.Equal(15, item.Qty)
 		}
 	}
 }
