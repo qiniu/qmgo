@@ -175,6 +175,7 @@ func client(ctx context.Context, opt *opts.ClientOptions) (client *mongo.Client,
 // - Check the validity of the configuration in the uri, while the configuration in the setter is basically not checked
 func newConnectOpts(conf *Config, o ...options.ClientOptions) (*opts.ClientOptions, error) {
 	option := opts.Client()
+	option.ApplyURI(conf.Uri)
 	for _, apply := range o {
 		option = opts.MergeClientOptions(apply.ClientOptions)
 	}
@@ -209,7 +210,6 @@ func newConnectOpts(conf *Config, o ...options.ClientOptions) (*opts.ClientOptio
 		}
 		option.SetAuth(auth)
 	}
-	option.ApplyURI(conf.Uri)
 
 	return option, nil
 }
