@@ -423,7 +423,7 @@ func (q *Query) findOneAndUpdate(change Change, result interface{}) error {
 	}
 
 	if q.arrayFilters != nil {
-		opts.ArrayFilters = q.arrayFilters
+		opts.SetArrayFilters(*q.arrayFilters)
 	}
 
 	err := q.collection.FindOneAndUpdate(q.ctx, q.filter, change.Update, opts).Decode(result)
