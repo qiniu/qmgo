@@ -33,6 +33,7 @@ type Query struct {
 	sort            interface{}
 	project         interface{}
 	hint            interface{}
+	arrayFilters    *options.ArrayFilters
 	limit           *int64
 	skip            *int64
 	batchSize       *int64
@@ -86,6 +87,22 @@ func (q *Query) Sort(fields ...string) QueryI {
 	}
 	newQ := q
 	newQ.sort = sorts
+	return newQ
+}
+
+//  SetArrayFilter use for apply update array
+//  For Example :
+//  var res = QueryTestItem{}
+//  change := Change{
+//	Update:    bson.M{"$set": bson.M{"instock.$[elem].qty": 100}},
+//	ReturnNew: false,
+//  }
+//  cli.Find(context.Background(), bson.M{"name": "Lucas"}).
+//      SetArrayFilters(&options.ArrayFilters{Filters: []interface{}{bson.M{"elem.warehouse": bson.M{"$in": []string{"C", "F"}}},}}).
+//        Apply(change, &res)
+func (q *Query) SetArrayFilters(filter *options.ArrayFilters) QueryI {
+	newQ := q
+	newQ.arrayFilters = filter
 	return newQ
 }
 
@@ -403,6 +420,10 @@ func (q *Query) findOneAndUpdate(change Change, result interface{}) error {
 	}
 	if change.ReturnNew {
 		opts.SetReturnDocument(options.After)
+	}
+
+	if q.arrayFilters != nil {
+		opts.SetArrayFilters(*q.arrayFilters)
 	}
 
 	err := q.collection.FindOneAndUpdate(q.ctx, q.filter, change.Update, opts).Decode(result)

@@ -51,6 +51,7 @@ type CursorI interface {
 // QueryI Query interface
 type QueryI interface {
 	Collation(collation *options.Collation) QueryI
+	SetArrayFilters(*options.ArrayFilters) QueryI
 	Sort(fields ...string) QueryI
 	Select(selector interface{}) QueryI
 	Skip(n int64) QueryI
