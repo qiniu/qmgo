@@ -540,6 +540,64 @@ func generateDroppedIndex(index []string) string {
 	return res
 }
 
+// ListIndex returns all indexes in collection
+func (c *Collection) ListIndexes(ctx context.Context) ([]opts.IndexModel, error) {
+	cursor, err := c.collection.Indexes().List(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var indexInfos []bson.M
+	err = cursor.All(ctx, &indexInfos)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]opts.IndexModel, 0, len(indexInfos))
+	for _, indexInfo := range indexInfos {
+		model, err := transIndexInfoToIndexModel(indexInfo)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, model)
+	}
+	return res, err
+}
+
+// transIndexInfoToIndexModel transfer bson.M to qmgo opts.IndexModel
+func transIndexInfoToIndexModel(indexInfo bson.M) (opts.IndexModel, error) {
+	bytes, err := bson.Marshal(indexInfo)
+	res := opts.IndexModel{}
+	if err != nil {
+		return res, err
+	}
+
+	indexOptions := options.IndexOptions{}
+	err = bson.Unmarshal(bytes, &indexOptions)
+	if err != nil {
+		return res, err
+	}
+
+	indexName := indexInfo["name"].(string)
+	keySlice := make([]string, 0)
+	if indexName == "_id_" {
+		keySlice = append(keySlice, "_id")
+	} else {
+		sortFields := strings.Split(indexName, "_")
+		for i := 0; i < len(sortFields); i += 2 {
+			field := sortFields[i]
+			if sortFields[i+1] == "-1" {
+				field = fmt.Sprintf("-%s", field)
+			}
+			keySlice = append(keySlice, field)
+		}
+	}
+	res.Key = keySlice
+	res.IndexOptions = &indexOptions
+	return res, nil
+}
+
 // DropCollection drops collection
 // it's safe even collection is not exists
 func (c *Collection) DropCollection(ctx context.Context) error {

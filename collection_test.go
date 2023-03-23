@@ -174,6 +174,32 @@ func TestCollection_DropIndex(t *testing.T) {
 	ast.Error(err)
 }
 
+func TestCollection_ListIndexes(t *testing.T) {
+	ast := require.New(t)
+
+	cli := initClient("test")
+	defer cli.DropCollection(context.Background())
+
+	unique := []string{"id1"}
+	common := []string{"id2,id3", "id4,-id5"}
+	cli.EnsureIndexes(context.Background(), unique, common)
+
+	indexes, err := cli.ListIndexes(context.Background())
+	indexKeys := make([][]string, 0, len(indexes))
+	for _, index := range indexes {
+		indexKeys = append(indexKeys, index.Key)
+	}
+	ast.NoError(err)
+	ast.Equal(4, len(indexes))
+	ast.Contains(indexKeys, []string{"_id"})
+	ast.Contains(indexKeys, []string{"id1"})
+	ast.Contains(indexKeys, []string{"id2", "id3"})
+	ast.Contains(indexKeys, []string{"id4", "-id5"})
+
+	// same index，error
+	ast.Error(cli.EnsureIndexes(context.Background(), nil, unique))
+}
+
 func TestCollection_Insert(t *testing.T) {
 	ast := require.New(t)
 

@@ -51,9 +51,14 @@ func TestDatabase(t *testing.T) {
 	ast.Equal(dbName, cli.GetDatabaseName())
 	coll := cli.Collection(collName)
 	ast.Equal(collName, coll.GetCollectionName())
+	res, err := coll.InsertOne(context.Background(), bson.D{{Key: "x", Value: 1}})
+	ast.NoError(err)
+	ast.NotNil(res)
+	collNames, err := cli.ListCollectionNames(context.Background())
+	ast.NoError(err)
+	ast.Contains(collNames, collName)
 	cli.Collection(collName).DropCollection(context.Background())
 	cli.DropDatabase(context.Background())
-
 }
 
 func TestRunCommand(t *testing.T) {
