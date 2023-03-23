@@ -17,6 +17,7 @@ import (
 	"context"
 
 	opts "github.com/qiniu/qmgo/options"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/bsoncodec"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -48,6 +49,11 @@ func (d *Database) GetDatabaseName() string {
 // DropDatabase drops database
 func (d *Database) DropDatabase(ctx context.Context) error {
 	return d.database.Drop(ctx)
+}
+
+// ListCollections lists all collections in the database.
+func (d *Database) ListCollectionNames(ctx context.Context) ([]string, error) {
+	return d.database.ListCollectionNames(ctx, bson.D{}, nil)
 }
 
 // RunCommand executes the given command against the database.
