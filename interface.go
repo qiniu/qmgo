@@ -41,7 +41,7 @@ type Change struct {
 
 // CursorI Cursor interface
 type CursorI interface {
-	Next(result interface{}) bool
+	Next(result interface{}) error
 	Close() error
 	Err() error
 	All(results interface{}) error

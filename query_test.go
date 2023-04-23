@@ -599,11 +599,11 @@ func TestQuery_Cursor(t *testing.T) {
 	ast.NotNil(cursor)
 
 	val := cursor.Next(&res)
-	ast.Equal(true, val)
+	ast.Nil(val)
 	ast.Equal(id2, res.Id)
 
 	val = cursor.Next(&res)
-	ast.Equal(false, val)
+	ast.NotNil(val)
 
 	filter2 := bson.M{
 		"name": "Lily",
@@ -615,7 +615,7 @@ func TestQuery_Cursor(t *testing.T) {
 
 	res = QueryTestItem{}
 	val = cursor.Next(&res)
-	ast.Equal(false, val)
+	ast.NotNil(val)
 	ast.Empty(res)
 
 	filter3 := 1

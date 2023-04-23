@@ -56,11 +56,11 @@ func TestCursor(t *testing.T) {
 	ast.NoError(cursor.Err())
 
 	val := cursor.Next(&res)
-	ast.Equal(true, val)
+	ast.Nil(val)
 	ast.Equal(id2, res.Id)
 
 	val = cursor.Next(&res)
-	ast.Equal(false, val)
+	ast.NotNil(val)
 
 	cursor.Close()
 
@@ -82,7 +82,7 @@ func TestCursor(t *testing.T) {
 
 	res = QueryTestItem{}
 	val = cursor.Next(&res)
-	ast.Equal(false, val)
+	ast.NotNil(val)
 	ast.Empty(res)
 
 	cursor.Close()
@@ -94,7 +94,7 @@ func TestCursor(t *testing.T) {
 
 	cursor.Close()
 
-	ast.Equal(false, cursor.Next(&res))
+	ast.NotNil(cursor.Next(&res))
 	ast.NoError(cursor.Err())
 
 	// generate Cursor with err
@@ -103,5 +103,5 @@ func TestCursor(t *testing.T) {
 	//ast.Equal(int64(0), cursor.ID())
 	ast.Error(cursor.All(&res))
 	ast.Error(cursor.Close())
-	ast.Equal(false, cursor.Next(&res))
+	ast.NotNil(cursor.Next(&res))
 }
