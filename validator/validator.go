@@ -5,16 +5,20 @@ import (
 	"reflect"
 	"time"
 
+	vd "github.com/bytedance/go-tagexpr/v2/validator"
 	"github.com/go-playground/validator/v10"
 	"github.com/qiniu/qmgo/operator"
 )
 
 // use a single instance of Validate, it caches struct info
-var validate = validator.New()
+var validate interface{} = validator.New()
 
 // SetValidate let validate can use custom rules
-func SetValidate(v *validator.Validate) {
-	validate = v
+func SetValidate(v interface{}) {
+	switch v.(type) {
+	case *validator.Validate, *vd.Validator:
+		validate = v
+	}
 }
 
 // validatorNeeded checks if the validator is needed to opType
@@ -79,7 +83,13 @@ func do(doc interface{}) error {
 	if !validatorStruct(doc) {
 		return nil
 	}
-	return validate.Struct(doc)
+	switch v := validate.(type) {
+	case *validator.Validate:
+		return v.Struct(doc)
+	case *vd.Validator:
+		return v.Validate(doc)
+	}
+	return nil
 }
 
 // validatorStruct check if kind of doc is validator supported struct
