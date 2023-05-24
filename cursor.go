@@ -32,13 +32,8 @@ func (c *Cursor) Next(result interface{}) error {
 	if c.err != nil {
 		return c.err
 	}
-	var err error
 	if c.cursor.Next(c.ctx) {
-		err = c.cursor.Decode(result)
-		if err != nil {
-			return err
-		}
-		return nil
+		return c.cursor.Decode(result)
 	}
 	return mongo.ErrNoDocuments
 }
