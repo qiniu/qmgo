@@ -26,7 +26,7 @@ type Cursor struct {
 	err    error
 }
 
-// Next gets the next document for this cursor. It returns true if there were no errors and the cursor has not been
+// Next gets the next document for this cursor. It returns errors if there were errors and the cursor has not been
 // exhausted.
 func (c *Cursor) Next(result interface{}) error {
 	if c.err != nil {
