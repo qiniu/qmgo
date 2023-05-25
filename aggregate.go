@@ -63,6 +63,9 @@ func (a *Aggregate) One(result interface{}) error {
 	}
 	defer cr.Close()
 	if !cr.Next(result) {
+		if err := cr.Err(); err != nil {
+			return err
+		}
 		return ErrNoSuchDocuments
 	}
 	return err

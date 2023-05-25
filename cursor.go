@@ -32,12 +32,13 @@ func (c *Cursor) Next(result interface{}) bool {
 	if c.err != nil {
 		return false
 	}
-	var err error
 	if c.cursor.Next(c.ctx) {
-		err = c.cursor.Decode(result)
-		if err == nil {
-			return true
+		err := c.cursor.Decode(result)
+		if err != nil {
+			c.err = err
+			return false
 		}
+		return true
 	}
 	return false
 }
