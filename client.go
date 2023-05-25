@@ -24,7 +24,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/bsoncodec"
 	"go.mongodb.org/mongo-driver/mongo"
-	opts "go.mongodb.org/mongo-driver/mongo/options"
+	officialOpts "go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
@@ -153,7 +153,7 @@ func NewClient(ctx context.Context, conf *Config, o ...options.ClientOptions) (c
 }
 
 // client creates connection to MongoDB
-func client(ctx context.Context, opt *opts.ClientOptions) (client *mongo.Client, err error) {
+func client(ctx context.Context, opt *officialOpts.ClientOptions) (client *mongo.Client, err error) {
 	client, err = mongo.Connect(ctx, opt)
 	if err != nil {
 		fmt.Println(err)
@@ -173,10 +173,10 @@ func client(ctx context.Context, opt *opts.ClientOptions) (client *mongo.Client,
 // Qmgo will follow this way official mongodb driver do：
 // - the configuration in uri takes precedence over the configuration in the setter
 // - Check the validity of the configuration in the uri, while the configuration in the setter is basically not checked
-func newConnectOpts(conf *Config, o ...options.ClientOptions) (*opts.ClientOptions, error) {
-	option := opts.Client()
+func newConnectOpts(conf *Config, o ...options.ClientOptions) (*officialOpts.ClientOptions, error) {
+	option := officialOpts.Client()
 	for _, apply := range o {
-		option = opts.MergeClientOptions(apply.ClientOptions)
+		option = officialOpts.MergeClientOptions(apply.ClientOptions)
 	}
 	if conf.ConnectTimeoutMS != nil {
 		timeoutDur := time.Duration(*conf.ConnectTimeoutMS) * time.Millisecond
@@ -215,7 +215,7 @@ func newConnectOpts(conf *Config, o ...options.ClientOptions) (*opts.ClientOptio
 }
 
 // newAuth create options.Credential from conf.Auth
-func newAuth(auth Credential) (credential opts.Credential, err error) {
+func newAuth(auth Credential) (credential officialOpts.Credential, err error) {
 	if auth.AuthMechanism != "" {
 		credential.AuthMechanism = auth.AuthMechanism
 	}
@@ -288,19 +288,18 @@ func (c *Client) Ping(timeout int64) error {
 
 // Database create connection to database
 func (c *Client) Database(name string, options ...*options.DatabaseOptions) *Database {
-	opts := opts.Database()
-	if len(options) > 0 {
-		if options[0].DatabaseOptions != nil {
-			opts = options[0].DatabaseOptions
-		}
+	opts := make([]*officialOpts.DatabaseOptions, 0, len(options))
+	for _, o := range options {
+		opts = append(opts, o.DatabaseOptions)
 	}
-	return &Database{database: c.client.Database(name, opts), registry: c.registry}
+	databaseOpts := officialOpts.MergeDatabaseOptions(opts...)
+	return &Database{database: c.client.Database(name, databaseOpts), registry: c.registry}
 }
 
 // Session create one session on client
 // Watch out, close session after operation done
 func (c *Client) Session(opt ...*options.SessionOptions) (*Session, error) {
-	sessionOpts := opts.Session()
+	sessionOpts := officialOpts.Session()
 	if len(opt) > 0 && opt[0].SessionOptions != nil {
 		sessionOpts = opt[0].SessionOptions
 	}

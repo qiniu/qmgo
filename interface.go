@@ -72,5 +72,6 @@ type QueryI interface {
 type AggregateI interface {
 	All(results interface{}) error
 	One(result interface{}) error
-	Iter() CursorI
+	Iter() CursorI // Deprecated, please use Cursor instead
+	Cursor() CursorI
 }

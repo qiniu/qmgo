@@ -16,10 +16,10 @@ package qmgo
 import (
 	"context"
 
-	opts "github.com/qiniu/qmgo/options"
+	"github.com/qiniu/qmgo/options"
 	"go.mongodb.org/mongo-driver/bson/bsoncodec"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	officialOpts "go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // Database is a handle to a MongoDB database
@@ -30,9 +30,14 @@ type Database struct {
 }
 
 // Collection gets collection from database
-func (d *Database) Collection(name string) *Collection {
+func (d *Database) Collection(name string, opts ...*options.CollectionOptions) *Collection {
 	var cp *mongo.Collection
-	cp = d.database.Collection(name)
+	var opt = make([]*officialOpts.CollectionOptions, 0, len(opts))
+	for _, o := range opts {
+		opt = append(opt, o.CollectionOptions)
+	}
+	collOpt := officialOpts.MergeCollectionOptions(opt...)
+	cp = d.database.Collection(name, collOpt)
 
 	return &Collection{
 		collection: cp,
@@ -57,8 +62,8 @@ func (d *Database) DropDatabase(ctx context.Context) error {
 // If the command document contains a session ID or any transaction-specific fields, the behavior is undefined.
 //
 // The opts parameter can be used to specify options for this operation (see the options.RunCmdOptions documentation).
-func (d *Database) RunCommand(ctx context.Context, runCommand interface{}, opts ...opts.RunCommandOptions) *mongo.SingleResult {
-	option := options.RunCmd()
+func (d *Database) RunCommand(ctx context.Context, runCommand interface{}, opts ...options.RunCommandOptions) *mongo.SingleResult {
+	option := officialOpts.RunCmd()
 	if len(opts) > 0 && opts[0].RunCmdOptions != nil {
 		option = opts[0].RunCmdOptions
 	}
@@ -71,12 +76,12 @@ func (d *Database) RunCommand(ctx context.Context, runCommand interface{}, opts 
 //
 // The opts parameter can be used to specify options for the operation (see the options.CreateCollectionOptions
 // documentation).
-func (db *Database) CreateCollection(ctx context.Context, name string, opts ...opts.CreateCollectionOptions) error {
-	var option  = make([]*options.CreateCollectionOptions,0,len(opts))
-	for _,opt := range opts{
-		if opt.CreateCollectionOptions != nil{
-			option = append(option,opt.CreateCollectionOptions)
+func (db *Database) CreateCollection(ctx context.Context, name string, opts ...options.CreateCollectionOptions) error {
+	var option = make([]*officialOpts.CreateCollectionOptions, 0, len(opts))
+	for _, opt := range opts {
+		if opt.CreateCollectionOptions != nil {
+			option = append(option, opt.CreateCollectionOptions)
 		}
 	}
-	return db.database.CreateCollection(ctx,name,option...)
+	return db.database.CreateCollection(ctx, name, option...)
 }
