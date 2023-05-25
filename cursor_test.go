@@ -82,7 +82,7 @@ func TestCursor(t *testing.T) {
 
 	res = QueryTestItem{}
 	val = cursor.Next(&res)
-	ast.NotNil(val)
+	ast.Equal(false, val)
 	ast.Empty(res)
 
 	cursor.Close()
