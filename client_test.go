@@ -130,7 +130,8 @@ func TestClient(t *testing.T) {
 	ast.Equal(nil, err)
 
 	opts := &options.DatabaseOptions{DatabaseOptions: officialOpts.Database().SetReadPreference(readpref.PrimaryPreferred())}
-	coll := c.Database("qmgotest", opts).Collection("testopen")
+	cOpts := &options.CollectionOptions{CollectionOptions: officialOpts.Collection().SetReadPreference(readpref.PrimaryPreferred())}
+	coll := c.Database("qmgotest", opts).Collection("testopen", cOpts)
 
 	res, err := coll.InsertOne(context.Background(), bson.D{{Key: "x", Value: 1}})
 	ast.NoError(err)
