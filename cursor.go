@@ -26,16 +26,22 @@ type Cursor struct {
 	err    error
 }
 
-// Next gets the next document for this cursor. It returns errors if there were errors and the cursor has not been
+// Next gets the next document for this cursor. It returns true if there were no errors and the cursor has not been
 // exhausted.
-func (c *Cursor) Next(result interface{}) error {
+func (c *Cursor) Next(result interface{}) bool {
 	if c.err != nil {
-		return c.err
+		return false
 	}
+	var err error
 	if c.cursor.Next(c.ctx) {
-		return c.cursor.Decode(result)
+		err = c.cursor.Decode(result)
+		if err != nil {
+			c.err = err
+			return false
+		}
+		return true
 	}
-	return mongo.ErrNoDocuments
+	return false
 }
 
 // All iterates the cursor and decodes each document into results. The results parameter must be a pointer to a slice.

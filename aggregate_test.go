@@ -105,12 +105,12 @@ func TestAggregate(t *testing.T) {
 
 	ct := i.Next(&oneInfo)
 	ast.Equal(true, oneInfo["_id"] == "Alice" || oneInfo["_id"] == "Lucas")
-	ast.Nil(ct)
+	ast.Equal(true, ct)
 	ct = i.Next(&oneInfo)
 	ast.Equal(true, oneInfo["_id"] == "Alice" || oneInfo["_id"] == "Lucas")
-	ast.Nil(ct)
+	ast.Equal(true, ct)
 	ct = i.Next(&oneInfo)
-	ast.NotNil(ct)
+	ast.Equal(false, ct)
 
 	// err
 	ast.Error(cli.Aggregate(context.Background(), 1).All(&showsWithInfo))
