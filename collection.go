@@ -304,6 +304,7 @@ func (c *Collection) ReplaceOne(ctx context.Context, filter interface{}, doc int
 	if len(opts) > 0 {
 		if opts[0].ReplaceOptions != nil {
 			replaceOpts = opts[0].ReplaceOptions
+			replaceOpts.SetUpsert(false)
 		}
 		if opts[0].UpdateHook != nil {
 			h = opts[0].UpdateHook
