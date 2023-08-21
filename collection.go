@@ -121,9 +121,9 @@ func interfaceToSliceInterface(docs interface{}) []interface{} {
 	if arrValue.Kind() != reflect.Slice && arrValue.Kind() != reflect.Array {
 		return nil
 	}
-	if reflect.Slice != reflect.TypeOf(docs).Kind() {
-		return nil
-	}
+	//if reflect.Slice != reflect.TypeOf(docs).Kind() {
+	//	return nil
+	//}
 	s := reflect.ValueOf(docs)
 	if s.Len() == 0 {
 		return nil
