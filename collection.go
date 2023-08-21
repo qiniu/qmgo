@@ -121,16 +121,12 @@ func interfaceToSliceInterface(docs interface{}) []interface{} {
 	if arrValue.Kind() != reflect.Slice && arrValue.Kind() != reflect.Array {
 		return nil
 	}
-	//if reflect.Slice != reflect.TypeOf(docs).Kind() {
-	//	return nil
-	//}
-	s := reflect.ValueOf(docs)
-	if s.Len() == 0 {
+	if arrValue.Len() == 0 {
 		return nil
 	}
 	var sDocs []interface{}
-	for i := 0; i < s.Len(); i++ {
-		sDocs = append(sDocs, s.Index(i).Interface())
+	for i := 0; i < arrValue.Len(); i++ {
+		sDocs = append(sDocs, arrValue.Index(i).Interface())
 	}
 	return sDocs
 }
