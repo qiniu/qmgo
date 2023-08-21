@@ -40,7 +40,7 @@ var (
 	// ErrNotSupportedPassword return if password is invalid
 	ErrNotSupportedPassword = errors.New("password not supported")
 	// ErrNotValidSliceToInsert return if insert argument is not valid slice
-	ErrNotValidSliceToInsert = errors.New("must be valid slice to insert")
+	ErrNotValidSliceToInsert = errors.New("must be valid slice or array to insert")
 	// ErrReplacementContainUpdateOperators return if replacement document contain update operators
 	ErrReplacementContainUpdateOperators = errors.New("replacement document cannot contain keys beginning with '$'")
 )

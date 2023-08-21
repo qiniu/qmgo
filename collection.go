@@ -114,6 +114,13 @@ func (c *Collection) InsertMany(ctx context.Context, docs interface{}, opts ...o
 
 // interfaceToSliceInterface convert interface to slice interface
 func interfaceToSliceInterface(docs interface{}) []interface{} {
+	arrValue := reflect.ValueOf(docs)
+	if arrValue.Kind() != reflect.Slice {
+		arrValue = arrValue.Elem()
+	}
+	if arrValue.Kind() != reflect.Slice && arrValue.Kind() != reflect.Array {
+		return nil
+	}
 	if reflect.Slice != reflect.TypeOf(docs).Kind() {
 		return nil
 	}
