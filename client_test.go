@@ -21,6 +21,7 @@ import (
 	"github.com/qiniu/qmgo/options"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 	officialOpts "go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
@@ -136,7 +137,27 @@ func TestClient(t *testing.T) {
 	res, err := coll.InsertOne(context.Background(), bson.D{{Key: "x", Value: 1}})
 	ast.NoError(err)
 	ast.NotNil(res)
-	coll.DropCollection(context.Background())
+	err = coll.DropCollection(context.Background())
+	ast.NoError(err)
+}
+
+func TestNewClientFromDriver(t *testing.T) {
+	ast := require.New(t)
+
+	driverCli, err := mongo.NewClient(officialOpts.Client().ApplyURI("mongodb://localhost:27017/qmgotest"))
+	ast.NoError(err)
+
+	c := NewClientFromDriver(driverCli)
+
+	opts := &options.DatabaseOptions{DatabaseOptions: officialOpts.Database().SetReadPreference(readpref.PrimaryPreferred())}
+	cOpts := &options.CollectionOptions{CollectionOptions: officialOpts.Collection().SetReadPreference(readpref.PrimaryPreferred())}
+	coll := c.Database("qmgotest", opts).Collection("testdriverclient", cOpts)
+
+	res, err := coll.InsertOne(context.Background(), bson.D{{Key: "y", Value: 1}})
+	ast.NoError(err)
+	ast.NotNil(res)
+	err = coll.DropCollection(context.Background())
+	ast.NoError(err)
 }
 
 func TestClient_ServerVersion(t *testing.T) {
