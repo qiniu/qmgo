@@ -76,3 +76,8 @@ func (c *Cursor) Err() error {
 	}
 	return c.cursor.Err()
 }
+
+// AsMongoDriver exposes the ofiicial mongo driver `mongo.Cursor` for senior use
+func (c *Cursor) AsMongoDriver() *mongo.Cursor {
+	return c.cursor
+}

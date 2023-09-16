@@ -576,3 +576,8 @@ func translateUpdateResult(res *mongo.UpdateResult) (result *UpdateResult) {
 	}
 	return
 }
+
+// AsMongoDriver exposes the ofiicial mongo driver `mongo.Collection` for senior use
+func (c *Collection) AsMongoDriver() *mongo.Collection {
+	return c.collection
+}
