@@ -312,12 +312,12 @@ func (c *Client) Session(opt ...*options.SessionOptions) (*Session, error) {
 // - version of mongoDB server >= v4.0
 // - Topology of mongoDB server is not Single
 // At the same time, please pay attention to the following
-// - make sure all operations in callback use the sessCtx as context parameter
-// - if operations in callback takes more than(include equal) 120s, the operations will not take effect,
-// - if operation in callback return qmgo.ErrTransactionRetry,
-//   the whole transaction will retry, so this transaction must be idempotent
-// - if operations in callback return qmgo.ErrTransactionNotSupported,
-// - If the ctx parameter already has a Session attached to it, it will be replaced by this session.
+//   - make sure all operations in callback use the sessCtx as context parameter
+//   - if operations in callback takes more than(include equal) 120s, the operations will not take effect,
+//   - if operation in callback return qmgo.ErrTransactionRetry,
+//     the whole transaction will retry, so this transaction must be idempotent
+//   - if operations in callback return qmgo.ErrTransactionNotSupported,
+//   - If the ctx parameter already has a Session attached to it, it will be replaced by this session.
 func (c *Client) DoTransaction(ctx context.Context, callback func(sessCtx context.Context) (interface{}, error), opts ...*options.TransactionOptions) (interface{}, error) {
 	if !c.transactionAllowed() {
 		return nil, ErrTransactionNotSupported
@@ -367,4 +367,9 @@ func (c *Client) transactionAllowed() bool {
 	//	return false
 	//}
 	return true
+}
+
+// AsMongoDriver exposes the ofiicial mongo driver `mongo.Database` for senior use
+func (c *Client) AsMongoDriver() *mongo.Client {
+	return c.client
 }
