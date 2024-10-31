@@ -240,7 +240,6 @@ func (q *Query) All(result interface{}) error {
 // Count count the number of eligible entries
 func (q *Query) Count(opts ...*options.CountOptions) (n int64, err error) {
 	opt := options.MergeCountOptions(opts...)
-
 	if q.limit != nil {
 		opt.SetLimit(*q.limit)
 	}
