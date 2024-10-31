@@ -60,8 +60,8 @@ type QueryI interface {
 	Limit(n int64) QueryI
 	One(result interface{}) error
 	All(result interface{}) error
-	Count() (n int64, err error)
-	EstimatedCount() (n int64, err error)
+	Count(opts ...*options.CountOptions) (n int64, err error)
+	EstimatedCount(opts ...*options.EstimatedDocumentCountOptions) (n int64, err error)
 	Distinct(key string, result interface{}) error
 	Cursor() CursorI
 	Apply(change Change, result interface{}) error
