@@ -90,16 +90,16 @@ func (q *Query) Sort(fields ...string) QueryI {
 	return newQ
 }
 
-//  SetArrayFilter use for apply update array
-//  For Example :
-//  var res = QueryTestItem{}
-//  change := Change{
-//	Update:    bson.M{"$set": bson.M{"instock.$[elem].qty": 100}},
-//	ReturnNew: false,
-//  }
-//  cli.Find(context.Background(), bson.M{"name": "Lucas"}).
-//      SetArrayFilters(&options.ArrayFilters{Filters: []interface{}{bson.M{"elem.warehouse": bson.M{"$in": []string{"C", "F"}}},}}).
-//        Apply(change, &res)
+//	 SetArrayFilter use for apply update array
+//	 For Example :
+//	 var res = QueryTestItem{}
+//	 change := Change{
+//		Update:    bson.M{"$set": bson.M{"instock.$[elem].qty": 100}},
+//		ReturnNew: false,
+//	 }
+//	 cli.Find(context.Background(), bson.M{"name": "Lucas"}).
+//	     SetArrayFilters(&options.ArrayFilters{Filters: []interface{}{bson.M{"elem.warehouse": bson.M{"$in": []string{"C", "F"}}},}}).
+//	       Apply(change, &res)
 func (q *Query) SetArrayFilters(filter *options.ArrayFilters) QueryI {
 	newQ := q
 	newQ.arrayFilters = filter
@@ -238,8 +238,8 @@ func (q *Query) All(result interface{}) error {
 }
 
 // Count count the number of eligible entries
-func (q *Query) Count() (n int64, err error) {
-	opt := options.Count()
+func (q *Query) Count(opts ...*options.CountOptions) (n int64, err error) {
+	opt := options.MergeCountOptions(opts...)
 
 	if q.limit != nil {
 		opt.SetLimit(*q.limit)
@@ -252,8 +252,10 @@ func (q *Query) Count() (n int64, err error) {
 }
 
 // EstimatedCount count the number of the collection by using the metadata
-func (q *Query) EstimatedCount() (n int64, err error) {
-	return q.collection.EstimatedDocumentCount(q.ctx)
+func (q *Query) EstimatedCount(opts ...*options.EstimatedDocumentCountOptions) (n int64, err error) {
+	co := options.MergeEstimatedDocumentCountOptions(opts...)
+
+	return q.collection.EstimatedDocumentCount(q.ctx, co)
 }
 
 // Distinct gets the unique value of the specified field in the collection and return it in the form of slice
