@@ -50,6 +50,82 @@ func initTransactionClient(coll string) *QmgoClient {
 	return qClient
 
 }
+
+func TestClient_AsyncTransaction(t *testing.T) {
+	ast := require.New(t)
+	ctx := context.Background()
+	cli := initTransactionClient("test")
+	defer cli.DropDatabase(ctx)
+
+	session, err := cli.Session()
+	if err != nil {
+		ast.NoError(err)
+	}
+
+	defer session.EndSession(ctx)
+
+	sCtx, err := session.StartAsyncTransaction(ctx)
+	if err != nil {
+		ast.NoError(err)
+	}
+
+	if _, err := cli.InsertOne(sCtx, bson.D{{"abc", int32(1)}}); err != nil {
+		ast.NoError(err)
+	}
+	if _, err := cli.InsertOne(sCtx, bson.D{{"xyz", int32(999)}}); err != nil {
+		ast.NoError(err)
+	}
+
+	if err := session.CommitAsyncTransaction(sCtx); err != nil {
+		ast.NoError(err)
+	}
+
+	r := bson.M{}
+	cli.Find(ctx, bson.M{"abc": 1}).One(&r)
+	ast.Equal(r["abc"], int32(1))
+
+	cli.Find(ctx, bson.M{"xyz": 999}).One(&r)
+	ast.Equal(r["xyz"], int32(999))
+}
+
+func TestClient_AsyncAbortTransaction(t *testing.T) {
+	ast := require.New(t)
+	ctx := context.Background()
+	cli := initTransactionClient("test")
+	defer cli.DropDatabase(ctx)
+	session, err := cli.Session()
+	if err != nil {
+		ast.NoError(err)
+	}
+
+	sCtx, err := session.StartAsyncTransaction(ctx)
+	if err != nil {
+		ast.NoError(err)
+	}
+
+	defer session.EndSession(ctx)
+	defer session.AbortAsyncTransaction(sCtx)
+
+	if _, err := cli.InsertOne(sCtx, bson.D{{"abc", int32(1)}}); err != nil {
+		ast.NoError(err)
+	}
+
+	if _, err := cli.InsertOne(sCtx, bson.D{{"xyz", int32(999)}}); err != nil {
+		ast.NoError(err)
+	}
+
+	if err := session.AbortAsyncTransaction(sCtx); err != nil {
+		ast.NoError(err)
+	}
+
+	r := bson.M{}
+	cli.Find(ctx, bson.M{"abc": 1}).One(&r)
+	ast.Empty(r)
+
+	cli.Find(ctx, bson.M{"xyz": 999}).One(&r)
+	ast.Empty(r)
+}
+
 func TestClient_DoTransaction(t *testing.T) {
 	ast := require.New(t)
 	ctx := context.Background()
