@@ -85,3 +85,8 @@ func (db *Database) CreateCollection(ctx context.Context, name string, opts ...o
 	}
 	return db.database.CreateCollection(ctx, name, option...)
 }
+
+// AsMongoDriver exposes the ofiicial mongo driver `mongo.Database` for senior use
+func (db *Database) AsMongoDriver() *mongo.Database {
+	return db.database
+}
