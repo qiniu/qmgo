@@ -28,17 +28,17 @@ type Session struct {
 }
 
 // StartTransaction starts transaction
-//precondition：
-//- version of mongoDB server >= v4.0
-//- Topology of mongoDB server is not Single
-//At the same time, please pay attention to the following
-//- make sure all operations in callback use the sessCtx as context parameter
-//- Dont forget to call EndSession if session is not used anymore
-//- if operations in callback takes more than(include equal) 120s, the operations will not take effect,
-//- if operation in callback return qmgo.ErrTransactionRetry,
-//  the whole transaction will retry, so this transaction must be idempotent
-//- if operations in callback return qmgo.ErrTransactionNotSupported,
-//- If the ctx parameter already has a Session attached to it, it will be replaced by this session.
+// precondition：
+// - version of mongoDB server >= v4.0
+// - Topology of mongoDB server is not Single
+// At the same time, please pay attention to the following
+//   - make sure all operations in callback use the sessCtx as context parameter
+//   - Dont forget to call EndSession if session is not used anymore
+//   - if operations in callback takes more than(include equal) 120s, the operations will not take effect,
+//   - if operation in callback return qmgo.ErrTransactionRetry,
+//     the whole transaction will retry, so this transaction must be idempotent
+//   - if operations in callback return qmgo.ErrTransactionNotSupported,
+//   - If the ctx parameter already has a Session attached to it, it will be replaced by this session.
 func (s *Session) StartTransaction(ctx context.Context, cb func(sessCtx context.Context) (interface{}, error), opts ...*opts.TransactionOptions) (interface{}, error) {
 	transactionOpts := options.Transaction()
 	if len(opts) > 0 && opts[0].TransactionOptions != nil {
@@ -49,6 +49,27 @@ func (s *Session) StartTransaction(ctx context.Context, cb func(sessCtx context.
 		return nil, err
 	}
 	return result, nil
+}
+
+func (s *Session) StartAsyncTransaction(ctx context.Context, opts ...*opts.TransactionOptions) (context.Context, error) {
+	transactionOpts := options.Transaction()
+	if len(opts) > 0 && opts[0].TransactionOptions != nil {
+		transactionOpts = opts[0].TransactionOptions
+	}
+
+	sCtx := mongo.NewSessionContext(ctx, s.session)
+
+	err := s.session.StartTransaction(transactionOpts)
+
+	return sCtx, err
+}
+
+func (s *Session) CommitAsyncTransaction(ctx context.Context) error {
+	return s.session.CommitTransaction(ctx)
+}
+
+func (s *Session) AbortAsyncTransaction(ctx context.Context) error {
+	return s.session.AbortTransaction(ctx)
 }
 
 // EndSession will abort any existing transactions and close the session.
