@@ -45,6 +45,11 @@ func (d *Database) Collection(name string, opts ...*options.CollectionOptions) *
 	}
 }
 
+// ListCollections lists all collections in the database.
+func (d *Database) ListCollections(ctx context.Context, filter interface{}, opts ...*officialOpts.ListCollectionsOptions) ([]string, error) {
+	return d.database.ListCollectionNames(ctx, filter, opts...)
+}
+
 // GetDatabaseName returns the name of database
 func (d *Database) GetDatabaseName() string {
 	return d.database.Name()
