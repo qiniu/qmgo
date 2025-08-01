@@ -368,3 +368,8 @@ func (c *Client) transactionAllowed() bool {
 	//}
 	return true
 }
+
+// AsMongoDriver exposes the ofiicial mongo driver `mongo.Database` for senior use
+func (c *Client) AsMongoDriver() *mongo.Client {
+	return c.client
+}
